@@ -17,7 +17,7 @@ Route::middleware('auth:sanctum')->group(function () {
     // Protected routes go here
 
     Route::post('/verify-otp', [AuthController::class, 'verifyOtp']);
-    Route::post('/resend-otp', [AuthController::class, 'resendOtp']);
+    Route::post('/resend-otp', [AuthController::class, 'resendOtp'])->middleware('throttle:3,1'); // Limit to 3 requests per minute
 
     Route::post('/logout', [AuthController::class, 'logout']);
 });
