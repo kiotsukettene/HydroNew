@@ -8,11 +8,14 @@ namespace App\Models;
 
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Notifications\Notifiable;
+use Laravel\Sanctum\HasApiTokens;
 
 /**
  * Class User
- * 
+ *
  * @property int $id
  * @property string $first_name
  * @property string $last_name
@@ -25,7 +28,7 @@ use Illuminate\Database\Eloquent\Model;
  * @property string|null $remember_token
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
- * 
+ *
  * @property Collection|Device[] $devices
  * @property Collection|Notification[] $notifications
  *
@@ -33,6 +36,8 @@ use Illuminate\Database\Eloquent\Model;
  */
 class User extends Model
 {
+
+    use HasFactory, Notifiable, HasApiTokens;
 	protected $table = 'users';
 
 	protected $casts = [
