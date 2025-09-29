@@ -170,7 +170,8 @@ class AuthController extends Controller
     {
         // Handle user logout
         $request->user()->tokens()->delete();
-
+        $request->user()->first_time_login = 0;
+        $request->user()->save();
         return [
             'message' => 'You are logged out'
         ];
