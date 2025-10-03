@@ -18,7 +18,14 @@ export default function RootLayout() {
   return (
     <ThemeProvider value={NAV_THEME[colorScheme ?? 'light']}>
       <StatusBar style={colorScheme === 'dark' ? 'light' : 'dark'} />
-      <Stack />
+       {/* 👇 The Stack Navigator for all auth screens */}
+      <Stack
+        screenOptions={{
+          headerShown: false, // hide headers for welcome/signup
+        }}
+      >
+        {/* The router will automatically find the screens in /app folder */}
+      </Stack>
       <PortalHost />
     </ThemeProvider>
   );
