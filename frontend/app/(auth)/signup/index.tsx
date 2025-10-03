@@ -1,77 +1,58 @@
-// app/signup/index.tsx
-import { View, Text, StyleSheet, TextInput, TouchableOpacity } from 'react-native';
-import { useState } from 'react';
-import { router } from 'expo-router';
+import { View } from "react-native";
+import { useState } from "react";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Text } from "@/components/ui/text";
+import { Link, useRouter } from "expo-router";
 
 export default function SignUp() {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+
+  const router = useRouter()
 
   const handleSignUp = () => {
-    // Add your sign up logic here
-    console.log('Signing up with:', email, password);
-    // After success:
-    // router.push('/signup/terms'); // if you have a terms page
+    console.log("Signing up with:", email, password);
+    router.push('/(auth)/first-time/welcome-first-time')
   };
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Create an Account</Text>
+    <View className="flex-1 bg-green-50 px-6 justify-center">
+      {/* Title */}
+      <Text className="text-3xl font-bold text-primary text-center mb-6">
+        Create an Account
+      </Text>
 
-      <TextInput
-        style={styles.input}
-        placeholder="Email"
-        keyboardType="email-address"
+      {/* Email Field */}
+      <Input
+        placeholder="Enter your email"
         value={email}
         onChangeText={setEmail}
+        keyboardType="email-address"
+        className="mb-4"
       />
 
-      <TextInput
-        style={styles.input}
-        placeholder="Password"
-        secureTextEntry
+      {/* Password Field */}
+      <Input
+        placeholder="Enter your password"
         value={password}
         onChangeText={setPassword}
+        secureTextEntry
+        className="mb-6"
       />
 
-      <TouchableOpacity style={styles.button} onPress={handleSignUp}>
-        <Text style={styles.buttonText}>Sign Up</Text>
-      </TouchableOpacity>
+      {/* Sign Up Button */}
+      <Button
+        onPress={handleSignUp}
+      >
+        <Text> Sign Up</Text>
+      </Button>
+
+      <Link href="/login" asChild>
+        <Text className="text-center text-sm text-muted-foreground">
+          Already have an account? <Text className="text-primary">Login</Text>
+        </Text>
+      </Link>
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#fff',
-    padding: 24,
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    marginBottom: 30,
-  },
-  input: {
-    width: '100%',
-    height: 50,
-    borderWidth: 1,
-    borderColor: '#ccc',
-    borderRadius: 8,
-    paddingHorizontal: 10,
-    marginBottom: 15,
-  },
-  button: {
-    backgroundColor: '#4CAF50',
-    paddingVertical: 14,
-    paddingHorizontal: 50,
-    borderRadius: 10,
-    marginTop: 10,
-  },
-  buttonText: {
-    color: '#fff',
-    fontWeight: 'bold',
-  },
-});
