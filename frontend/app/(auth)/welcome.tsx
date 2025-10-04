@@ -1,40 +1,47 @@
 import React from "react";
-import { View, Text, TouchableOpacity, Image } from "react-native";
-import { Link } from "expo-router";
+import { View, Text, Image } from "react-native";
+import { useNavigation } from "@react-navigation/native";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { Button } from "@/components/ui/button";
 
-export default function WelcomeScreen() {
+const WelcomeScreen = () => {
+  const navigation = useNavigation();
+
   return (
-    <View className="flex-1 bg-green-50 justify-center items-center px-6">
-      {/* Title */}
-      <Text className="text-3xl font-bold text-primary mb-6">
-        Welcome!
-      </Text>
+    <SafeAreaView className="flex-1 bg-white">
+      {/* Content */}
+      <View className="flex-1 justify-center items-center ">
+        {/* Illustration Image */}
+        <Image
+          source={require('@/assets/images/welcome-bg.png')}
+          resizeMode="cover"
+          className="w-72 h-80 mb-8"
+        />
 
-      {/* Temporary Lettuce Icon */}
-      <Image
-        source={{
-          uri: "https://cdn-icons-png.flaticon.com/512/7663/7663303.png",
-        }}
-        className="w-24 h-24 mb-4"
-      />
+        {/* Title */}
+        <Text className="text-3xl font-bold text-center text-gray-900 mb-4">
+          Welcome to HydroNew
+        </Text>
 
-      {/* Tagline */}
-      <Text className="text-center text-primary mb-8">
-        Fresh hydroponic lettuce, right at your fingertips.
-      </Text>
+        {/* Subtitle */}
+        <Text className="text-base text-center text-muted">
+          Monitor your plants, control watering, and keep everything healthy
+          right from your phone.
+        </Text>
+      </View>
 
-      {/* Buttons */}
-      <Link href="/signup" asChild>
-        <TouchableOpacity className="bg-primary px-8 py-3 rounded-lg mb-4">
-          <Text className="text-white font-semibold text-lg">Sign Up</Text>
-        </TouchableOpacity>
-      </Link>
-
-      <Link href="/login" asChild>
-        <TouchableOpacity className="border border-primary px-8 py-3 rounded-lg">
-          <Text className="text-primary font-semibold text-lg">Login</Text>
-        </TouchableOpacity>
-      </Link>
-    </View>
+      {/* Button */}
+      <View className="px-6 pb-10">
+        <Button
+          className="bg-primary "
+        >
+          <Text className="text-foreground ">
+            Get Started
+          </Text>
+        </Button>
+      </View>
+    </SafeAreaView>
   );
-}
+};
+
+export default WelcomeScreen;
