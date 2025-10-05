@@ -1,11 +1,10 @@
 import React from 'react';
 import { View, Text, Image } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Button } from '@/components/ui/button';
+import { Link } from 'expo-router';
 
 const WelcomeScreen = () => {
-  const navigation = useNavigation();
 
   return (
     <View className="flex-1 bg-foreground">
@@ -20,20 +19,22 @@ const WelcomeScreen = () => {
      <SafeAreaView className=' bg-foreground justify-center items-center flex-1 '>
         <View className="flex-[0.8] items-center px-9 justify-center">
           <Text className="mb-2 mt-1 text-center text-3xl font-finger-paint">
-            Welcome to <Text className='font-finger-paint text-primary'>HydroNew</Text>
-            </Text>
+            Welcome to <Text className=" font-finger-paint text-primary">HydroNew</Text>
+          </Text>
           <Text className="text-center text-muted text-xs font-light">
             Sustainable solutions start here — powered by nature and intelligence.
           </Text>
         </View>
 
         <View className="px-6 py-2 mt-4 w-full gap-2">
-          <Button className="bg-primary">
-            <Text className="text-foreground">Get Started</Text>
-          </Button>
+          <Link href={"/signup"} asChild >
+            <Button className="bg-primary">
+              <Text className="text-foreground text-xs">Get Started</Text>
+            </Button>
+          </Link>
 
           <Button variant="outline">
-            <Text>Sign in</Text>
+            <Text className='text-xs'>Sign in</Text>
           </Button>
         </View>
       </SafeAreaView>
