@@ -1,46 +1,43 @@
-import React from "react";
-import { View, Text, Image } from "react-native";
-import { useNavigation } from "@react-navigation/native";
-import { SafeAreaView } from "react-native-safe-area-context";
-import { Button } from "@/components/ui/button";
+import React from 'react';
+import { View, Text, Image } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { Button } from '@/components/ui/button';
 
 const WelcomeScreen = () => {
   const navigation = useNavigation();
 
   return (
-    <SafeAreaView className="flex-1 bg-white">
-      {/* Content */}
-      <View className="flex-1 justify-center items-center ">
-        {/* Illustration Image */}
-        <Image
-          source={require('@/assets/images/welcome-bg.png')}
-          resizeMode="cover"
-          className="w-72 h-80 mb-8"
-        />
+    <View className="flex-1 bg-foreground">
+      {/* Top illustration - full width, no top safe-area padding */}
+      <Image
+        source={require('@/assets/images/welcome-bg.png')}
+        resizeMode="cover"
+        className="h-[380px] w-full rounded-b-3xl"
+      />
 
-        {/* Title */}
-        <Text className="text-3xl font-bold text-center text-gray-900 mb-4">
-          Welcome to HydroNew
-        </Text>
-
-        {/* Subtitle */}
-        <Text className="text-base text-center text-muted">
-          Monitor your plants, control watering, and keep everything healthy
-          right from your phone.
-        </Text>
-      </View>
-
-      {/* Button */}
-      <View className="px-6 pb-10">
-        <Button
-          className="bg-primary "
-        >
-          <Text className="text-foreground ">
-            Get Started
+      {/* Rest of content respects bottom safe-area only */}
+     <SafeAreaView className=' bg-foreground justify-center items-center flex-1 '>
+        <View className="flex-[0.8] items-center px-9 justify-center">
+          <Text className="mb-2 mt-1 text-center text-3xl font-finger-paint">
+            Welcome to <Text className='font-finger-paint text-primary'>HydroNew</Text>
+            </Text>
+          <Text className="text-center text-muted text-xs font-light">
+            Sustainable solutions start here — powered by nature and intelligence.
           </Text>
-        </Button>
-      </View>
-    </SafeAreaView>
+        </View>
+
+        <View className="px-6 py-2 mt-4 w-full gap-2">
+          <Button className="bg-primary">
+            <Text className="text-foreground">Get Started</Text>
+          </Button>
+
+          <Button variant="outline">
+            <Text>Sign in</Text>
+          </Button>
+        </View>
+      </SafeAreaView>
+    </View>
   );
 };
 
