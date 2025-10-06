@@ -72,7 +72,7 @@ export default function SignUp() {
 
               <CardContent className="gap-2.5 px-4">
 
-                
+
                 {/* Full Name */}
                 <View className="gap-1">
                   <Label className="text-muted-foreground font-light text-xs">
@@ -140,9 +140,11 @@ export default function SignUp() {
                   />
                   <Text className="text-xs text-muted-foreground flex-1">
                     By signing up, you agree to the{" "}
+                    <Link href={"/signup/terms"}>
                     <Text className="text-primary text-xs font-medium">
                       Terms and Conditions
                     </Text>.
+                    </Link>
                   </Text>
                 </View>
 

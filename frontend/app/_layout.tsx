@@ -41,8 +41,10 @@ export default function RootLayout() {
     return null;
   }
 
+  
+
   return (
-    <ThemeProvider value={NAV_THEME[colorScheme ?? 'light']}>
+    <ThemeProvider value={NAV_THEME['light']}> 
       <StatusBar style={colorScheme === 'dark' ? 'light' : 'dark'} />
        {/* 👇 The Stack Navigator for all auth screens */}
       <Stack
