@@ -1,40 +1,42 @@
 import React from 'react';
-import { View, Text, Image } from 'react-native';
+import { View, Text, Image, Dimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Button } from '@/components/ui/button';
 import { Link } from 'expo-router';
 
-const WelcomeScreen = () => {
+const { height } = Dimensions.get('window');
 
+const WelcomeScreen = () => {
   return (
     <View className="flex-1 bg-foreground">
-      {/* Top illustration - full width, no top safe-area padding */}
+      {/* Top illustration */}
       <Image
         source={require('@/assets/images/welcome-bg.png')}
         resizeMode="cover"
-        className="h-[380px] w-full rounded-b-3xl"
+        style={{ height: height * 3/5, width: '100%' }}
+        className="rounded-b-3xl"
       />
 
-      {/* Rest of content respects bottom safe-area only */}
-     <SafeAreaView className=' bg-foreground justify-center items-center flex-1 '>
-        <View className="flex-[0.8] items-center px-9 justify-center">
-          <Text className="mb-2 mt-1 text-center text-3xl font-finger-paint">
-            Welcome to <Text className=" font-finger-paint text-primary">HydroNew</Text>
+      <SafeAreaView className="flex-1 justify-between items-center bg-foreground">
+        {/* Text */}
+        <View className="flex-1 justify-center items-center px-6">
+          <Text className="text-3xl font-finger-paint text-center">
+            Welcome to <Text className="text-primary">HydroNew</Text>
           </Text>
-          <Text className="text-center text-muted text-xs font-light">
+          <Text className="text-center text-muted text-xs my-1 font-light">
             Sustainable solutions start here — powered by nature and intelligence.
           </Text>
         </View>
 
-        <View className="px-6 py-2 mt-4 w-full gap-2">
-          <Link href={"/signup"} asChild >
+        {/* Buttons */}
+        <View className="w-full px-6 gap-3 mt-3 mb-6">
+          <Link href="/signup" asChild>
             <Button className="bg-primary">
-              <Text className="text-foreground text-xs">Get Started</Text>
+              <Text className="text-foreground text-sm">Get Started</Text>
             </Button>
           </Link>
-
           <Button variant="outline">
-            <Text className='text-xs'>Sign in</Text>
+            <Text className="text-sm">Sign in</Text>
           </Button>
         </View>
       </SafeAreaView>
