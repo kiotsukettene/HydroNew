@@ -35,7 +35,7 @@ export default function SignUp() {
 
   function onSubmit() {
     console.log("Signing up with:", email, password);
-    router.push("/(auth)/first-time/welcome-first-time");
+    router.push("/signup/email-verification");
   }
 
   return (
@@ -149,10 +149,15 @@ export default function SignUp() {
                 </View>
 
                 {/* Sign Up Button */}
-                <Button className="w-full" onPress={onSubmit}>
-                  <Text className="text-sm">Sign up</Text>
+               <Link href={checked ? "/signup/email-verification" : ""} asChild>
+                <Button
+                  className="w-full"
+                  disabled={!checked}
+                  onPress={onSubmit}
+                >
+                  <Text className="text-foreground text-sm">Sign Up</Text>
                 </Button>
-
+               </Link>
                 {/* Separator */}
                 <View className="flex-row items-center">
                   <Separator className="flex-1 bg-muted-foreground/40" />

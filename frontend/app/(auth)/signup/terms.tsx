@@ -29,7 +29,8 @@ export default function Terms() {
          <Link href={"/signup"} asChild>
           <Button  size="icon" className='bg-secondary' >
             <Icon as={ChevronLeft} />
-          </Button></Link>
+          </Button>
+          </Link>
         </View>
 
         {/* --- FORM SECTION --- */}
