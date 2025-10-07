@@ -18,24 +18,29 @@ import {
 } from '@/components/ui/card';
 import { Text } from '@/components/ui/text';
 import { Input } from '@/components/ui/input';
+import { router } from 'expo-router';
 
-const { width, height } = Dimensions.get('window');
+const { height } = Dimensions.get('window');
 
 export default function EmailVerification() {
   const { countdown, restartCountdown } = useCountdown(30);
-  const [code, setCode] = React.useState(['', '', '', '', '', '']);
+  const [code, setCode] = React.useState('');
 
-  const onChangeDigit = (val: string, idx: number) => {
-    const newCode = [...code];
-    newCode[idx] = val.slice(-1);
-    setCode(newCode);
+  const onChangeCode = (value: string) => {
+    const digitsOnly = value.replace(/\D/g, '').slice(0, 6);
+    setCode(digitsOnly);
   };
 
   const onSubmit = () => {
-    // handle verification
+    if (/^\d{6}$/.test(code)) {
+      router.push('/(auth)/signup/verification-success');
+    } else {
+      // invalid or incomplete code; optionally show a toast/snackbar here
+      console.warn('Please enter a valid 6-digit code');
+    }
   };
 
-  
+
   return (
     <SafeAreaView className="items-center justify-center flex-1 bg-foreground">
 
@@ -69,6 +74,9 @@ export default function EmailVerification() {
                 keyboardType="numeric"
                 autoComplete="sms-otp"
                 textContentType="oneTimeCode"
+                value={code}
+                onChangeText={onChangeCode}
+                maxLength={6}
                 onSubmitEditing={onSubmit}
                 className='items-center justify-center text-center text-lg tracking-widest font-medium space-x-2'
               />
@@ -93,7 +101,7 @@ export default function EmailVerification() {
 
 
             <View className="gap-2 pt-3">
-              <Button className="w-full" onPress={onSubmit}>
+              <Button className="w-full" onPress={onSubmit} disabled={!/^\d{6}$/.test(code)}>
                 <Text>Continue</Text>
               </Button>
               <Button
