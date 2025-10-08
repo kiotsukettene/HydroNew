@@ -60,12 +60,12 @@ export default function SignUp() {
 
           {/* --- FORM SECTION --- */}
           <View className="flex-1 items-center mt-[-7rem]"> 
-            <Card className="bg-white border-muted-foreground/20 rounded-lg shadow-lg w-[90%] max-w-md p-2">
-              <CardHeader className="items-center">
-                <CardTitle className="text-primary text-lg">
+            <Card className="bg-white border-muted-foreground/20 rounded-lg shadow-lg w-[90%] max-w-md p-2 py-2">
+              <CardHeader className="items-center mt-3">
+                <CardTitle className="text-primary text-xl">
                   Create your account
                 </CardTitle>
-                <CardDescription className="text-xs text-center">
+                <CardDescription className="text-center">
                   Get started — sign up now!
                 </CardDescription>
               </CardHeader>
@@ -75,7 +75,7 @@ export default function SignUp() {
 
                 {/* Full Name */}
                 <View className="gap-1">
-                  <Label className="text-muted-foreground font-light text-xs">
+                  <Label className="text-muted-foreground font-normal">
                     Full Name
                   </Label>
                   <Input
@@ -83,13 +83,13 @@ export default function SignUp() {
                     autoCapitalize="words"
                     returnKeyType="next"
                     onSubmitEditing={onEmailSubmitEditing}
-                    className="border-muted-foreground/50"
+                    className="border-muted-foreground/50 text-base"
                   />
                 </View>
 
                 {/* Email */}
                 <View className="gap-1">
-                  <Label className="text-muted-foreground font-light text-xs">
+                  <Label className="text-muted-foreground font-normal">
                     Email
                   </Label>
                   <Input
@@ -98,13 +98,13 @@ export default function SignUp() {
                     autoCapitalize="none"
                     returnKeyType="next"
                     onSubmitEditing={onEmailSubmitEditing}
-                    className="border-muted-foreground/50"
+                    className="border-muted-foreground/50 text-base"
                   />
                 </View>
 
                 {/* Password */}
                 <View className="gap-1">
-                  <Label className="text-muted-foreground font-light text-xs">
+                  <Label className="text-muted-foreground font-normal">
                     Password
                   </Label>
                   <Input
@@ -113,13 +113,13 @@ export default function SignUp() {
                     ref={passwordInputRef}
                     returnKeyType="send"
                     onSubmitEditing={onSubmit}
-                    className="border-muted-foreground/50"
+                    className="border-muted-foreground/50 text-base"
                   />
                 </View>
 
                 {/* Confirm Password */}
                 <View className="gap-1">
-                  <Label className="text-muted-foreground font-light text-xs">
+                  <Label className="text-muted-foreground font-normal">
                     Confirm Password
                   </Label>
                   <Input
@@ -127,7 +127,7 @@ export default function SignUp() {
                     secureTextEntry
                     returnKeyType="send"
                     onSubmitEditing={onSubmit}
-                    className="border-muted-foreground/50"
+                    className="border-muted-foreground/50 text-base"
                   />
                 </View>
 
@@ -155,13 +155,13 @@ export default function SignUp() {
                   disabled={!checked}
                   onPress={onSubmit}
                 >
-                  <Text className="text-foreground text-sm">Sign Up</Text>
+                  <Text className="text-foreground text-base">Sign Up</Text>
                 </Button>
                </Link>
                 {/* Separator */}
                 <View className="flex-row items-center">
                   <Separator className="flex-1 bg-muted-foreground/40" />
-                  <Text className="px-3 text-xs text-muted-foreground">or</Text>
+                  <Text className="px-3 text-base text-muted-foreground">or</Text>
                   <Separator className="flex-1 bg-muted-foreground/40" />
                 </View>
 
@@ -189,16 +189,16 @@ export default function SignUp() {
                       d="M23.49 41c3.39 0 6.24-1.12 8.32-3.04l-3.66-2.84c-1.05.7-2.41 1.12-4.66 1.12-3.39 0-6-1.93-6.93-4.72l-3.86 3C15.4 38.42 19.11 41 23.49 41z"
                     />
                   </Svg>
-                  <Text className="text-sm text-secondary font-normal">
+                  <Text className="text-base text-secondary font-normal">
                     Register with Google
                   </Text>
                 </Button>
 
                 {/* Footer */}
-                <Text className="text-center text-xs text-muted-foreground">
+                <Text className="text-center text-muted-foreground">
                   Already have an account?{" "}
                   <Link href="/login" asChild>
-                    <Text className="text-primary text-xs font-medium">Sign in</Text>
+                    <Text className="text-primary text-base font-medium">Sign in</Text>
                   </Link>
                 </Text>
               </CardContent>

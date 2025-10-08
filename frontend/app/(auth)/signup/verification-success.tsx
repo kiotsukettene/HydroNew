@@ -10,16 +10,16 @@ export default function SuccessScreen() {
   return (
     <SafeAreaView className="flex-1 justify-between bg-foreground">
       {/* MAIN CONTENT */}
-      <View className="flex-1 items-center justify-center px-4">
+      <View className="flex-1 items-center gap-3 justify-center px-4">
         <View className="rounded-full bg-secondary/10 p-6">
           <Check size={64} color={'#1869DD'} />
         </View>
 
         <View className="mt-4 items-center gap-2">
-          <Label className="text-center text-lg text-primary">
+          <Label className="text-center text-3xl text-primary">
             Your account was successfully created!
           </Label>
-          <Label className="text-center text-xs font-normal text-muted-foreground">
+          <Label className="text-center text-base font-normal text-muted-foreground">
             Welcome aboard! Your account has been created. We’re excited to have you join us.
           </Label>
         </View>

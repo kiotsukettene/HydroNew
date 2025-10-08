@@ -37,8 +37,8 @@ export default function Terms() {
         <View className="mt-[-7rem] flex-1 items-center">
           <Card className="w-[90%] max-w-md rounded-lg border-muted-foreground/20 bg-foreground p-2 shadow-lg">
             <CardHeader className="items-center pt-4">
-              <CardTitle className="text-base text-primary">Terms and Conditions</CardTitle>
-              <CardDescription className="text-center text-xs">
+              <CardTitle className="text-2xl text-primary">Terms and Conditions</CardTitle>
+              <CardDescription className="text-center">
                 Please read to continue.
               </CardDescription>
             </CardHeader>
@@ -46,8 +46,8 @@ export default function Terms() {
             <CardContent className="px-4">
               <View className="flex flex-col gap-4">
                 <View className="gap-1">
-                  <Label className="text-xs font-bold text-muted">Acceptance of Terms</Label>
-                  <Text className="text-xs text-muted/70" style={{ textAlign: 'justify' }}>
+                  <Label className=" text-base font-bold text-muted">Acceptance of Terms</Label>
+                  <Text className="text-sm text-muted/70" style={{ textAlign: 'justify' }}>
                     By creating an account and using this application, you acknowledge that you have
                     read, understood, and agreed to these Terms and Conditions. If you do not agree,
                     you must not proceed with account creation or use of the application.
@@ -55,8 +55,8 @@ export default function Terms() {
                 </View>
 
                 <View className="gap-1">
-                  <Label className="text-xs font-bold text-muted">User Responsibilities</Label>
-                  <Text className="text-xs text-muted/70" style={{ textAlign: 'justify' }}>
+                  <Label className="text-base font-bold text-muted">User Responsibilities</Label>
+                  <Text className="text-sm text-muted/70" style={{ textAlign: 'justify' }}>
                     You agree to provide accurate information during registration and maintain the
                     confidentiality of your login credentials. Any unauthorized use of your account
                     or security breach must be reported immediately. Misuse of the application,
@@ -66,8 +66,8 @@ export default function Terms() {
                 </View>
 
                 <View className="gap-1">
-                  <Label className="text-xs font-bold text-muted">Data Usage and Privacy</Label>
-                  <Text className="text-xs text-muted/70" style={{ textAlign: 'justify' }}>
+                  <Label className="text-base font-bold text-muted">Data Usage and Privacy</Label>
+                  <Text className="text-sm text-muted/70" style={{ textAlign: 'justify' }}>
                     By using this application, you consent to the collection, storage, and use of
                     your data in accordance with our Privacy Policy. We ensure that your information
                     will not be shared with third parties without your consent, except where
@@ -76,8 +76,8 @@ export default function Terms() {
                 </View>
 
                 <View className="gap-1">
-                  <Label className="text-xs font-bold text-muted">Limitation of Liability</Label>
-                  <Text className="text-xs text-muted/70" style={{ textAlign: 'justify' }}>
+                  <Label className="text-base font-bold text-muted">Limitation of Liability</Label>
+                  <Text className="text-sm text-muted/70" style={{ textAlign: 'justify' }}>
                     The application is provided “as is,” without warranties of any kind. We are not
                     liable for any loss, damage, or inconvenience arising from the use or inability
                     to use the application. Continued use signifies your full acceptance of these

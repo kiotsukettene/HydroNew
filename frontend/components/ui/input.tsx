@@ -9,7 +9,7 @@ function Input({
   return (
     <TextInput
       className={cn(
-        'border-muted-foreground bg-transparent text-muted flex h-10 w-full min-w-0 flex-row items-center rounded-xl border px-3 py-1 leading-5 shadow-sm  sm:h-9',
+        'border-muted-foreground bg-transparent text-muted text-base flex h-10 w-full min-w-0 flex-row items-center rounded-xl border px-3 py-1 leading-5 shadow-sm  sm:h-9',
         props.editable === false &&
           cn(
             'opacity-50',

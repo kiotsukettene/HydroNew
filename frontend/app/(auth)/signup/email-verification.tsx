@@ -76,10 +76,10 @@ export default function EmailVerification() {
                   className="size-14 mx-auto"
                 />
               </View>
-              <CardTitle className="text-center text-primary text-base font-semibold sm:text-left">
+              <CardTitle className="text-center text-primary text-2xl font-semibold sm:text-left">
                 Email Verification
               </CardTitle>
-              <CardDescription className="text-center text-xs sm:text-left">
+              <CardDescription className="text-center text-base sm:text-left">
                 Enter the verification code sent to m@example.com
               </CardDescription>
             </CardHeader>
@@ -98,7 +98,7 @@ export default function EmailVerification() {
                     onChangeText={onChangeCode}
                     maxLength={6}
                     onSubmitEditing={onSubmit}
-                    className="items-center justify-center text-center text-lg tracking-widest font-medium space-x-2"
+                    className="items-center justify-center text-center text-xl tracking-widest font-medium space-x-2"
                   />
                   <Button
                     variant="link"
@@ -106,11 +106,11 @@ export default function EmailVerification() {
                     disabled={countdown > 0}
                     onPress={restartCountdown}
                   >
-                    <Text className="text-center font-normal text-xs text-muted-foreground">
+                    <Text className="text-center font-normal text-base text-muted-foreground">
                       Didn&apos;t receive the code?{' '}
                       <Text className="underline">Resend </Text>
                       {countdown > 0 ? (
-                        <Text className="text-xs">({countdown})</Text>
+                        <Text className="text-base">({countdown})</Text>
                       ) : null}
                     </Text>
                   </Button>
@@ -122,14 +122,14 @@ export default function EmailVerification() {
                     onPress={onSubmit}
                     disabled={!/^\d{6}$/.test(code)}
                   >
-                    <Text>Continue</Text>
+                    <Text className=''>Continue</Text>
                   </Button>
                   <Button
                     variant="outline"
                     className="mx-auto w-full"
                     onPress={() => router.back()}
                   >
-                    <Text>Cancel</Text>
+                    <Text className=''>Cancel</Text>
                   </Button>
                 </View>
               </View>

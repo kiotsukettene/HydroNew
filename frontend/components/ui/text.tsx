@@ -14,7 +14,7 @@ const textVariants = cva(
   {
     variants: {
       variant: {
-        default: '',
+        default: 'text-base',
         h1: cn(
           'text-center text-4xl font-extrabold tracking-tight',
           Platform.select({ web: 'scroll-m-20 text-balance' })
@@ -32,8 +32,8 @@ const textVariants = cva(
         ),
         lead: 'text-xl text-muted-foreground',
         large: 'text-lg font-semibold',
-        small: 'text-sm font-medium leading-none',
-        muted: 'text-sm text-muted-foreground',
+        small: 'text-base font-medium leading-none',
+        muted: 'text-base text-muted-foreground',
       },
     },
     defaultVariants: {

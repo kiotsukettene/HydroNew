@@ -1,8 +1,9 @@
 import React from 'react';
-import { View, Text, Image, Dimensions } from 'react-native';
+import { View, Image, Dimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Button } from '@/components/ui/button';
 import { Link } from 'expo-router';
+import { Text } from '@/components/ui/text';
 
 const { height } = Dimensions.get('window');
 
@@ -20,10 +21,10 @@ const WelcomeScreen = () => {
       <SafeAreaView className="flex-1 justify-between items-center bg-foreground">
         {/* Text */}
         <View className="flex-1 justify-center items-center px-6">
-          <Text className="text-3xl font-finger-paint text-center">
-            Welcome to <Text className="text-primary">HydroNew</Text>
+          <Text className="text-5xl text-muted font-finger-paint text-center">
+            Welcome to <Text className=" text-5xl text-primary">HydroNew</Text>
           </Text>
-          <Text className="text-center text-muted text-xs my-1 font-light">
+          <Text className="text-center text-muted text-base my-3 font-light">
             Sustainable solutions start here — powered by nature and intelligence.
           </Text>
         </View>
@@ -32,12 +33,15 @@ const WelcomeScreen = () => {
         <View className="w-full px-6 gap-3 mt-3 mb-6">
           <Link href="/signup" asChild>
             <Button className="bg-primary">
-              <Text className="text-foreground text-sm">Get Started</Text>
+              <Text className="text-foreground text-base">Get Started</Text>
             </Button>
           </Link>
-          <Button variant="outline">
-            <Text className="text-sm">Sign in</Text>
-          </Button>
+
+          <Link href="/login" asChild>
+            <Button variant="outline">
+              <Text className="text-base">Sign in</Text>
+            </Button>
+          </Link>
         </View>
       </SafeAreaView>
     </View>
