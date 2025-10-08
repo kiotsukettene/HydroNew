@@ -4,32 +4,31 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Text } from '@/components/ui/text';
+import { Link } from 'expo-router';
 
 export default function SuccessScreen() {
   return (
-    <SafeAreaView className="flex-1 bg-foreground justify-between">
-
-
+    <SafeAreaView className="flex-1 justify-between bg-foreground">
       {/* MAIN CONTENT */}
-      <View className="flex-1 justify-center items-center px-4">
-        <View className="bg-secondary/10 rounded-full p-6">
+      <View className="flex-1 items-center justify-center px-4">
+        <View className="rounded-full bg-secondary/10 p-6">
           <Check size={64} color={'#1869DD'} />
         </View>
 
-
-        <View className='items-center mt-4 gap-2'>
-          <Label className='text-primary text-lg text-center'>Your account was successfully created!</Label>
-          <Label className='text-center text-muted-foreground text-xs font-normal'>Welcome aboard! Your account has been created. We’re excited to have you join us.</Label>
+        <View className="mt-4 items-center gap-2">
+          <Label className="text-center text-lg text-primary">
+            Your account was successfully created!
+          </Label>
+          <Label className="text-center text-xs font-normal text-muted-foreground">
+            Welcome aboard! Your account has been created. We’re excited to have you join us.
+          </Label>
         </View>
 
-      
-      <View className='w-full mt-4'>
-        <Button >
-          <Text className='items-center mx-auto   text-foreground'> Go to login</Text>
-        </Button>
-      </View>
-
-       
+        <Link href="/(auth)/login" className="mt-4" asChild>
+          <Button className="w-full">
+            <Text className="mx-auto items-center text-foreground"> Go to login</Text>
+          </Button>
+        </Link>
       </View>
 
       {/* HILLS IMAGE AT BOTTOM */}
