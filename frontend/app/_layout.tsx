@@ -11,16 +11,14 @@ import * as SplashScreen from 'expo-splash-screen';
 import { useEffect } from 'react';
 
 export {
-  // Catch any errors thrown by the Layout component.
   ErrorBoundary,
 } from 'expo-router';
 
-// Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
   const { colorScheme } = useColorScheme();
-  
+
   const [fontsLoaded] = useFonts({
     'FingerPaint-Regular': require('@/assets/fonts/Finger_Paint/FingerPaint-Regular.ttf'),
     'FingerPaint': require('@/assets/fonts/Finger_Paint/FingerPaint-Regular.ttf'),
@@ -41,18 +39,14 @@ export default function RootLayout() {
     return null;
   }
 
-  
-
   return (
-    <ThemeProvider value={NAV_THEME['light']}> 
+    <ThemeProvider value={NAV_THEME[colorScheme ?? 'light']}>
       <StatusBar style={colorScheme === 'dark' ? 'light' : 'dark'} />
-       {/* 👇 The Stack Navigator for all auth screens */}
       <Stack
         screenOptions={{
-          headerShown: false, // hide headers for welcome/signup
+          headerShown: false,
         }}
       >
-        {/* The router will automatically find the screens in /app folder */}
       </Stack>
       <PortalHost />
     </ThemeProvider>

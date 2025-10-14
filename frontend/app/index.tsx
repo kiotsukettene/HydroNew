@@ -3,7 +3,6 @@ import { Icon } from '@/components/ui/icon';
 import { Text } from '@/components/ui/text';
 import { THEME } from '@/lib/theme';
 import { Link, Redirect, Stack } from 'expo-router';
-import { MoonStarIcon, StarIcon, SunIcon } from 'lucide-react-native';
 import { useColorScheme } from 'nativewind';
 import * as React from 'react';
 import { Image, type ImageStyle, View } from 'react-native';
@@ -19,14 +18,12 @@ const SCREEN_OPTIONS = {
     headerTransparent: true,
     headerShadowVisible: true,
     headerStyle: { backgroundColor: THEME.light.background },
-    headerRight: () => <ThemeToggle />,
   },
   dark: {
     title: 'React Native Reusables',
     headerTransparent: true,
     headerShadowVisible: true,
     headerStyle: { backgroundColor: THEME.dark.background },
-    headerRight: () => <ThemeToggle />,
   },
 };
 
@@ -39,9 +36,6 @@ export default function Screen() {
   const { colorScheme } = useColorScheme();
   const isLoggedIn = false; // Replace with real auth check
 
-  // ========== If logged in → go to tabs/home  =======
-  // ==========If not logged in → go to auth/welcome =======
-
   return isLoggedIn ? (
     <>
       <Stack.Screen options={SCREEN_OPTIONS[colorScheme ?? 'light']} />
@@ -51,24 +45,5 @@ export default function Screen() {
     </>
   ) : (
     <Redirect href="/welcome" />
-  );
-}
-
-const THEME_ICONS = {
-  light: SunIcon,
-  dark: MoonStarIcon,
-};
-
-function ThemeToggle() {
-  const { colorScheme, toggleColorScheme } = useColorScheme();
-
-  return (
-    <Button
-      onPressIn={toggleColorScheme}
-      size="icon"
-      variant="ghost"
-      className="rounded-full web:mx-4">
-      <Icon as={THEME_ICONS[colorScheme ?? 'light']} className="size-5" />
-    </Button>
   );
 }

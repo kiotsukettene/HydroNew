@@ -9,7 +9,7 @@ const { height } = Dimensions.get('window');
 
 const WelcomeScreen = () => {
   return (
-    <View className="flex-1 bg-foreground">
+    <View className="flex-1">
       {/* Top illustration */}
       <Image
         source={require('@/assets/images/welcome-bg.png')}
@@ -18,13 +18,13 @@ const WelcomeScreen = () => {
         className="rounded-b-3xl"
       />
 
-      <SafeAreaView className="flex-1 justify-between items-center bg-foreground">
+      <SafeAreaView className="flex-1 justify-between items-center ">
         {/* Text */}
         <View className="flex-1 justify-center items-center px-6">
-          <Text className="text-5xl text-muted font-finger-paint text-center">
+          <Text className="text-5xl text-foreground font-finger-paint text-center">
             Welcome to <Text className=" text-5xl text-primary">HydroNew</Text>
           </Text>
-          <Text className="text-center text-muted text-base my-3 font-light">
+          <Text className="text-center text-muted-foreground text-base my-3 font-light">
             Sustainable solutions start here — powered by nature and intelligence.
           </Text>
         </View>
@@ -33,7 +33,7 @@ const WelcomeScreen = () => {
         <View className="w-full px-6 gap-3 mt-3 mb-6">
           <Link href="/signup" asChild>
             <Button className="bg-primary">
-              <Text className="text-foreground text-base">Get Started</Text>
+              <Text className=" text-base">Get Started</Text>
             </Button>
           </Link>
 

@@ -39,7 +39,7 @@ export default function EmailVerification() {
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-foreground">
+    <SafeAreaView className="flex-1">
       {/* Hills image as background */}
       <Image
         source={require('@/assets/images/email-verify-bg.png')}
@@ -65,7 +65,7 @@ export default function EmailVerification() {
       >
         <View className="flex-1 justify-center items-center px-4  w-full">
           <Card
-            className="bg-foreground border-muted-foreground/20 sm:border-border shadow-none sm:shadow-sm sm:shadow-black/5"
+            className="border-muted-foreground/20 sm:border-border shadow-none sm:shadow-sm sm:shadow-black/5"
             style={{ zIndex: 2, elevation: 5 }}
           >
             <CardHeader>
@@ -98,7 +98,7 @@ export default function EmailVerification() {
                     onChangeText={onChangeCode}
                     maxLength={6}
                     onSubmitEditing={onSubmit}
-                    className="items-center justify-center text-center text-xl tracking-widest font-medium space-x-2"
+                    className="items-center text-muted-foreground justify-center text-center text-xl tracking-widest font-medium space-x-2"
                   />
                   <Button
                     variant="link"

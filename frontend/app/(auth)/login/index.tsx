@@ -6,7 +6,7 @@
 
 // export default function Login() {
 //   return (
-//     <SafeAreaView className='bg-foreground justify-center items-center flex-1'>
+//     <SafeAreaView className='justify-center items-center flex-1'>
 //            <View>
 //              <Text>Login</Text>
 //            </View>
@@ -60,7 +60,7 @@ export default function Login() {
   }
 
   return (
-    <SafeAreaView className="flex-1 bg-foreground">
+    <SafeAreaView className="flex-1 ">
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         style={{ flex: 1 }}>
@@ -136,7 +136,7 @@ export default function Login() {
 
                 <Link href={'/(auth)/first-time/welcome-first-time'} asChild>
                   <Button className="w-full">
-                    <Text className="text-foreground">Login</Text>
+                    <Text className="">Login</Text>
                   </Button>
                 </Link>
 

@@ -8,7 +8,7 @@ import { Link } from 'expo-router';
 
 export default function SuccessScreen() {
   return (
-    <SafeAreaView className="flex-1 justify-between bg-foreground">
+    <SafeAreaView className="flex-1 justify-between">
       {/* MAIN CONTENT */}
       <View className="flex-1 items-center gap-3 justify-center px-4">
         <View className="rounded-full bg-secondary/10 p-6">
@@ -26,7 +26,7 @@ export default function SuccessScreen() {
 
         <Link href="/(auth)/login" className="mt-4" asChild>
           <Button className="w-full">
-            <Text className="mx-auto items-center text-foreground"> Go to login</Text>
+            <Text className="mx-auto items-center "> Go to login</Text>
           </Button>
         </Link>
       </View>

@@ -39,7 +39,7 @@ export default function SignUp() {
   }
 
   return (
-    <SafeAreaView className="flex-1 bg-foreground">
+    <SafeAreaView className="flex-1 ">
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : undefined}
         style={{ flex: 1 }}
@@ -155,7 +155,7 @@ export default function SignUp() {
                   disabled={!checked}
                   onPress={onSubmit}
                 >
-                  <Text className="text-foreground text-base">Sign Up</Text>
+                  <Text className="text-base">Sign Up</Text>
                 </Button>
                </Link>
                 {/* Separator */}
