@@ -82,7 +82,7 @@ export default function Login() {
                 <Image
                   source={require('@/assets/images/Logo.png')}
                   resizeMode="contain"
-                  className="mx-auto mt-3 size-20"
+                  className="mx-auto mt-3 size-16"
                 />
               </View>
               <CardHeader className="items-center">
