@@ -8,10 +8,12 @@ import { Button } from '@/components/ui/button';
 import { router } from 'expo-router';
 import { Text } from '@/components/ui/text';
 import { PasswordStrengthMeter } from '@/components/ui/password-stength-meter';
+import PasswordToggle from '@/app/hooks/password-toggle';
 
 export default function CreateNewPassword() {
 
   const [password, setPassword] = useState('');
+  const [visible, setVisible] = useState(false);
 
   const onSubmit = () => {
       router.push('/(auth)/forgot-password/reset-success');
@@ -49,17 +51,20 @@ export default function CreateNewPassword() {
                   <Label className="text-muted-foreground font-normal">
                     Password
                   </Label>
-                  <Input
+                 
+                 <View>
+                   <Input
                     placeholder="•••••••••"
-                    secureTextEntry
+                    secureTextEntry ={!visible}
                     value={password}
                     onChangeText={setPassword}
                     // ref={passwordInputRef}
                     returnKeyType="send"
                     // onSubmitEditing={onSubmit}
-                    className="border-muted-foreground/50 text-primary text-xl h-12"
+                    className="border-muted-foreground/50 text-primary text-xl h-12 "
                   />
-                 
+                    <PasswordToggle onToggle={setVisible} initialState={visible} />
+                 </View>
                 </View>
 
                 {/* Confirm Password */}
@@ -67,14 +72,17 @@ export default function CreateNewPassword() {
                   <Label className="text-muted-foreground font-normal">
                     Confirm Password
                   </Label>
-                  <Input
+                 <View className='mb-6'>
+                   <Input
                     placeholder="•••••••••"
-                    secureTextEntry
+                    secureTextEntry={!visible}
                     returnKeyType="send"
                     // onSubmitEditing={onSubmit}
-                    className="border-muted-foreground/50 text-primary text-xl h-12 mb-6"
+                    className="border-muted-foreground/50 text-primary text-xl h-12 "
 
                   />
+                  <PasswordToggle onToggle={setVisible} initialState={visible} />
+                 </View>
                    <PasswordStrengthMeter password={password} />
                 </View>
 
