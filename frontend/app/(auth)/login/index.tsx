@@ -128,7 +128,9 @@ export default function Login() {
                       />
                       <Text className="self-end text-muted-foreground">Remember me?</Text>
                     </View>
-                    <Text className="self-end text-primary/70">Forgot Password</Text>
+                    <Link href="/forgot-password">
+                      <Text className="self-end text-primary/70">Forgot Password</Text>
+                    </Link>
                   </View>
                 </View>
 
