@@ -10,13 +10,11 @@ import { Text } from '@/components/ui/text';
 
 export default function Index() {
  
-  // const onSubmit = () => {
-  //   if (/^\d{6}$/.test(code)) {
-  //     router.push('/(auth)/signup/verification-success');
-  //   } else {
-  //     console.warn('Please enter a valid 6-digit code');
-  //   }
-  // };
+  const onSubmit = () => {
+    
+      router.push('/(auth)/forgot-password/verification-code');
+    
+  };
 
   return (
     <SafeAreaView className="flex-1">
@@ -66,7 +64,7 @@ export default function Index() {
                 </View>
 
                 <View className="gap-2 pt-1">
-                  <Button >
+                  <Button onPress={onSubmit}>
                     <Text>Send Verification Code</Text>
                   </Button>
                  
