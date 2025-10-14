@@ -28,7 +28,7 @@ const textVariants = cva(
         p: 'mt-3 leading-7 sm:mt-6',
         blockquote: 'mt-4 border-l-2 pl-3 italic sm:mt-6 sm:pl-6',
         code: cn(
-          'relative rounded bg-muted px-[0.3rem] py-[0.2rem] font-mono text-sm font-semibold'
+          'relative rounded bg-muted px-[0.3rem] py-[0.2rem] font-mono text-base font-semibold'
         ),
         lead: 'text-xl text-muted-foreground',
         large: 'text-lg font-semibold',
