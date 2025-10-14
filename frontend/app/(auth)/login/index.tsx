@@ -77,7 +77,7 @@ export default function Login() {
 
           {/* --- FORM SECTION --- */}
           <View className="mt-[-7rem] flex-1 items-center">
-            <Card className="w-[90%] max-w-md rounded-lg border-muted-foreground/20 bg-white p-2 shadow-lg">
+            <Card className="w-[90%] max-w-md rounded-lg border-muted-foreground/10 bg-white p-2 shadow-lg">
               <View>
                 <Image
                   source={require('@/assets/images/Logo.png')}

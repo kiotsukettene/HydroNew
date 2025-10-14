@@ -60,7 +60,7 @@ export default function SignUp() {
 
           {/* --- FORM SECTION --- */}
           <View className="flex-1 items-center mt-[-7rem]"> 
-            <Card className="bg-white border-muted-foreground/20 rounded-lg shadow-lg w-[90%] max-w-md p-2 py-2">
+            <Card className="bg-white border-muted-foreground/10 rounded-lg shadow-lg w-[90%] max-w-md p-2 py-2">
               <CardHeader className="items-center mt-3">
                 <CardTitle className="text-primary text-xl">
                   Create your account

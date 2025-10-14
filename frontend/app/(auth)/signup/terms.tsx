@@ -35,7 +35,7 @@ export default function Terms() {
 
         {/* --- FORM SECTION --- */}
         <View className="mt-[-7rem] flex-1 items-center">
-          <Card className="w-[90%] max-w-md rounded-lg border-muted-foreground/20 p-2 shadow-lg">
+          <Card className="w-[90%] max-w-md rounded-lg border-muted-foreground/10 p-2 shadow-lg">
             <CardHeader className="items-center pt-4">
               <CardTitle className="text-2xl text-primary">Terms and Conditions</CardTitle>
               <CardDescription className="text-center">
