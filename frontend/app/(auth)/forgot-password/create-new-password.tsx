@@ -12,6 +12,10 @@ import { PasswordStrengthMeter } from '@/components/ui/password-stength-meter';
 export default function CreateNewPassword() {
 
   const [password, setPassword] = useState('');
+
+  const onSubmit = () => {
+      router.push('/(auth)/forgot-password/reset-success');
+  }
   return (
     <SafeAreaView className="flex-1">
       {/* Hills image as background */}
@@ -76,8 +80,8 @@ export default function CreateNewPassword() {
 
 
                 <View className="gap-2 pt-1">
-                  <Button>
-                    <Text>Send Verification Code</Text>
+                  <Button onPress={onSubmit}>
+                    <Text>Reset Password</Text>
                   </Button>
 
                   <Button
