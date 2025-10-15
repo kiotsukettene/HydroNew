@@ -4,6 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import LottieView from 'lottie-react-native';
+import { Link } from 'expo-router';
 
 export default function FirstOnboarding() {
   const { width, height } = useWindowDimensions();
@@ -72,10 +73,17 @@ export default function FirstOnboarding() {
 
       {/* 7. Button Wrapper */}
       <View className="absolute w-full p-8" style={{ bottom: height * 0.05 }}>
+        <Link href={'/on-boarding/second-onboarding'} asChild>
         <Button className="w-full bg-muted dark:bg-foreground">
-          <Label className="font-semibold text-primary">Get Started</Label>
+          <Label className="font-semibold text-primary">Next</Label>
+          
         </Button>
+        </Link>
+
+
       </View>
+
+      
     </SafeAreaView>
   );
 }
