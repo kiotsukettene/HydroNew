@@ -5,7 +5,7 @@ import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import LottieView from 'lottie-react-native';
 
-export default function WelcomeFirstTime() {
+export default function FirstOnboarding() {
   const { width, height } = useWindowDimensions();
 
   return (
