@@ -7,7 +7,7 @@ import {
   Platform,
   ScrollView
 } from "react-native";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Text } from "@/components/ui/text";
@@ -18,26 +18,17 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import Svg, { Path } from "react-native-svg";
-import { useAuthStore } from "@/store/authStore";
-import { useUserRegistrationStore } from "@/store/signup/userRegistrationStore";
+import { useAuthStore } from "@/store/auth/authStore"
 
 const { height } = Dimensions.get("window");
 
 export default function SignUp() {
-
-  const { register,
-          loading,
-          error,
-          needsVerification
-  } = useAuthStore();
-
-  const {
-    formData,
-    isChecked,
-    setFormData: setFormData,
-    toggleCheckbox,
-    resetFormData
-  } = useUserRegistrationStore();
+  const { register , loading, error, needsVerification} = useAuthStore();
+  const [fullName, setFullName] = useState("");
+  const [checked, setChecked] = useState(false);
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
 
   const router = useRouter();
   const passwordInputRef = useRef<TextInput>(null);
@@ -46,25 +37,23 @@ export default function SignUp() {
     passwordInputRef.current?.focus();
   }
 
-  async function onSubmit() {
-    if (!isChecked) return;
+  useEffect(() => {
+    if (needsVerification){
+      router.push('/(auth)/signup/email-verification');
+    }
+  }, [needsVerification]);
 
+  async function onSubmit() {
+    if (!checked) return;
     try {
       await register({
-        fullname: formData.fullname,
-        email: formData.email,
-        password: formData.password,
-        password_confirmation: formData.confirmPassword,
+        fullname: fullName,
+        email,
+        password,
+        password_confirmation: confirmPassword,
       });
-
-      if (needsVerification){
-      router.push("/signup/email-verification");
-      }
-
-      resetFormData();
-    
     } catch (error) {
-        console.error("Registration error:", error);
+      console.error("Registration failed:", error);
     }
   }
 
@@ -109,8 +98,8 @@ export default function SignUp() {
                     Full Name
                   </Label>
                   <Input
-                    value={formData.fullname}
-                    onChangeText={(text) => setFormData('fullname', text)}
+                    value={fullName}
+                    onChangeText={setFullName}
                     placeholder="John Doe"
                     autoCapitalize="words"
                     returnKeyType="next"
@@ -125,8 +114,8 @@ export default function SignUp() {
                     Email
                   </Label>
                   <Input
-                    value={formData.email}
-                    onChangeText={(text) => setFormData('email', text)}
+                    value={email}
+                    onChangeText={setEmail}
                     placeholder="m@example.com"
                     keyboardType="email-address"
                     autoCapitalize="none"
@@ -142,8 +131,8 @@ export default function SignUp() {
                     Password
                   </Label>
                   <Input
-                    value ={formData.password}
-                    onChangeText={(text) => setFormData('password', text)}
+                    value={password}
+                    onChangeText={setPassword}
                     placeholder="•••••••••"
                     secureTextEntry
                     ref={passwordInputRef}
@@ -159,8 +148,8 @@ export default function SignUp() {
                     Confirm Password
                   </Label>
                   <Input
-                    value={formData.confirmPassword}
-                    onChangeText={(text) => setFormData('confirmPassword', text)}
+                    value={confirmPassword}
+                    onChangeText={setConfirmPassword}
                     placeholder="•••••••••"
                     secureTextEntry
                     returnKeyType="send"
@@ -172,8 +161,8 @@ export default function SignUp() {
                 {/* Terms */}
                 <View className="flex-row items-center gap-2">
                   <Checkbox
-                    checked={isChecked}
-                    onCheckedChange={(val) => toggleCheckbox(val)}
+                    checked={checked}
+                    onCheckedChange={setChecked}
                     className="border-primary"
                   />
                   <Text className="text-xs text-muted-foreground flex-1">
@@ -187,17 +176,13 @@ export default function SignUp() {
                 </View>
 
                 {/* Sign Up Button */}
-                {isChecked ? (
-                  <Link href="/signup/email-verification" asChild>
-                    <Button className="w-full" onPress={onSubmit}>
-                      <Text className="text-base">Sign Up</Text>
-                    </Button>
-                  </Link>
-                ) : (
-                  <Button className="w-full" disabled>
-                    <Text className="text-base">Sign Up</Text>
-                  </Button>
-                )}
+                <Button
+                  className="w-full"
+                  disabled={!checked}
+                  onPress={onSubmit}
+                >
+                  <Text className="text-base">Sign Up</Text>
+                </Button>
 
                 {/* Separator */}
                 <View className="flex-row items-center">

@@ -18,21 +18,29 @@ import {
 import { Text } from '@/components/ui/text';
 import { router } from 'expo-router';
 import { Input } from '@/components/ui/input';
+import { useAuthStore } from '@/store/auth/authStore';
 
 const { height } = Dimensions.get('window');
 
 export default function EmailVerification() {
   const { countdown, restartCountdown } = useCountdown(30);
   const [code, setCode] = React.useState('');
+  const { verifyOtp } = useAuthStore();
 
   const onChangeCode = (value: string) => {
     const digitsOnly = value.replace(/\D/g, '').slice(0, 6);
     setCode(digitsOnly);
   };
 
-  const onSubmit = () => {
+  const onSubmit = async () => {
     if (/^\d{6}$/.test(code)) {
-      router.push('/(auth)/signup/verification-success');
+      try {
+        await verifyOtp(code);
+        router.push('/(auth)/signup/verification-success');
+      }
+      catch (error) {
+        console.error("OTP Verification failed:", error);
+      }
     } else {
       console.warn('Please enter a valid 6-digit code');
     }
