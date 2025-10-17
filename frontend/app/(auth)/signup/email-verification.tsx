@@ -25,7 +25,7 @@ const { height } = Dimensions.get('window');
 export default function EmailVerification() {
   const { countdown, restartCountdown } = useCountdown(30);
   const [code, setCode] = React.useState('');
-  const { verifyOtp } = useAuthStore();
+  const { verifyOtp, resendOtp } = useAuthStore();
 
   const onChangeCode = (value: string) => {
     const digitsOnly = value.replace(/\D/g, '').slice(0, 6);
@@ -46,6 +46,14 @@ export default function EmailVerification() {
     }
   };
 
+  const onResendOtp = async() => {
+    try {
+      await resendOtp();
+      restartCountdown();
+    } catch (error) {
+      console.error("Resend OTP failed:", error);
+    }
+  };
   return (
     <SafeAreaView className="flex-1">
       {/* Hills image as background */}
@@ -112,11 +120,11 @@ export default function EmailVerification() {
                     variant="link"
                     size="sm"
                     disabled={countdown > 0}
-                    onPress={restartCountdown}
+                    onPress={onResendOtp}
                   >
                     <Text className="text-center font-normal text-base text-muted-foreground">
                       Didn&apos;t receive the code?{' '}
-                      <Text className="underline">Resend </Text>
+                      <Text className="underline" >Resend </Text>
                       {countdown > 0 ? (
                         <Text className="text-base">({countdown})</Text>
                       ) : null}

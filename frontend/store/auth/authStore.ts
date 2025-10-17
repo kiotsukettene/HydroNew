@@ -20,18 +20,20 @@ type AuthState = {
   token: string | null;
   loading: boolean;
   error: string | null;
+  message: string | null;
   needsVerification: boolean;
   register: (data: RegisterPayload) => Promise<void>;
   login: (email: string, password: string) => Promise<void>;
   verifyOtp: (otp: string) => Promise<void>;
+  resendOtp: () => Promise<void>;
   logout: () => Promise<void>;
 };
-
 export const useAuthStore = create<AuthState>((set, get) => ({
   user: null,
   token: null,
   loading: false,
   error: null,
+  message: null,
   needsVerification: false,
 
   // register
@@ -76,8 +78,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         token: response.data.token || null,
         needsVerification: response.data.needs_verification ?? false,
       });
-
-      console.log(response.data.message);
+      return response.data;
     } catch (err: any) {
       const message =
         err.response?.data?.message || "Login failed. Try again.";
@@ -108,13 +109,36 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         needsVerification: false,
         error: null,
       });
-
+      return response.data;
       console.log(response.data.message);
     } catch (err: any) {
       const message =
         err.response?.data?.message || "OTP verification failed. Try again.";
       set({ loading: false, error: message });
     }
+  },
+
+  resendOtp: async () => {
+    set({loading: true, error: null});
+    try {
+      const token = get().token;
+      if (!token) throw new Error("No verification token found");
+      const response = await axiosInstance.post("/resend-otp", {}, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        }
+      }); 
+      console.log("Response:", response.data);
+      set({
+        loading: false,
+        error: null,
+        message: response.data.message
+      });
+
+    } catch (err: any) {
+
+    }
+
   },
 
   //logout
