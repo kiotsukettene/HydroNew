@@ -1,6 +1,6 @@
 import { create } from "zustand";
 
-type RegistrationData = {
+type FormData = {
   fullname: string;
   email: string;
   password: string;
@@ -8,11 +8,11 @@ type RegistrationData = {
 };
 
 type UserRegistrationState = {
-  formData: RegistrationData;
+  formData: FormData;
   isChecked: boolean;
-  setFormData: (field: keyof RegistrationData, value: string) => void;
-  toggleCheckbox: (value: boolean) => void;
-  resetFormData: () => void;
+  setFormData: (key: keyof FormData, value: string) => void;
+  toggleCheckbox: (checked: boolean) => void;
+  reset: () => void;
 };
 
 export const useUserRegistrationStore = create<UserRegistrationState>((set) => ({
@@ -24,17 +24,14 @@ export const useUserRegistrationStore = create<UserRegistrationState>((set) => (
   },
   isChecked: false,
 
-  setFormData: (field, value) =>
+  setFormData: (key, value) =>
     set((state) => ({
-      formData: {
-        ...state.formData,
-        [field]: value,
-      },
+      formData: { ...state.formData, [key]: value },
     })),
 
-  toggleCheckbox: (value) => set({ isChecked: value }),
+  toggleCheckbox: (checked) => set({ isChecked: checked }),
 
-  resetFormData: () =>
+  reset: () =>
     set({
       formData: {
         fullname: "",
