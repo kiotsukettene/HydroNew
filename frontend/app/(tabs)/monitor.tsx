@@ -8,8 +8,13 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { BadgeCheckIcon, Info } from 'lucide-react-native'; // Added Info icon
 import { Icon } from '@/components/ui/icon';
+import { Separator } from '@/components/ui/separator';
 
 export default function Monitor() {
+  const recentActivities = [
+    { id: '1', description: 'Water pH adjusted', time: '8:00 AM' },
+    { id: '2', description: 'Filtration completed', time: '9:15 AM' },
+  ];
   return (
     <ScrollView>
       <SafeAreaView>
@@ -18,9 +23,8 @@ export default function Monitor() {
           <PageHeader title="Water Monitoring" />
 
           {/* ===== Water Quality Card ===== */}
-          <Card className="mt-4 overflow-hidden rounded-3xl border-transparent bg-[#E0F2F7] p-6">
+          <Card className="mt-4 overflow-hidden rounded-2xl border-transparent bg-[#BCE7F0] p-4">
             <CardContent className="p-2">
-              {/* Top Section: Details and Gauge */}
               <View className="flex-row justify-between">
                 {/* Left Column: Details */}
                 <View className="justify-between">
@@ -43,15 +47,13 @@ export default function Monitor() {
                   </View>
                 </View>
 
-                {/* Right Column: Gauge and Badge */}
+                {/* Right Column: WATER TANK LEVEL */}
                 <View className="items-center">
-                  {/* Image container for gauge and overlay text */}
-                  <View className="h-44 w-44 items-center justify-center">
+                  <View className="h-48 w-48 items-center justify-center">
                     <Image
                       source={require('@/assets/images/water-level-bg.png')}
                       className="absolute h-full w-full"
                     />
-                    {/* Overlay Text */}
                     <Text className="text-4xl font-bold text-gray-800">75%</Text>
                     <Text className="text-sm text-gray-600">Water Tank Level</Text>
                   </View>
@@ -64,10 +66,34 @@ export default function Monitor() {
                 </View>
               </View>
 
-              {/* Bottom Section: Button */}
-              <Button className="mt-4 rounded-lg bg-muted/80">
+              {/*  Button */}
+              <Button className="mt-4 rounded-lg bg-muted/70">
                 <Text className="font-semibold text-gray-800">Start Filtration</Text>
               </Button>
+            </CardContent>
+          </Card>
+
+          {/* ===== Recent Activity Card ===== */}
+
+          <Card className="mt-4 rounded-2xl border border-gray-300 p-5 shadow-sm">
+            <CardContent className="p-0">
+              <Text className="mb-3 text-lg font-semibold text-gray-900">Recent Activity</Text>
+
+              {/* List of Activities */}
+              <View>
+                {recentActivities.map((activity, index) => (
+                  <View key={activity.id}>
+                    {/* Activity Item */}
+                    <View className="py-3">
+                      <Text className="text-base text-gray-900">{activity.description}</Text>
+                      <Text className="mt-1 text-sm text-gray-400">{activity.time}</Text>
+                    </View>
+
+                    {/* Separator */}
+                    {index < recentActivities.length - 1 && <Separator className="bg-gray-200" />}
+                  </View>
+                ))}
+              </View>
             </CardContent>
           </Card>
         </View>
