@@ -26,7 +26,7 @@ export default function Home() {
         {/* ================================== Main Content ================================== */}
         <View className="mt-5">
           {/* ===== Main Water Quality Card ===== */}
-          <Card className="relative h-64 overflow-hidden rounded-xl border-0 p-0">
+          <Card className="relative h-60 overflow-hidden rounded-xl border-0 p-0">
             {/* Background Image */}
             <Image
               source={require('@/assets/images/home-bg.png')}
@@ -89,29 +89,25 @@ export default function Home() {
      
       <Leaf color={'#15803D'} strokeWidth={2} size={28} />
       <View>
-        <Text className="text-green-900 font-semibold text-lg">Plant</Text>
-        <Text className="text-green-900 font-semibold text-lg">Status</Text>
+        <Text className="text-green-900 font-semibold text-xl">Plant</Text>
+        <Text className="text-green-900 font-semibold text-xl">Status</Text>
       </View>
     </View>
 
     {/* Right Column */}
-    <View className="flex-1 gap-3">
+    <View className=" gap-3">
 
       {/* Connected Devices */}
       <View className=" bg-blue-50 rounded-3xl p-4 ">
         <Smartphone color={'#1E40AF'} strokeWidth={2} size={28} />
-        <View>
-          <Text className="text-blue-900 font-semibold text-base">Connected</Text>
-          <Text className="text-blue-900 font-semibold text-base">Devices</Text>
-        </View>
+        <Text className="text-blue-900 font-semibold text-base">Connected Devices</Text>
       </View>
 
       {/* Report and Analytics */}
       <View className="flex-1 bg-yellow-50 rounded-3xl p-4 justify-between">
         <ChartColumn color={'#B45309'} strokeWidth={2} size={28} />
         <View>
-          <Text className="text-yellow-900 font-semibold text-base">Report and</Text>
-          <Text className="text-yellow-900 font-semibold text-base">Analytics</Text>
+          <Text className="text-yellow-900 font-semibold text-base">Report and Analytics</Text>
         </View>
       </View>
 
