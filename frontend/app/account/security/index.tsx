@@ -36,11 +36,23 @@ const settings = [
       <View className='px-4 flex-1'>
         <View className='items-center'>
           <Text className='text-3xl text-primary font-poppins-medium'>Account</Text>
-          <Image
-            source={require('@/assets/images/welcome-bg.png')}
-            resizeMode="cover"
-            className="mx-auto mt-3 size-32 rounded-full"
-          />
+            <View className="relative items-center mt-3">
+              <Image
+                source={require('@/assets/images/welcome-bg.png')}
+                resizeMode="cover"
+                className="size-32 rounded-full"
+              />
+              <Pressable
+                className="absolute bottom-0 right-4 bg-primary size-10 rounded-full items-center justify-center border-2 border-white shadow-md"
+                onPress={() => console.log('Change profile picture')}
+              >
+                <Image
+                  source={require('@/assets/images/Logo.png')}
+                  resizeMode="contain"
+                  className="size-6"
+                />
+              </Pressable>
+            </View>
           <View className='mt-4 px-4'>
             <Text 
               className='text-2xl text-center text-foreground'
