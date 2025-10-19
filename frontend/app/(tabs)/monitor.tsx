@@ -10,10 +10,12 @@ import { ArrowUpIcon, BadgeCheckIcon, CircleArrowRight, Info } from 'lucide-reac
 import { Icon } from '@/components/ui/icon';
 import { Separator } from '@/components/ui/separator';
 import TDSDetailsModal from '../water-monitor/tds-details';
+import PHLevelDetailsModal from '../water-monitor/ph-level-details';
 
 export default function Monitor() {
 
   const [isTDSDetailsModalVisible, setIsTDSDetailsModalVisible] = useState(false);
+  const [isPHLevelDetailsModalVisible, setIsPHLevelDetailsModalVisible] = useState(false);
 
 
   const recentActivities = [
@@ -141,9 +143,13 @@ export default function Monitor() {
           <View className='mt-4 gap-2 items-center'>
             <View className="flex flex-row items-center justify-between w-full px-2">
                 <Text className="text-lg font-semibold text-gray-900">Water pH Level</Text>
-                <Button variant="link" className="p-0">
+                <Button variant="link" className="p-0" onPress={() => setIsPHLevelDetailsModalVisible(true)}>
                   <Text className="text-sm font-medium text-secondary">See Details</Text>
                 </Button>
+                <PHLevelDetailsModal
+                visible={isPHLevelDetailsModalVisible}
+                onClose={() => setIsPHLevelDetailsModalVisible(false)}
+                />
               </View>            
               <Image
               source={require('@/assets/images/ph-level-indicator.png')} 
