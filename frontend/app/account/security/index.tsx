@@ -2,33 +2,36 @@ import {
   Image,
   View,
   ScrollView,
-  Text,
   Pressable,
 } from 'react-native';
+import {
+  ChevronRight,
+  Share2,
+  Leaf,
+  Zap,
+  UserRoundPen,
+  ShieldCheck,
+  Wrench,
+  Scroll,
+  Lock,
+  MessageSquareMore
+} from 'lucide-react-native'
 import React from 'react'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { Separator } from '@/components/ui/separator';
 import { Card, CardContent } from '@/components/ui/card';
+import { Text } from '@/components/ui/text';
 import { Link } from 'expo-router';
 
 export default function Index() {
 
-const icons = {
-  account: require('@/assets/images/Logo.png'),
-  security: require('@/assets/images/Logo.png'),
-  preferences: require('@/assets/images/Logo.png'),
-  terms: require('@/assets/images/Logo.png'),
-  privacy: require('@/assets/images/Logo.png'),
-  faq: require('@/assets/images/Logo.png'),
-};
-
 const settings = [
-  { icon: 'account', title: 'My Account', link: '/account/manage-account' },
-  { icon: 'security', title: 'Security Settings', link: '/account/security-setting' },
-  { icon: 'preferences', title: 'Preferences', link: '/account/preferences' },
-  { icon: 'terms', title: 'Terms and Conditions', link: '/account/terms-and-conditions' },
-  { icon: 'privacy', title: 'Privacy Policy', link: '/account/privacy-policy' },
-  { icon: 'faq', title: 'FAQs', link: '/account/faq' },
+  { icon: UserRoundPen, title: 'My Account', link: '/account/manage-account' },
+  { icon: ShieldCheck, title: 'Security Settings', link: '/account/security-setting' },
+  { icon: Wrench, title: 'Preferences', link: '/account/preferences' },
+  { icon: Scroll, title: 'Terms and Conditions', link: '/account/terms-and-conditions' },
+  { icon: Lock, title: 'Privacy Policy', link: '/account/privacy-policy' },
+  { icon: MessageSquareMore, title: 'FAQs', link: '/account/faq' },
 ];
 
   return (
@@ -42,16 +45,6 @@ const settings = [
                 resizeMode="cover"
                 className="size-32 rounded-full"
               />
-              <Pressable
-                className="absolute bottom-0 right-4 bg-primary size-10 rounded-full items-center justify-center border-2 border-white shadow-md"
-                onPress={() => console.log('Change profile picture')}
-              >
-                <Image
-                  source={require('@/assets/images/Logo.png')}
-                  resizeMode="contain"
-                  className="size-6"
-                />
-              </Pressable>
             </View>
           <View className='mt-4 px-4'>
             <Text 
@@ -67,23 +60,32 @@ const settings = [
           </View>
           <View className="flex-row justify-between mt-4 gap-5">
             <View className="items-center">
-              <Text className="text-xl font-bold text-primary">65</Text>
+              <View className='flex-row items-center'>
+                <Share2 size={16} color="#166534" />
+                <Text className="text-xl font-bold text-primary">65</Text>
+              </View>
               <Text className="text-muted-foreground">Devices</Text>
             </View>
             <Separator
               orientation="vertical"
-              className='text-muted-foreground'
+              className="text-muted-foreground"
             />
             <View className="items-center">
-              <Text className="text-xl font-bold text-primary">34</Text>
+              <View className='flex-row items-center'>
+                <Zap size={16} color="#166534" />
+                <Text className="text-xl font-bold text-primary">100</Text>
+              </View>
               <Text className="text-muted-foreground">mW/hr</Text>
             </View>
             <Separator
               orientation="vertical"
-              className='text-muted-foreground'
+              className="text-muted-foreground"
             />
             <View className="items-center">
-              <Text className="text-xl font-bold text-primary">12</Text>
+              <View className='flex-row items-center'>
+                <Leaf size={16} color="#166534" />
+                <Text className="text-xl font-bold text-primary">65</Text>
+              </View>
               <Text className="text-muted-foreground">cm/day</Text>
             </View>
           </View>
@@ -139,16 +141,12 @@ const settings = [
                     <View className="flex-col">
                       <View className="flex-row items-center justify-between py-4  px-5">
                         <View className="flex-row items-center gap-3">
-                          <Image
-                            source={icons[item.icon as keyof typeof icons]}
-                            resizeMode="contain"
-                            style={{ width: 22, height: 22, tintColor: '#166534' }}
-                          />
+                          <item.icon size={22} color="#166534" />
                           <Text className="text-base text-foreground">
                             {item.title}
                           </Text>
                         </View>
-                        <Text className="text-muted-foreground">{'>'}</Text>
+                        <ChevronRight size={20} color="#166534" />
                       </View>
                       {index < settings.length - 1 && (
                         <Separator className="bg-muted-foreground/10" />
