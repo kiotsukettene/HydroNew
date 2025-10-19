@@ -6,7 +6,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Text } from '@/components/ui/text';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { BadgeCheckIcon, Info } from 'lucide-react-native'; // Added Info icon
+import { ArrowUpIcon, BadgeCheckIcon, CircleArrowRight, Info } from 'lucide-react-native'; // Added Info icon
 import { Icon } from '@/components/ui/icon';
 import { Separator } from '@/components/ui/separator';
 
@@ -17,8 +17,8 @@ export default function Monitor() {
   ];
   return (
     <ScrollView>
-      <SafeAreaView>
-        <View className="p-4">
+      <SafeAreaView className='p-4'>
+        <View className="">
           {/* ===== Page Header ===== */}
           <PageHeader title="Water Monitoring" />
 
@@ -77,7 +77,12 @@ export default function Monitor() {
 
           <Card className="mt-4 rounded-2xl border border-gray-300 p-5 shadow-sm">
             <CardContent className="p-0">
-              <Text className="mb-3 text-lg font-semibold text-gray-900">Recent Activity</Text>
+              <View className="flex-row items-center justify-between">
+                <Text className="text-lg font-semibold text-gray-900">Recent Activity</Text>
+                <Button variant="link" className="p-0">
+                  <Text className="text-sm font-medium text-secondary">See All</Text>
+                </Button>
+              </View>
 
               {/* List of Activities */}
               <View>
@@ -96,6 +101,44 @@ export default function Monitor() {
               </View>
             </CardContent>
           </Card>
+
+          {/* ===== Need Help Card ===== */}
+          <View className="relative mt-3 w-full overflow-hidden">
+            <Image
+              source={require('@/assets/images/need-help-bg.png')}
+              className="w-full"
+              resizeMode="contain"
+            />
+
+            <View className="absolute inset-0 items-start justify-center px-6 py-8">
+              <View className="w-full flex-row items-center justify-between gap-3">
+                <View className="flex-1 mt-4">
+                  <Text className="text-xl font-medium" numberOfLines={1} adjustsFontSizeToFit>
+                    Need Help?
+                  </Text>
+                  <Text className=" text-foreground/50" numberOfLines={2}>
+                    Explore tips and suggestions tailored for you.
+                  </Text>
+                </View>
+                <CircleArrowRight color={'#445104'} size={36} />
+              </View>
+            </View>
+          </View>
+
+          <View className='mt-4 gap-2 items-center'>
+            <View className="flex flex-row items-center justify-between w-full px-2">
+                <Text className="text-lg font-semibold text-gray-900">Water pH Level</Text>
+                <Button variant="link" className="p-0">
+                  <Text className="text-sm font-medium text-secondary">See Details</Text>
+                </Button>
+              </View>            
+              <Image
+              source={require('@/assets/images/ph-level-indicator.png')} 
+                className="w-full"
+                resizeMode="contain"
+              />
+            </View>
+
         </View>
       </SafeAreaView>
     </ScrollView>
