@@ -2,6 +2,9 @@ import {
   Image,
   View,
   Pressable,
+  ScrollView,
+  KeyboardAvoidingView,
+  Platform,
 } from 'react-native';
 import {
   User,
@@ -10,6 +13,7 @@ import {
   Calendar,
 } from 'lucide-react-native'
 import { Input } from '@/components/ui/input';
+import { InputWithIcon } from '@/components/ui/input-with-icon';
 import { Text } from '@/components/ui/text';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
@@ -41,100 +45,110 @@ export default function ManageAccount() {
 
   return (
     <SafeAreaView className='flex-1'>
-      <View className='px-4 flex-1 justify-between'>
-        <View>
-          <View className='items-center'>
-            <Text className='text-3xl text-primary font-poppins-medium'>Manage Account</Text>
-            <View className="relative items-center mt-3">
-              <Image
-                source={profileImage ? { uri: profileImage } : require('@/assets/images/welcome-bg.png')}
-                resizeMode="cover"
-                className="size-32 rounded-full"
-              />
-              <Pressable
-                className="absolute bottom-0 right-2 bg-primary size-10 rounded-full items-center justify-center border-2 border-white shadow-md"
-                onPress={openImagePicker}
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        style={{ flex: 1 }}>
+        <ScrollView contentContainerStyle={{ flexGrow: 1 }} showsVerticalScrollIndicator={false}>
+          <View className='px-4 flex-1 justify-between'>
+            <View>
+              <View className='items-center'>
+                <Text className='text-2xl text-primary font-poppins-medium'>Manage Account</Text>
+                <View className="relative items-center mt-3">
+                  <Image
+                    source={profileImage ? { uri: profileImage } : require('@/assets/images/welcome-bg.png')}
+                    resizeMode="cover"
+                    className="size-32 rounded-full"
+                  />
+                  <Pressable
+                    className="absolute bottom-0 right-2 bg-primary size-10 rounded-full items-center justify-center border-2 border-white shadow-md"
+                    onPress={openImagePicker}
+                    >
+                    <Camera size={24} color="white" />
+                  </Pressable>
+                </View>
+              </View>
+              {/*username */}
+              <View className='mt-6 gap-1'>
+                <Label className="font-normal text-muted-foreground">Username</Label>
+                <InputWithIcon
+                  value={username}
+                  onChangeText={setUsername}
+                  editable={editable}
+                  rightIcon={<AtSign size={20} color="#6B7280" />}
+                  placeholder='username'
+                  autoCapitalize='none'
+                  className="border-muted-foreground/50 text-base text-black"
+                > 
+                </InputWithIcon> 
+              </View>
+              {/*fullname */}
+              <View className='mt-2 gap-1'>
+                <Label className="font-normal text-muted-foreground">Full Name</Label>
+                <InputWithIcon
+                  value={fullname}
+                  onChangeText={setFullname}
+                  editable={editable}
+                  placeholder='fullname'
+                  rightIcon={<User size={20} color="#6B7280" />}
+                  autoCapitalize='none'
+                  className="border-muted-foreground/50 text-base text-black"
                 >
-                <Camera size={24} color="white" />
-              </Pressable>
+                </InputWithIcon>
+              </View>
+              {/*email */}
+              <View className='mt-2 gap-1'>
+                <Label className="font-normal text-muted-foreground">Email</Label>
+                <InputWithIcon
+                  value={email}
+                  onChangeText={setEmail}
+                  editable={editable}
+                  placeholder='email' 
+                  autoCapitalize='none'
+                  className="border-muted-foreground/50 text-base text-black"
+                >
+                </InputWithIcon>
+              </View>
+              {/*contact */}
+              <View className='mt-2 gap-1'>
+                <Label className="font-normal text-muted-foreground">Contact No.</Label>
+                <InputWithIcon
+                  value={contact}
+                  onChangeText={setContact}
+                  editable={editable}
+                  placeholder='contact no.' 
+                  autoCapitalize='none'
+                  className="border-muted-foreground/50 text-base text-black"
+                >
+                </InputWithIcon>
+              </View>
+              {/*birthdate */}
+              <View className='mt-2 gap-1'>
+                <Label className="font-normal text-muted-foreground">Birthdate</Label>
+                <InputWithIcon
+                  value={birthdate}
+                  onChangeText={setBirthdate}
+                  editable={editable}
+                  rightIcon={<Calendar size={20} color="#6B7280" />}
+                  placeholder='birthdate'
+                  autoCapitalize='none'
+                  className="border-muted-foreground/50 text-base text-black"
+                  onIconPress={openImagePicker}
+                >
+                </InputWithIcon>
+              </View>
+            </View>
+            <View className='mb-4'>
+              <Button 
+                onPress={() => isEditable(!editable)}
+              >
+                <Text className="">
+                  {editable ? 'Save Changes' : 'Edit Information'}
+                </Text>
+              </Button>
             </View>
           </View>
-          {/*username */}
-          <View className='mt-6 gap-1'>
-            <Label className="font-normal text-muted-foreground">Username</Label>
-            <Input
-              value={username}
-              onChangeText={setUsername}
-              editable={editable}
-              placeholder='username'
-              autoCapitalize='none'
-              className="border-muted-foreground/50 text-base text-black"
-            > 
-            </Input> 
-          </View>
-          {/*fullname */}
-          <View className='mt-2 gap-1'>
-            <Label className="font-normal text-muted-foreground">Full Name</Label>
-            <Input
-              value={fullname}
-              onChangeText={setFullname}
-              editable={editable}
-              placeholder='fullname'
-              autoCapitalize='none'
-              className="border-muted-foreground/50 text-base text-black"
-            >
-            </Input>
-          </View>
-          {/*email */}
-          <View className='mt-2 gap-1'>
-            <Label className="font-normal text-muted-foreground">Email</Label>
-            <Input
-              value={email}
-              onChangeText={setEmail}
-              editable={editable}
-              placeholder='email' 
-              autoCapitalize='none'
-              className="border-muted-foreground/50 text-base text-black"
-            >
-            </Input>
-          </View>
-          {/*contact */}
-          <View className='mt-2 gap-1'>
-            <Label className="font-normal text-muted-foreground">Contact No.</Label>
-            <Input
-              value={contact}
-              onChangeText={setContact}
-              editable={editable}
-              placeholder='contact no.' 
-              autoCapitalize='none'
-              className="border-muted-foreground/50 text-base text-black"
-            >
-            </Input>
-          </View>
-          {/*birthdate */}
-          <View className='mt-2 gap-1'>
-            <Label className="font-normal text-muted-foreground">Birthdate</Label>
-            <Input
-              value={birthdate}
-              onChangeText={setBirthdate}
-              editable={editable}
-              placeholder='birthdate' 
-              autoCapitalize='none'
-              className="border-muted-foreground/50 text-base text-black"
-            >
-            </Input>
-          </View>
-      </View>
-      <View className='mb-4'>
-        <Button 
-          onPress={() => isEditable(!editable)}
-        >
-          <Text className="">
-            {editable ? 'Save Changes' : 'Edit Information'}
-          </Text>
-        </Button>
-      </View>
-      </View>
+        </ScrollView>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   )
 }
