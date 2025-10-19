@@ -1,5 +1,5 @@
 import { View, ScrollView, Image } from 'react-native';
-import React from 'react';
+import React, { useState } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { PageHeader } from '@/components/ui/page-header';
 import { Card, CardContent } from '@/components/ui/card';
@@ -9,8 +9,13 @@ import { Badge } from '@/components/ui/badge';
 import { ArrowUpIcon, BadgeCheckIcon, CircleArrowRight, Info } from 'lucide-react-native'; // Added Info icon
 import { Icon } from '@/components/ui/icon';
 import { Separator } from '@/components/ui/separator';
+import TDSDetailsModal from '../water-monitor/tds-details';
 
 export default function Monitor() {
+
+  const [isTDSDetailsModalVisible, setIsTDSDetailsModalVisible] = useState(false);
+
+
   const recentActivities = [
     { id: '1', description: 'Water pH adjusted', time: '8:00 AM' },
     { id: '2', description: 'Filtration completed', time: '9:15 AM' },
@@ -19,6 +24,7 @@ export default function Monitor() {
     <ScrollView>
       <SafeAreaView className='p-4'>
         <View className="">
+          
           {/* ===== Page Header ===== */}
           <PageHeader title="Water Monitoring" />
 
@@ -38,7 +44,14 @@ export default function Monitor() {
                       <Text className="text-gray-600">TDS</Text>
                       <Text className="text-xl font-medium text-gray-800">600 ppm</Text>
                     </View>
-                    <Icon as={Info} color="#059669" size={18} className="ml-2 mt-1" />
+
+                    <Button variant={'ghost'} onPress={() => setIsTDSDetailsModalVisible(true)}>
+                    <Icon as={Info} color="#059669" size={18} className="ml-2 mt-1"  />
+                    </Button>
+                    <TDSDetailsModal
+                    visible={isTDSDetailsModalVisible}
+                    onClose={() => setIsTDSDetailsModalVisible(false)}
+                    />
                   </View>
 
                   <View>
