@@ -4,8 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { PageHeader } from '@/components/ui/page-header';
 import { Dimensions } from 'react-native';
 import FolderBg from '@/components/ui/folder-bg';
-import { Separator } from '@/components/ui/separator';
-import { Label } from '@/components/ui/label';
+
 import { Text } from '@/components/ui/text';
 import { Button } from '@/components/ui/button';
 import { Icon } from '@/components/ui/icon';
@@ -63,13 +62,14 @@ export default function Hydroponics() {
     <View className="items-center mt-7">
       <Button className="w-full rounded-xl bg-emerald-50 ">
         <Icon as={Droplet} className="text-primary" />
-        <Text className="ml-2  text-primary">Start Filtration</Text>
+        <Text className="ml-2  text-primary">Start Pump</Text>
       </Button>
     </View>
   </View>
 </FolderBg>
         </View>
       </View>
+      
     </SafeAreaView>
   );
 }
