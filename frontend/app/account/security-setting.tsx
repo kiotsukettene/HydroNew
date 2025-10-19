@@ -41,26 +41,30 @@ export default function SecuritySetting() {
         <View className="w-full flex-1 mt-6">
           <Card className="py-2 rounded-lg border border-muted-foreground/10 bg-white shadow-lg">
             <CardContent>
-              {settings.map((item, index)=>(
-                <Link href={item.link as any} asChild key={index}>
-                  <Pressable className="active:bg-muted/30">
-                    <View className="flex-col">
-                      <View className="flex-row items-center justify-between py-4">
-                        <View className="flex-row items-center gap-3">
-                          <item.icon size={22} color="#166534" />
-                          <Text className="text-base text-foreground">
-                            {item.title}
-                          </Text>
+              {settings.map((item, index) => {
+                const isDestructive = item.title === 'Delete Account'; 
+                const textClass = isDestructive ? 'text-destructive' : 'text-foreground';
+                return (
+                  <Link href={item.link as any} asChild key={index}>
+                    <Pressable className="active:bg-muted/30">
+                      <View className="flex-col">
+                        <View className="flex-row items-center justify-between py-4">
+                          <View className="flex-row items-center gap-3">
+                            <item.icon size={22} color={isDestructive ? '#E36262' : '#166534'} />
+                            <Text className={`text-base ${textClass}`}>
+                              {item.title}
+                            </Text>
+                          </View>
+                          <ChevronRight size={20} color={isDestructive ? '#E36262' : '#166534'} />
                         </View>
-                        <ChevronRight size={20} color="#166534" />
+                        {index < settings.length - 1 && (
+                          <Separator className="bg-muted-foreground/10" />
+                        )}
                       </View>
-                      {index < settings.length - 1 && (
-                        <Separator className="bg-muted-foreground/10" />
-                      )}
-                    </View>
-                  </Pressable>
-                </Link>
-              ))}
+                    </Pressable>
+                  </Link>
+                );
+              })}
             </CardContent>
           </Card>
         </View> 
