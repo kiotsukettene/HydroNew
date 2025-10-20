@@ -1,21 +1,29 @@
 import { View, Text, ScrollView } from 'react-native';
 import React from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { ArrowLeft } from 'lucide-react-native';
 
 export default function TermsAndConditions() {
   return (
     <SafeAreaView className="flex-1 bg-white">
       <View className="px-4 pt-4 flex-1">
-        <Text className="text-2xl font-poppins-medium text-primary text-center mb-4">
-          Terms and Conditions
-        </Text>
+        <View className="flex-row items-center w-full px-4 relative">
+          <View className="absolute">
+            <View className="size-8 rounded-full bg-[#E8E8E9] items-center justify-center">
+              <ArrowLeft size={22} color="#6C7278" />
+            </View>
+          </View>
+          <Text className="text-2xl text-primary font-poppins-medium text-center flex-1">
+            Terms & Conditions
+          </Text>
+        </View>
 
         {/* Scrollable content */}
         <ScrollView
           showsVerticalScrollIndicator={true}
           contentContainerStyle={{flexGrow: 1}}
         >
-          <Text className="text-base font-poppins text-foreground leading-relaxed mb-3 text-justify">
+          <Text className="text-base font-poppins text-foreground leading-relaxed my-4 text-justify">
             Welcome to Hydronew. By downloading, installing, or using this
             application, you agree to be bound by these Terms and Conditions.
             Please read them carefully before using the service.
