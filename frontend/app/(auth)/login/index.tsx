@@ -89,7 +89,7 @@ export default function Login() {
               </View>
               <CardHeader className="items-center">
                 <CardTitle className="text-3xl text-primary">Login</CardTitle>
-                <CardDescription className="text-center">
+                <CardDescription className="text-center text-md">
                   Welcome back! Let’s get growing.
                 </CardDescription>
               </CardHeader>
@@ -142,8 +142,8 @@ export default function Login() {
 
                 {/* LOGIN Button */}
 
-                <Link href={'/(auth)/first-time/welcome-first-time'} asChild>
-                  <Button className="w-full">
+                <Link href={'/on-boarding/first-onboarding'} asChild>
+                  <Button className="w-full"> 
                     <Text className="">Login</Text>
                   </Button>
                 </Link>
