@@ -1,20 +1,28 @@
 import { View, Text, ScrollView } from 'react-native'
 import React from 'react'
 import { SafeAreaView } from 'react-native-safe-area-context'
+import { ArrowLeft } from 'lucide-react-native'
 
 export default function FAQ() {
   return (
      <SafeAreaView className='flex-1'>
       <View className='px-4 pt-4 flex-1'>
-        <Text className="text-2xl font-poppins-medium text-primary text-center mb-4">
-          FAQs
-        </Text>
+        <View className="flex-row items-center w-full px-4 relative">
+          <View className="absolute">
+            <View className="size-8 rounded-full bg-[#E8E8E9] items-center justify-center">
+              <ArrowLeft size={22} color="#6C7278" />
+            </View>
+          </View>
+          <Text className="text-2xl text-primary font-poppins-medium text-center flex-1">
+            FAQs
+          </Text>
+        </View>
         <ScrollView
           showsVerticalScrollIndicator={true}
           contentContainerStyle={{ paddingBottom: 32 }}
         >
 
-          <Text className="text-lg font-poppins-semibold text-primary mb-1">
+          <Text className="text-lg font-poppins-semibold text-primary mt-4 mb-1">
             1. How does a Microbial Fuel Cell work?
           </Text>
           <Text className="text-base font-poppins text-muted-foreground leading-relaxed mb-3 text-justify">
