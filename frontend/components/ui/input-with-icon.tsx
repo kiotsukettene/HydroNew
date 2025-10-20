@@ -5,6 +5,7 @@ import React from 'react';
 interface InputProps extends TextInputProps {
   rightIcon?: React.ReactNode;
   onIconPress?: () => void;
+  secureTextEntry?: boolean;
 }
 
 function InputWithIcon({
@@ -12,11 +13,13 @@ function InputWithIcon({
   placeholderClassName,
   rightIcon,
   onIconPress,
+  secureTextEntry,
   ...props
 }: InputProps & React.RefAttributes<TextInput>) {
   return (
     <View className="flex-row items-center">
       <TextInput
+        secureTextEntry={secureTextEntry}
         className={cn(
           'border-muted-foreground bg-transparent text-muted text-base flex h-10 w-full min-w-0 flex-row items-center rounded-xl border px-3 py-1 leading-5 shadow-sm sm:h-9',
           props.editable === false &&
@@ -38,14 +41,15 @@ function InputWithIcon({
         )}
         {...props}
       />
-      {rightIcon &&         
+      {rightIcon && (
         <Pressable
           onPress={onIconPress}
           className="absolute right-3 p-1"
           hitSlop={8}
         >
           {rightIcon}
-        </Pressable>}
+        </Pressable>
+      )}
     </View>
   );
 }
