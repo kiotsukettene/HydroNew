@@ -15,6 +15,7 @@ import {
   Sun,
   ShieldCheck,
 } from 'lucide-react-native';
+import FailedDetailsModal from '../hydroponics-monitoring/failed-details';
 
 // Types 
 interface FiltrationStage {
@@ -43,6 +44,7 @@ export default function Filtration() {
   const [currentStage, setCurrentStage] = useState(0);
   const [buttonText, setButtonText] = useState("Start Process");
   const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [showFailedModal, setShowFailedModal] = useState(false);
 
   // Initialize all stages as pending
   const [filtrationStages, setFiltrationStages] = useState<FiltrationStage[]>([
@@ -397,13 +399,20 @@ export default function Filtration() {
                       
                       {/*  ============= View Details button for failed stages ============== */}
                       {stage.status === 'failed' && (
-                        <View className="mt-1 pt-3 border-t border-red-200">
-                          <Button variant="link" className="self-center">
-                            <Text className="text-red-600 text-sm">View Details</Text>
-                          </Button>
-                        </View>
+                        <Button variant="link" className="self-center" onPress={() => setShowFailedModal(true)}>
+                          <Text className="text-red-600 text-sm">View Details</Text>
+                        </Button>
+
+                        
                       )}
+                        {/* ===== ===== Failed Modal ===== ===== */}
+                    <FailedDetailsModal
+                      visible={showFailedModal}
+                      onClose={() => setShowFailedModal(false)}
+                    />
+                      
                     </View>
+                  
                   </View>
                 );
               })}
