@@ -14,7 +14,8 @@ import {
   Wrench,
   Scroll,
   Lock,
-  MessageSquareMore
+  MessageSquareMore,
+  Ellipsis,
 } from 'lucide-react-native'
 import React from 'react'
 import { SafeAreaView } from 'react-native-safe-area-context'
@@ -22,7 +23,7 @@ import { Separator } from '@/components/ui/separator';
 import { Card, CardContent } from '@/components/ui/card';
 import { Text } from '@/components/ui/text';
 import { Link } from 'expo-router';
-
+ 
 export default function Index() {
 
 const settings = [
@@ -38,14 +39,21 @@ const settings = [
     <SafeAreaView className='flex-1'>
       <View className='px-4 flex-1'>
         <View className='items-center'>
-          <Text className='text-3xl text-primary font-poppins-medium'>Account</Text>
-            <View className="relative items-center mt-3">
-              <Image
-                source={require('@/assets/images/welcome-bg.png')}
-                resizeMode="cover"
-                className="size-32 rounded-full"
-              />
-            </View>
+          {/* ================= Title  ==================== */}
+          <View className="flex-row items-center w-full px-4">
+            <Text className="text-3xl text-primary font-poppins-medium text-center flex-1">
+              Account
+            </Text>
+            <Ellipsis size={22} color="#166534" />
+          </View>
+          <View className="relative items-center mt-3">
+            <Image
+              source={require('@/assets/images/welcome-bg.png')}
+              resizeMode="cover"
+              className="size-32 rounded-full"
+            />
+          </View>
+          {/* ================= Main Body  ==================== */}
           <View className='mt-4 px-4'>
             <Text 
               className='text-2xl text-center text-foreground'
@@ -160,7 +168,7 @@ const settings = [
             </CardContent>
           </Card>
         </View>
-
+            {/* ================= end of main body  ==================== */}
       </View>
     </SafeAreaView>
   )
