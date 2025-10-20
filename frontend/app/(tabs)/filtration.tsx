@@ -42,35 +42,39 @@ interface FiltrationStage {
 }
 
 export default function Filtration() {
-  // come from API/WebSocket
-  // mock data for the filtration stages
+  // Process control states
+  const [isProcessStarted, setIsProcessStarted] = useState(false);
+  const [isProcessFailed, setIsProcessFailed] = useState(false);
+  const [currentStage, setCurrentStage] = useState(0);
+  const [buttonText, setButtonText] = useState("Start Process");
 
+  // Initialize all stages as pending
   const [filtrationStages, setFiltrationStages] = useState<FiltrationStage[]>([
     {
       id: 1,
       title: "Stage 1",
       name: "MFC Treatment",
-      description: "Biological filtration completed",
-      status: "completed",
-      statusText: "Completed",
+      description: "Biological filtration",
+      status: "pending",
+      statusText: "Pending",
       icon: CheckCircle2,
-      bgColor: "bg-green-300",
-      cardBgColor: "bg-green-50",
-      borderColor: "border-green-100",
-      statusBgColor: "bg-green-500"
+      bgColor: "bg-gray-300",
+      cardBgColor: "bg-gray-50",
+      borderColor: "border-gray-200",
+      statusBgColor: "bg-gray-400"
     },
     {
       id: 2,
       title: "Stage 2",
       name: "Natural Filtration",
-      description: "Multi-layer filtration failed",
-      status: "failed",
-      statusText: "Failed",
-      icon: XCircle,
-      bgColor: "bg-red-500",
-      cardBgColor: "bg-red-50",
-      borderColor: "border-red-200",
-      statusBgColor: "bg-red-400"
+      description: "Multi-layer filtration",
+      status: "pending",
+      statusText: "Pending",
+      icon: Droplets,
+      bgColor: "bg-gray-300",
+      cardBgColor: "bg-gray-50",
+      borderColor: "border-gray-200",
+      statusBgColor: "bg-gray-400"
     },
     {
       id: 3,
@@ -100,18 +104,94 @@ export default function Filtration() {
     }
   ]);
 
-  useEffect(() => {
+  // Function to start the process
+  const startProcess = () => {
+    setIsProcessStarted(true);
+    setIsProcessFailed(false);
+    setButtonText("On process...");
+    setCurrentStage(1);
     
-    const interval = setInterval(() => {
+    // Start Stage 1
+    setTimeout(() => {
+      updateStageStatus(1, "completed", "Completed", "bg-green-300", "bg-green-50", "border-green-100", "bg-green-500");
+      setCurrentStage(2);
       
-    }, 5000); // Update every 5 seconds
+      // Start Stage 2 (will fail for testing)
+      setTimeout(() => {
+        updateStageStatus(2, "failed", "Failed", "bg-red-500", "bg-red-50", "border-red-200", "bg-red-400");
+        setIsProcessFailed(true);
+        setButtonText("Re-start Process");
+      }, 2000);
+    }, 2000);
+  };
 
-    return () => clearInterval(interval);
+  // Function to restart the process
+  const restartProcess = () => {
+    setIsProcessFailed(false);
+    setButtonText("On process...");
+    
+    // Fix Stage 2 and continue
+    setTimeout(() => {
+      updateStageStatus(2, "completed", "Completed", "bg-green-300", "bg-green-50", "border-green-100", "bg-green-500");
+      setCurrentStage(3);
+      
+      // Continue to Stage 3
+      setTimeout(() => {
+        updateStageStatus(3, "completed", "Completed", "bg-green-300", "bg-green-50", "border-green-100", "bg-green-500");
+        setCurrentStage(4);
+        
+        // Complete Stage 4
+        setTimeout(() => {
+          updateStageStatus(4, "completed", "Completed", "bg-green-300", "bg-green-50", "border-green-100", "bg-green-500");
+          setButtonText("Process Complete");
+        }, 2000);
+      }, 2000);
+    }, 2000);
+  };
+
+  // Function to update stage status
+  const updateStageStatus = (
+    stageId: number, 
+    status: 'completed' | 'active' | 'pending' | 'failed',
+    statusText: string,
+    bgColor: string,
+    cardBgColor: string,
+    borderColor: string,
+    statusBgColor: string
+  ) => {
+    setFiltrationStages(prev => prev.map(stage => 
+      stage.id === stageId 
+        ? { 
+            ...stage, 
+            status,
+            statusText,
+            bgColor,
+            cardBgColor,
+            borderColor,
+            statusBgColor
+          }
+        : stage
+    ));
+  };
+
+  // Function to handle button click
+  const handleButtonClick = () => {
+    if (!isProcessStarted || isProcessFailed) {
+      if (isProcessFailed) {
+        restartProcess();
+      } else {
+        startProcess();
+      }
+    }
+  };
+
+  useEffect(() => {
+    return () => {};
   }, []);
 
 
  
-  return (
+  return (  
     <SafeAreaView className="flex-1 relative">
       <Image
         source={require('@/assets/images/filtration-bg.png')}
@@ -143,8 +223,12 @@ export default function Filtration() {
               <Text className="text-xl sm:text-2xl font-bold mb-1">Water Filtration Process</Text>
               <Text className="text-foreground/80 text-sm sm:text-base">Real-time purification monitoring</Text>
             </View>
-            <Button >
-              <Text>Start Process</Text>
+            <Button 
+              onPress={handleButtonClick}
+              disabled={isProcessStarted && !isProcessFailed}
+              className={isProcessStarted && !isProcessFailed ? "opacity-50" : ""}
+            >
+              <Text>{buttonText}</Text>
             </Button>
           
 
