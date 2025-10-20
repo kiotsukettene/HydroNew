@@ -11,6 +11,7 @@ import {
   Camera,
   AtSign,
   Calendar,
+  ArrowLeft,
 } from 'lucide-react-native'
 import { Input } from '@/components/ui/input';
 import { InputWithIcon } from '@/components/ui/input-with-icon';
@@ -52,7 +53,18 @@ export default function ManageAccount() {
           <View className='px-4 flex-1 justify-between'>
             <View>
               <View className='items-center'>
-                <Text className='text-2xl text-primary font-poppins-medium'>Manage Account</Text>
+                {/* ================= Title  ==================== */}
+                <View className="flex-row items-center w-full px-4 relative">
+                  <View className="absolute">
+                    <View className="size-8 rounded-full bg-[#E8E8E9] items-center justify-center">
+                      <ArrowLeft size={22} color="#6C7278" />
+                    </View>
+                  </View>
+                  <Text className="text-2xl text-primary font-poppins-medium text-center flex-1">
+                    Manage Account
+                  </Text>
+                </View>
+                {/* ================= Profile Image  ==================== */}
                 <View className="relative items-center mt-3">
                   <Image
                     source={profileImage ? { uri: profileImage } : require('@/assets/images/welcome-bg.png')}
@@ -67,6 +79,7 @@ export default function ManageAccount() {
                   </Pressable>
                 </View>
               </View>
+              {/* ================= Main Body ==================== */}
               {/*username */}
               <View className='mt-6 gap-1'>
                 <Label className="font-normal text-muted-foreground">Username</Label>
@@ -109,18 +122,6 @@ export default function ManageAccount() {
                 </InputWithIcon>
               </View>
               {/*contact */}
-              <View className='mt-2 gap-1'>
-                <Label className="font-normal text-muted-foreground">Contact No.</Label>
-                <InputWithIcon
-                  value={contact}
-                  onChangeText={setContact}
-                  editable={editable}
-                  placeholder='contact no.' 
-                  autoCapitalize='none'
-                  className="border-muted-foreground/50 text-base text-black"
-                >
-                </InputWithIcon>
-              </View>
               {/*birthdate */}
               <View className='mt-2 gap-1'>
                 <Label className="font-normal text-muted-foreground">Birthdate</Label>
@@ -146,6 +147,7 @@ export default function ManageAccount() {
                 </Text>
               </Button>
             </View>
+            {/* ================= end of main body  ==================== */}
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
