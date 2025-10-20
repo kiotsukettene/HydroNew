@@ -296,8 +296,8 @@ export default function Filtration() {
             </View>
             <Button 
               onPress={handleButtonClick}
-              disabled={isProcessStarted && !isProcessFailed}
-              className={isProcessStarted && !isProcessFailed ? "opacity-50" : ""}
+              disabled={(isProcessStarted && !isProcessFailed) || buttonText === "Process Complete"}
+              className={(isProcessStarted && !isProcessFailed) || buttonText === "Process Complete" ? "opacity-50" : ""}
             >
               <Text>{buttonText}</Text>
             </Button>
