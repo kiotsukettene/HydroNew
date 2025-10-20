@@ -7,17 +7,12 @@ import { Text } from '@/components/ui/text';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import Svg, { Circle} from 'react-native-svg';
+import FiltrationSuccessModal from '../filtration/filtration-success';
 import {
   Loader,
-  Clock,
-  ChevronDown,
-  Beaker,
   CheckCircle2,
   Droplets,
   Sun,
-  XCircle,
-  CupSoda,
-  BadgeCheckIcon,
   ShieldCheck,
 } from 'lucide-react-native';
 
@@ -47,6 +42,7 @@ export default function Filtration() {
   const [isProcessFailed, setIsProcessFailed] = useState(false);
   const [currentStage, setCurrentStage] = useState(0);
   const [buttonText, setButtonText] = useState("Start Process");
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
 
   // Initialize all stages as pending
   const [filtrationStages, setFiltrationStages] = useState<FiltrationStage[]>([
@@ -104,6 +100,10 @@ export default function Filtration() {
     }
   ]);
 
+
+
+  {/* ========================== FUNCTIONALITY TESTING ========================== */}
+
   // Function to start the process
   const startProcess = () => {
     setIsProcessStarted(true);
@@ -144,6 +144,10 @@ export default function Filtration() {
         setTimeout(() => {
           updateStageStatus(4, "completed", "Completed", "bg-green-300", "bg-green-50", "border-green-100", "bg-green-500");
           setButtonText("Process Complete");
+          // Show success modal after completion
+          setTimeout(() => {
+            setShowSuccessModal(true);
+          }, 500);
         }, 2000);
       }, 2000);
     }, 2000);
@@ -183,6 +187,71 @@ export default function Filtration() {
         startProcess();
       }
     }
+  };
+
+  // Function to reset the entire process
+  const resetProcess = () => {
+    setIsProcessStarted(false);
+    setIsProcessFailed(false);
+    setCurrentStage(0);
+    setButtonText("Start Process");
+    setShowSuccessModal(false);
+    
+    // Reset all stages back to pending
+    setFiltrationStages([
+      {
+        id: 1,
+        title: "Stage 1",
+        name: "MFC Treatment",
+        description: "Biological filtration",
+        status: "pending",
+        statusText: "Pending",
+        icon: CheckCircle2,
+        bgColor: "bg-gray-300",
+        cardBgColor: "bg-gray-50",
+        borderColor: "border-gray-200",
+        statusBgColor: "bg-gray-400"
+      },
+      {
+        id: 2,
+        title: "Stage 2",
+        name: "Natural Filtration",
+        description: "Multi-layer filtration",
+        status: "pending",
+        statusText: "Pending",
+        icon: Droplets,
+        bgColor: "bg-gray-300",
+        cardBgColor: "bg-gray-50",
+        borderColor: "border-gray-200",
+        statusBgColor: "bg-gray-400"
+      },
+      {
+        id: 3,
+        title: "Stage 3",
+        name: "UV Sterilization",
+        description: "Ultraviolet purification",
+        status: "pending",
+        statusText: "Pending",
+        icon: Sun,
+        bgColor: "bg-gray-300",
+        cardBgColor: "bg-gray-50",
+        borderColor: "border-gray-200",
+        statusBgColor: "bg-gray-400"
+      },
+      {
+        id: 4,
+        title: "Stage 4",
+        name: "Clean Water",
+        description: "Final purification stage",
+        status: "pending",
+        statusText: "Pending",
+        icon: ShieldCheck,
+        bgColor: "bg-gray-300",
+        cardBgColor: "bg-gray-50",
+        borderColor: "border-gray-200",
+        statusBgColor: "bg-gray-400"
+      }
+    ]);
   };
 
   useEffect(() => {
@@ -343,7 +412,19 @@ export default function Filtration() {
           </Card>
           </View>
           </ScrollView>
-      </View>
-    </SafeAreaView>
-  );
-}
+        </View>
+
+        {/* ===== ===== Success Modal ===== ===== */}
+        <FiltrationSuccessModal
+          visible={showSuccessModal}
+          onClose={() => {
+            setShowSuccessModal(false);
+            resetProcess();
+          }}
+          onViewDetails={() => {
+            setShowSuccessModal(false);
+          }}
+        />
+      </SafeAreaView>
+    );
+  }
