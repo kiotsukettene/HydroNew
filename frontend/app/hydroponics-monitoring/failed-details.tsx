@@ -22,7 +22,7 @@ export default function FailedDetailsModal({
       animationType="fade"
       onRequestClose={onClose}
     >
-      <View className="flex-1 bg-foreground/10 items-center justify-center px-6">
+      <View className="flex-1 bg-foreground/40 items-center justify-center px-6">
         {/* Modal Container */}
         <View className="rounded-3xl bg-muted w-full max-w-sm p-6">
           
