@@ -104,7 +104,7 @@ export default function Login() {
                     autoCapitalize="none"
                     returnKeyType="next"
                     onSubmitEditing={onEmailSubmitEditing}
-                    className="border-muted-foreground/50 text-base"
+                    className="border-muted-foreground/50 text-base h-12"
                   />
                 </View>
 
@@ -116,7 +116,7 @@ export default function Login() {
                       placeholder="•••••••••"
                       returnKeyType="send"
                       onSubmitEditing={onSubmit}
-                      className="border-muted-foreground/50 text-base text-foreground"
+                      className="border-muted-foreground/50 text-base text-foreground h-12"
                       value={password}
                       onChangeText={setPassword}
                       secureTextEntry={!showPassword}
