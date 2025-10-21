@@ -11,10 +11,12 @@ import { Icon } from '@/components/ui/icon';
 import { Separator } from '@/components/ui/separator';
 import TDSDetailsModal from '../water-monitor/tds-details';
 import PHLevelDetailsModal from '../water-monitor/ph-level-details';
-import { router } from 'expo-router';
+import { Link, router, useRouter } from 'expo-router';
 
 export default function Monitor() {
 
+
+  const router = useRouter();
   const [isTDSDetailsModalVisible, setIsTDSDetailsModalVisible] = useState(false);
   const [isPHLevelDetailsModalVisible, setIsPHLevelDetailsModalVisible] = useState(false);
 
@@ -83,7 +85,7 @@ export default function Monitor() {
               </View>
 
               {/*  Button */}
-              <Button className="mt-4 rounded-lg bg-muted/70">
+              <Button className="mt-4 rounded-lg bg-muted/70" onPress={() => {router.push('/(tabs)/filtration')}}>
                 <Text className="font-semibold text-gray-800">Start Filtration</Text>
               </Button>
             </CardContent>
