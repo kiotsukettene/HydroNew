@@ -55,7 +55,7 @@ const settings = [
           {/* ================= Main Body  ==================== */}
           <View className='mt-4 px-4'>
             <Text 
-              className='text-2xl text-center text-foreground'
+              className='text-2xl text-center text-gray-800 font-medium'
               >
                 Juan Dela Cruz
               </Text>
