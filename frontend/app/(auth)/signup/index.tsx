@@ -104,7 +104,7 @@ export default function SignUp() {
                     autoCapitalize="words"
                     returnKeyType="next"
                     onSubmitEditing={onEmailSubmitEditing}
-                    className="border-muted-foreground/50 text-base"
+                    className="border-muted-foreground/50 text-base h-12"
                   />
                 </View>
 
@@ -121,7 +121,7 @@ export default function SignUp() {
                     autoCapitalize="none"
                     returnKeyType="next"
                     onSubmitEditing={onEmailSubmitEditing}
-                    className="border-muted-foreground/50 text-base"
+                    className="border-muted-foreground/50 text-base h-12"
                   />
                 </View>
 
@@ -138,7 +138,7 @@ export default function SignUp() {
                     ref={passwordInputRef}
                     returnKeyType="send"
                     onSubmitEditing={onSubmit}
-                    className="border-muted-foreground/50 text-base"
+                    className="border-muted-foreground/50 text-base h-12"
                   />
                 </View>
 
@@ -154,7 +154,7 @@ export default function SignUp() {
                     secureTextEntry
                     returnKeyType="send"
                     onSubmitEditing={onSubmit}
-                    className="border-muted-foreground/50 text-base"
+                    className="border-muted-foreground/50 text-base h-12"
                   />
                 </View>
 

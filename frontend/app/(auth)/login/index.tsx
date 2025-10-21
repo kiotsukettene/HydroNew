@@ -40,6 +40,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import Svg, { Path } from 'react-native-svg';
 import { Checkbox } from '@/components/ui/checkbox';
 import { useAuthStore } from "@/store/auth/authStore";
+import PasswordToggle from '@/app/hooks/password-toggle';
 
 const { height } = Dimensions.get('window');
 
@@ -48,6 +49,7 @@ export default function Login() {
   const [password, setPassword] = useState('');
   const [checked, setChecked] = useState(false);
   const { login, needsVerification, user } = useAuthStore();
+  const [showPassword, setShowPassword] = useState(false);
 
   const router = useRouter();
   const passwordInputRef = useRef<TextInput>(null);
@@ -75,7 +77,7 @@ useEffect(() => {
   }
 
   return (
-    <SafeAreaView className="flex-1 ">
+    <SafeAreaView className="flex-1">
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         style={{ flex: 1 }}>
@@ -102,7 +104,7 @@ useEffect(() => {
               </View>
               <CardHeader className="items-center">
                 <CardTitle className="text-3xl text-primary">Login</CardTitle>
-                <CardDescription className="text-center">
+                <CardDescription className="text-center text-md">
                   Welcome back! Let’s get growing.
                 </CardDescription>
               </CardHeader>
@@ -119,23 +121,25 @@ useEffect(() => {
                     autoCapitalize="none"
                     returnKeyType="next"
                     onSubmitEditing={onEmailSubmitEditing}
-                    className="border-muted-foreground/50 text-base"
+                    className="border-muted-foreground/50 text-base h-12"
                   />
                 </View>
 
                 {/* Password */}
                 <View className="gap-1">
                   <Label className="font-normal text-muted-foreground">Password</Label>
-                  <Input
-                    value={password}
-                    onChangeText={setPassword}
-                    placeholder="•••••••••"
-                    secureTextEntry
-                    ref={passwordInputRef}
-                    returnKeyType="send"
-                    onSubmitEditing={onSubmit}
-                    className="border-muted-foreground/50 text-base"
-                  />
+                  <View className="relative">
+                    <Input
+                      placeholder="•••••••••"
+                      returnKeyType="send"
+                      onSubmitEditing={onSubmit}
+                      className="border-muted-foreground/50 text-base text-foreground h-12"
+                      value={password}
+                      onChangeText={setPassword}
+                      secureTextEntry={!showPassword}
+                    />
+                    <PasswordToggle onToggle={setShowPassword} initialState={showPassword} />
+                  </View>
 
                   <View className="mb-2 mt-3 flex-row items-center justify-between">
                     {/* Terms */}
@@ -147,7 +151,9 @@ useEffect(() => {
                       />
                       <Text className="self-end text-muted-foreground">Remember me?</Text>
                     </View>
-                    <Text className="self-end text-primary/70">Forgot Password</Text>
+                    <Link href="/forgot-password">
+                      <Text className="self-end text-primary/70">Forgot Password</Text>
+                    </Link>
                   </View>
                 </View>
 
@@ -191,7 +197,7 @@ useEffect(() => {
                 </Button>
 
                 {/* Footer */}
-                <Text className="text-center text-muted-foreground mt-2">
+                <Text className="mt-2 text-center text-muted-foreground">
                   Already have an account?{' '}
                   <Link href="/login" asChild>
                     <Text className="font-medium text-primary">Sign in</Text>

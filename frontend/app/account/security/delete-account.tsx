@@ -2,11 +2,11 @@ import { View, Text } from 'react-native'
 import React from 'react'
 import { SafeAreaView } from 'react-native-safe-area-context'
 
-export default function Controls() {
+export default function Delete() {
   return (
-     <SafeAreaView className='justify-center items-center flex-1'>
+    <SafeAreaView>
       <View>
-        <Text>Controls</Text>
+        <Text>Delete Account</Text>
       </View>
     </SafeAreaView>
   )
