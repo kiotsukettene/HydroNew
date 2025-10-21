@@ -1,33 +1,6 @@
 import { create } from "zustand";
 import axiosInstance from "@/api/axiosInstance";
 
-type User = {
-  id: number;
-  first_name: string;
-  last_name: string;
-  email: string;
-};
-
-type RegisterPayload = {
-  fullname: string;
-  email: string;
-  password: string;
-  password_confirmation: string;
-};
-
-type AuthState = {
-  user: User | null;
-  token: string | null;
-  loading: boolean;
-  error: string | null;
-  message: string | null;
-  needsVerification: boolean;
-  register: (data: RegisterPayload) => Promise<void>;
-  login: (email: string, password: string) => Promise<void>;
-  verifyOtp: (otp: string) => Promise<void>;
-  resendOtp: () => Promise<void>;
-  logout: () => Promise<void>;
-};
 export const useAuthStore = create<AuthState>((set, get) => ({
   user: null,
   token: null,
@@ -110,7 +83,6 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         error: null,
       });
       return response.data;
-      console.log(response.data.message);
     } catch (err: any) {
       const message =
         err.response?.data?.message || "OTP verification failed. Try again.";
