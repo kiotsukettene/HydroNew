@@ -5,6 +5,7 @@ import { Text } from '@/components/ui/text';
 import { Separator } from '@/components/ui/separator';
 import { Card, CardContent } from '@/components/ui/card';
 import { Link } from 'expo-router';
+import { PageHeader } from '@/components/ui/page-header';
 import { 
   ShieldCheck,
   LockOpen,
@@ -35,16 +36,7 @@ export default function SecuritySetting() {
   return (
     <SafeAreaView className='flex-1'>
       <View className='px-4 flex-1 items-center'>
-        <View className="flex-row items-center w-full px-4 relative">
-          <View className="absolute">
-            <View className="size-8 rounded-full bg-[#E8E8E9] items-center justify-center">
-              <ArrowLeft size={22} color="#6C7278" />
-            </View>
-          </View>
-          <Text className="text-2xl text-primary font-poppins-medium text-center flex-1">
-            Security
-          </Text>
-        </View>
+          <PageHeader title="Security Settings" showNotificationButton={false} />
         <View className='size-24 bg-[#BFF1CC] rounded-full justify-center items-center mt-6'>
           <ShieldCheck size={60} color="#166534" />
         </View>

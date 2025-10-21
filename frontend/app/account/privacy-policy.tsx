@@ -2,20 +2,14 @@ import { View, Text, ScrollView } from 'react-native'
 import React from 'react'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { ArrowLeft } from 'lucide-react-native'
+import { PageHeader } from '@/components/ui/page-header';
+
 export default function PrivacyPolicy() {
   return (
      <SafeAreaView className='flex-1'>
       <View className='px-4 pt-4 flex-1'>
-        <View className="flex-row items-center w-full px-4 relative">
-          <View className="absolute">
-            <View className="size-8 rounded-full bg-[#E8E8E9] items-center justify-center">
-              <ArrowLeft size={22} color="#6C7278" />
-            </View>
-          </View>
-          <Text className="text-2xl text-primary font-poppins-medium text-center flex-1">
-            Privacy Policy
-          </Text>
-        </View>
+        {/* ================= Title  ==================== */}
+        <PageHeader title="Privacy Policy" showNotificationButton={false} />
         <ScrollView
           showsVerticalScrollIndicator={true}
           contentContainerStyle={{ flexGrow: 1 }}

@@ -23,6 +23,7 @@ import { Separator } from '@/components/ui/separator';
 import { Card, CardContent } from '@/components/ui/card';
 import { Text } from '@/components/ui/text';
 import { Link } from 'expo-router';
+import { PageHeader } from '@/components/ui/page-header';
  
 export default function Index() {
 
@@ -37,16 +38,14 @@ const settings = [
 
   return (
     <SafeAreaView className='flex-1'>
-      <View className='px-4 flex-1'>
-        <View className='items-center'>
-          {/* ================= Title  ==================== */}
-          <View className="flex-row items-center w-full px-4">
-            <Text className="text-3xl text-primary font-poppins-medium text-center flex-1">
-              Account
-            </Text>
+      <View className='px-4 flex-1 '>
+                  <View className="flex-row items-center w-full px-4">
+            <PageHeader title="Account" showNotificationButton={false} />
             <Ellipsis size={22} color="#166534" />
           </View>
-          <View className="relative items-center mt-3">
+        <View className='items-center'>
+          {/* ================= Title  ==================== */}
+          <View className="relative items-center">
             <Image
               source={require('@/assets/images/welcome-bg.png')}
               resizeMode="cover"
@@ -100,9 +99,9 @@ const settings = [
         </View>
 
           {/* ads */}
-        <View className="mt-4 gap-1">
+        <View className="mt-2 gap-1">
           {/* div 1 */}
-          <View className="flex-row items-center px-1 py-1 rounded-xl bg-[#F6FFEE] border border-[#BCF1C1]">
+          <View className="flex-row items-center px-1 rounded-xl bg-[#F6FFEE] border border-[#BCF1C1]">
             <Image
               source={require('@/assets/images/urban-farming.png')}
               resizeMode="contain"
@@ -119,7 +118,7 @@ const settings = [
           </View>
 
           {/* div 2 */}
-          <View className="flex-row items-center bg-[#EEF7FE] border border-[#C7E5F7] px-3 py-0.5 rounded-xl">
+          <View className="flex-row items-center bg-[#EEF7FE] border border-[#C7E5F7] px-3 rounded-xl">
             <View className="flex-1">
               <Text className="text-md font-semibold text-foreground">
                 Microbial Fuel Cell

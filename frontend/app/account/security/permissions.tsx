@@ -6,6 +6,8 @@ import { Separator } from '@/components/ui/separator';
 import { Card, CardContent } from '@/components/ui/card';
 import { Bell, Megaphone, Folder, RotateCcw, ArrowLeft } from 'lucide-react-native';
 import { ConfirmationModal } from '@/components/ui/confirmation-modal';
+import { PageHeader } from '@/components/ui/page-header';
+
 
 export default function Permissions() {
   const [inAppNotifications, setInAppNotifications] = useState(false);
@@ -21,17 +23,7 @@ export default function Permissions() {
     <SafeAreaView className="flex-1">
       <View className="px-4 flex-1 items-center">
         {/* ================= Title ==================== */}
-        <View className="flex-row items-center w-full px-4 relative">
-          <View className="absolute">
-            <View className="size-8 rounded-full bg-[#E8E8E9] items-center justify-center">
-              <ArrowLeft size={22} color="#6C7278" />
-            </View>
-          </View>
-          <Text className="text-2xl text-primary font-poppins-medium text-center flex-1">
-            Permissions
-          </Text>
-        </View>
-
+        <PageHeader title="Permissions" showNotificationButton={false} />
         {/* ================= Main Body ==================== */}
         <View className="w-full flex-1 mt-6">
           <Card className="py-2 rounded-lg border border-muted-foreground/10 bg-white shadow-lg">

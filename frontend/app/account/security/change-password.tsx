@@ -21,6 +21,7 @@ import { Button } from '@/components/ui/button';
 import { useState } from 'react';
 import React from 'react'
 import { SafeAreaView } from 'react-native-safe-area-context'
+import { PageHeader } from '@/components/ui/page-header';
 
 export default function SecuritySettings() {
 
@@ -42,15 +43,7 @@ export default function SecuritySettings() {
         <View className='px-4 flex-1 items-center justify-between'>
           {/* ================= Title page  ==================== */}
           <View>
-            <View className="flex-row items-center justify-between w-full mt-2">
-              <View className="size-8 rounded-full bg-[#E8E8E9] items-center justify-center">
-                <ArrowLeft size={22} color="#6C7278" />
-              </View>
-              <Text className="text-xl text-primary font-poppins-medium text-center">
-                Change Password
-              </Text>
-              <View className="size-8" />
-            </View>
+            <PageHeader title="Change Password" showNotificationButton={false} />
             <Text className="text-md text-muted-foreground font-poppins-medium text-center mt-8">
               Create a new password for your account
             </Text>

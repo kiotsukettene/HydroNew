@@ -13,7 +13,6 @@ import {
   Calendar,
   ArrowLeft,
 } from 'lucide-react-native'
-import { Input } from '@/components/ui/input';
 import { InputWithIcon } from '@/components/ui/input-with-icon';
 import { Text } from '@/components/ui/text';
 import { Label } from '@/components/ui/label';
@@ -21,7 +20,8 @@ import { Button } from '@/components/ui/button';
 import { useState } from 'react';
 import * as ImagePicker from 'expo-image-picker';
 import React from 'react'
-import { SafeAreaView } from 'react-native-safe-area-context'
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { PageHeader } from '@/components/ui/page-header';
 
 export default function ManageAccount() {
 
@@ -54,16 +54,7 @@ export default function ManageAccount() {
             <View>
               <View className='items-center'>
                 {/* ================= Title  ==================== */}
-                <View className="flex-row items-center w-full px-4 relative">
-                  <View className="absolute">
-                    <View className="size-8 rounded-full bg-[#E8E8E9] items-center justify-center">
-                      <ArrowLeft size={22} color="#6C7278" />
-                    </View>
-                  </View>
-                  <Text className="text-2xl text-primary font-poppins-medium text-center flex-1">
-                    Manage Account
-                  </Text>
-                </View>
+                  <PageHeader title="Manage Account" showNotificationButton={false} />
                 {/* ================= Profile Image  ==================== */}
                 <View className="relative items-center mt-3">
                   <Image
