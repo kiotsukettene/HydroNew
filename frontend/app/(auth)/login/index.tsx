@@ -39,6 +39,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import Svg, { Path } from 'react-native-svg';
 import { Checkbox } from '@/components/ui/checkbox';
+import PasswordToggle from '@/app/hooks/password-toggle';
 
 const { height } = Dimensions.get('window');
 
@@ -46,6 +47,7 @@ export default function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [checked, setChecked] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   const router = useRouter();
   const passwordInputRef = useRef<TextInput>(null);
@@ -60,7 +62,7 @@ export default function Login() {
   }
 
   return (
-    <SafeAreaView className="flex-1 ">
+    <SafeAreaView className="flex-1">
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         style={{ flex: 1 }}>
@@ -87,7 +89,7 @@ export default function Login() {
               </View>
               <CardHeader className="items-center">
                 <CardTitle className="text-3xl text-primary">Login</CardTitle>
-                <CardDescription className="text-center">
+                <CardDescription className="text-center text-md">
                   Welcome back! Let’s get growing.
                 </CardDescription>
               </CardHeader>
@@ -102,21 +104,25 @@ export default function Login() {
                     autoCapitalize="none"
                     returnKeyType="next"
                     onSubmitEditing={onEmailSubmitEditing}
-                    className="border-muted-foreground/50 text-base"
+                    className="border-muted-foreground/50 text-base h-12"
                   />
                 </View>
 
                 {/* Password */}
                 <View className="gap-1">
                   <Label className="font-normal text-muted-foreground">Password</Label>
-                  <Input
-                    placeholder="•••••••••"
-                    secureTextEntry
-                    ref={passwordInputRef}
-                    returnKeyType="send"
-                    onSubmitEditing={onSubmit}
-                    className="border-muted-foreground/50 text-base"
-                  />
+                  <View className="relative">
+                    <Input
+                      placeholder="•••••••••"
+                      returnKeyType="send"
+                      onSubmitEditing={onSubmit}
+                      className="border-muted-foreground/50 text-base text-foreground h-12"
+                      value={password}
+                      onChangeText={setPassword}
+                      secureTextEntry={!showPassword}
+                    />
+                    <PasswordToggle onToggle={setShowPassword} initialState={showPassword} />
+                  </View>
 
                   <View className="mb-2 mt-3 flex-row items-center justify-between">
                     {/* Terms */}
@@ -128,14 +134,16 @@ export default function Login() {
                       />
                       <Text className="self-end text-muted-foreground">Remember me?</Text>
                     </View>
-                    <Text className="self-end text-primary/70">Forgot Password</Text>
+                    <Link href="/forgot-password">
+                      <Text className="self-end text-primary/70">Forgot Password</Text>
+                    </Link>
                   </View>
                 </View>
 
                 {/* LOGIN Button */}
 
-                <Link href={'/(auth)/first-time/welcome-first-time'} asChild>
-                  <Button className="w-full">
+                <Link href={'/on-boarding/first-onboarding'} asChild>
+                  <Button className="w-full"> 
                     <Text className="">Login</Text>
                   </Button>
                 </Link>
@@ -174,7 +182,7 @@ export default function Login() {
                 </Button>
 
                 {/* Footer */}
-                <Text className="text-center text-muted-foreground mt-2">
+                <Text className="mt-2 text-center text-muted-foreground">
                   Already have an account?{' '}
                   <Link href="/login" asChild>
                     <Text className="font-medium text-primary">Sign in</Text>

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Image,
@@ -23,7 +23,7 @@ const { height } = Dimensions.get('window');
 
 export default function EmailVerification() {
   const { countdown, restartCountdown } = useCountdown(30);
-  const [code, setCode] = React.useState('');
+  const [code, setCode] = useState('');
 
   const onChangeCode = (value: string) => {
     const digitsOnly = value.replace(/\D/g, '').slice(0, 6);
