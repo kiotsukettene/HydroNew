@@ -32,7 +32,9 @@ export default function Home({ waterQuality, growth }: HomeProps) {
     <ScrollView>
       <SafeAreaView>
         <View className="p-4">
-          {/* ===== Custom Header ===== */}
+
+          
+          {/* ===== Page Header ===== */}
           <View className="flex-row items-center justify-between pt-5">
             <View>
               <Text className="text-base text-foreground/70">Hello,</Text>
