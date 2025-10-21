@@ -85,7 +85,7 @@ export default function Monitor() {
               </View>
 
               {/*  Button */}
-              <Button className="mt-4 rounded-lg bg-muted/70" onPress={() => {router.push('/(tabs)/filtration')}}>
+              <Button className="mt-4 rounded-lg bg-muted/70 " onPress={() => {router.push('/(tabs)/filtration')}}>
                 <Text className="font-semibold text-gray-800">Start Filtration</Text>
               </Button>
             </CardContent>
@@ -97,7 +97,7 @@ export default function Monitor() {
             <CardContent className="p-0">
               <View className="flex-row items-center justify-between">
                 <Text className="text-lg font-semibold text-gray-900">Recent Activity</Text>
-                <Button variant="link" className="p-0">
+                <Button variant="link" className="p-0 onPress" onPress={() => {router.push('/water-monitor/recent-activity')}}>
                   <Text className="text-sm font-medium text-secondary">See All</Text>
                 </Button>
               </View>
