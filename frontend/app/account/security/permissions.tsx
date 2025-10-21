@@ -28,7 +28,7 @@ export default function Permissions() {
             </View>
           </View>
           <Text className="text-2xl text-primary font-poppins-medium text-center flex-1">
-            Preferences
+            Permissions
           </Text>
         </View>
 
