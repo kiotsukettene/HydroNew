@@ -102,11 +102,7 @@ export default function HydroponicsSetup({ onSetupComplete }: HydroponicsSetupPr
     
     try {
       // TODO: Replace with actual API call
-      // const response = await fetch('/api/hydroponics-setup', {
-      //   method: 'POST',
-      //   headers: { 'Content-Type': 'application/json' },
-      //   body: JSON.stringify(formData)
-      // });
+     
       
       // Simulate API call
       await new Promise(resolve => setTimeout(resolve, 2000));
@@ -118,7 +114,6 @@ export default function HydroponicsSetup({ onSetupComplete }: HydroponicsSetupPr
           {
             text: 'OK',
             onPress: () => {
-              // Call the setup complete callback to update the parent state
               onSetupComplete?.();
               
               // Navigate back to hydroponics monitoring

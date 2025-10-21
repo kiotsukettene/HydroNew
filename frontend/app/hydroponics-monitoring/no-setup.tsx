@@ -18,7 +18,7 @@ export default function NoSetup({ onToggleSetup }: NoSetupProps) {
   const router = useRouter();
   
   const handleAddDevice = () => {
-    // Navigate to hydroponics setup screen using Expo Router
+    // Navigate to hydroponics setup screen 
     router.push('/hydroponics-monitoring/hydroponics-setup');
   };
   
@@ -33,7 +33,6 @@ export default function NoSetup({ onToggleSetup }: NoSetupProps) {
         {/* =========== Empty State Section =========== */}
         <View className="flex-1 px-4 md:px-8 py-4 md:py-6 rounded-b-3xl md:rounded-b-[40px]">
           <View className="items-center justify-center flex-1">
-            {/* Responsive Image */}
             <View className="mb-6">
               <Image 
                 source={require('@/assets/images/no-plants-icon.png')} 
@@ -42,7 +41,6 @@ export default function NoSetup({ onToggleSetup }: NoSetupProps) {
               />
             </View>
 
-            {/* Responsive Text */}
             <Text className="text-2xl md:text-3xl font-bold text-primary mb-3 text-center leading-8 md:leading-10">
               No Hydroponics Setup
             </Text>
@@ -51,7 +49,6 @@ export default function NoSetup({ onToggleSetup }: NoSetupProps) {
               Connect your hydroponics device to start monitoring your plants
             </Text>
             
-            {/* Responsive Button */}
             <Button 
               className="w-full md:w-80 mb-6 py-3 md:py-4"
               onPress={handleAddDevice}

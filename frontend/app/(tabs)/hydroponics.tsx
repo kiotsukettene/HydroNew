@@ -10,7 +10,6 @@ import { Button } from '@/components/ui/button';
 import { Icon } from '@/components/ui/icon';
 import { Droplet } from 'lucide-react-native';
 
-// Import the no-setup component
 import NoSetup from '@/app/hydroponics-monitoring/no-setup';
 
 const { height: screenHeight } = Dimensions.get('window');
@@ -20,22 +19,15 @@ export default function Hydroponics() {
   const [hasHydroponicsSetup, setHasHydroponicsSetup] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Simulate checking for hydroponics setup
+  // checking for hydroponics setup
   useEffect(() => {
     // TODO: Replace this with actual API call to check if user has hydroponics setup
-    // For now, we'll simulate a check that returns false (no setup)
     const checkHydroponicsSetup = async () => {
       try {
-        // Simulate API call delay
         await new Promise(resolve => setTimeout(resolve, 1000));
         
         // TODO: Replace with actual API call
-        // const response = await fetch('/api/hydroponics-setup');
-        // const data = await response.json();
-        // setHasHydroponicsSetup(data.hasSetup);
         
-        // For demonstration, set to false to show no-setup screen
-        // Change this to true to test the main hydroponics screen
         setHasHydroponicsSetup(false);
       } catch (error) {
         console.error('Error checking hydroponics setup:', error);
@@ -53,7 +45,7 @@ export default function Hydroponics() {
     setHasHydroponicsSetup(!hasHydroponicsSetup);
   };
 
-  // Show loading state while checking setup
+  // loading state 
   if (isLoading) {
     return (
       <SafeAreaView className="flex-1 bg-background">
@@ -69,7 +61,7 @@ export default function Hydroponics() {
     return <NoSetup onToggleSetup={toggleSetupState} />;
   }
 
-  // Show main hydroponics monitoring screen if setup exists
+  // ==========  Show main hydroponics monitoring screen if setup exists =============
   return (
     <SafeAreaView className="flex-1 bg-background">
       <View className="flex-1">
@@ -122,14 +114,14 @@ export default function Hydroponics() {
         <Text className="ml-2  text-primary">Start Pump</Text>
       </Button>
       
-      {/* Debug button - remove this in production */}
-      <Button 
+      {/* Debug button */}
+      {/* <Button 
         variant="outline" 
         className="w-full rounded-xl border-red-200 mt-2"
         onPress={toggleSetupState}
       >
         <Text className="text-red-200">Debug: Toggle Setup State</Text>
-      </Button>
+      </Button> */}
     </View>
   </View>
 </FolderBg>
