@@ -64,11 +64,7 @@ export default function HydroponicsSetup({ onSetupComplete }: HydroponicsSetupPr
     handleInputChange(field, newValue.toString());
   };
 
-  const handleButtonPress = () => {
-   
-    handleSubmit();
-  };
-
+ 
   const validateForm = () => {
     const requiredFields = [
       'cropName', 'numberOfCrops', 'nutrientSolution', 
@@ -95,40 +91,7 @@ export default function HydroponicsSetup({ onSetupComplete }: HydroponicsSetupPr
     return true;
   };
 
-  const handleSubmit = async () => {
-    if (!validateForm()) return;
-    
-    setIsSubmitting(true);
-    
-    try {
-      // TODO: Replace with actual API call
-     
-      
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      
-      Alert.alert(
-        'Success!', 
-        'Hydroponics setup has been configured successfully!',
-        [
-          {
-            text: 'OK',
-            onPress: () => {
-              onSetupComplete?.();
-              
-              // Navigate back to hydroponics monitoring
-              router.back();
-            }
-          }
-        ]
-      );
-      
-    } catch (error) {
-      Alert.alert('Error', 'Failed to save hydroponics setup. Please try again.');
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
+
 
   const bedSizeOptions = [
     { value: 'small', label: 'Small' },
@@ -361,7 +324,26 @@ export default function HydroponicsSetup({ onSetupComplete }: HydroponicsSetupPr
             {/* Save Button */}
             <Button 
               className="w-full"
-              onPress={handleSubmit}
+              onPress={async () => {
+                if (!validateForm()) {
+                  return;
+                }
+                
+                setIsSubmitting(true);
+                
+                try {
+                  // TODO: Replace with actual API call to save setup
+                  await new Promise(resolve => setTimeout(resolve, 1000));
+                  
+                  // Navigate to hydroponics page after successful save
+                  router.push('/(tabs)/hydroponics');
+                } catch (error) {
+                  console.error('Error saving setup:', error);
+                  Alert.alert('Error', 'Failed to save setup. Please try again.');
+                } finally {
+                  setIsSubmitting(false);
+                }
+              }}
               disabled={isSubmitting}
             >
               <Icon as={Save} size={18} className="text-muted mr-2" />
