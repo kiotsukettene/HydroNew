@@ -1,4 +1,4 @@
-import { View, ScrollView, Image } from 'react-native';
+import { View, ScrollView, Image, Pressable } from 'react-native';
 import React, { useState } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { PageHeader } from '@/components/ui/page-header';
@@ -11,6 +11,7 @@ import { Icon } from '@/components/ui/icon';
 import { Separator } from '@/components/ui/separator';
 import TDSDetailsModal from '../water-monitor/tds-details';
 import PHLevelDetailsModal from '../water-monitor/ph-level-details';
+import { router } from 'expo-router';
 
 export default function Monitor() {
 
@@ -118,7 +119,8 @@ export default function Monitor() {
           </Card>
 
           {/* ===== Need Help Card ===== */}
-          <View className="relative mt-3 w-full overflow-hidden">
+         <Pressable onPress={() => {router.push('/help-center')}}>
+           <View className="relative mt-3 w-full overflow-hidden">
             <Image
               source={require('@/assets/images/need-help-bg.png')}
               className="w-full"
@@ -139,6 +141,7 @@ export default function Monitor() {
               </View>
             </View>
           </View>
+         </Pressable>
 
           <View className='mt-4 gap-2 items-center'>
             <View className="flex flex-row items-center justify-between w-full px-2">

@@ -1,4 +1,4 @@
-import { View, Image, TouchableOpacity, ScrollView } from 'react-native';
+import { View, Image, TouchableOpacity, ScrollView, Pressable } from 'react-native';
 import React from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Button } from '@/components/ui/button';
@@ -13,8 +13,11 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Text } from '@/components/ui/text';
 
 import type { HomeProps } from '@/types/home';
+import { useRouter } from 'expo-router';
 
 export default function Home({ waterQuality, growth }: HomeProps) {
+
+  const router = useRouter()
   
   //  Temporary mock data 
   waterQuality = waterQuality || {
@@ -116,13 +119,13 @@ export default function Home({ waterQuality, growth }: HomeProps) {
               <Text className="px-2 text-xl font-semibold text-gray-800">Quick Actions</Text>
 
               <View className="mt-3 flex-row gap-3">
-                <View className="relative flex-1 justify-between overflow-hidden rounded-3xl bg-green-50 p-4">
+                <Pressable onPress={() => {router.push('/(tabs)/hydroponics')}} className='relative flex-1 justify-between overflow-hidden rounded-3xl bg-green-50 p-4'>
                   <Leaf color={'#15803D'} strokeWidth={2} size={28} />
                   <View>
                     <Text className="text-xl font-semibold text-green-900">Plant</Text>
                     <Text className="text-xl font-semibold text-green-900">Status</Text>
                   </View>
-                </View>
+                </Pressable>
 
                 <View className="gap-3">
                   <View className="rounded-3xl bg-blue-50 p-4">
