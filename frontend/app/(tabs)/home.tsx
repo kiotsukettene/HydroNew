@@ -6,8 +6,9 @@ import {
   ArrowRightIcon,
   BellIcon,
   ChartColumn,
+  History,
   Leaf,
-  Smartphone,
+
 } from 'lucide-react-native';
 import { Card, CardContent } from '@/components/ui/card';
 import { Text } from '@/components/ui/text';
@@ -27,7 +28,6 @@ export default function Home({ waterQuality, growth }: HomeProps) {
   };
 
   growth = growth || {
-    plantType: 'Lettuce',
     percentage: 45,
   };
 
@@ -96,7 +96,7 @@ export default function Home({ waterQuality, growth }: HomeProps) {
 
             {/* ===== Growth Card ===== */}
             <View className="mt-5">
-              <TouchableOpacity className="relative h-32 justify-between overflow-hidden rounded-2xl bg-primary p-6">
+              <TouchableOpacity className="relative h-32 justify-between overflow-hidden rounded-2xl bg-primary p-6" onPress={() => router.push('/(tabs)/hydroponics')}>
                 <Image
                   source={require('@/assets/images/growth-bg.png')}
                   className="absolute -right-16 -top-10 h-64 w-64 opacity-70"
@@ -105,7 +105,7 @@ export default function Home({ waterQuality, growth }: HomeProps) {
 
                 <View>
                   <Text className="items-center text-lg text-lime-100">
-                    {growth.plantType} growth progress
+                    Lettuce growth progress
                   </Text>
                   <Text className="mt-1 text-4xl font-bold text-muted">
                     {growth.percentage}% <ArrowRightIcon size={20} color="#D9F99D" />
@@ -129,9 +129,9 @@ export default function Home({ waterQuality, growth }: HomeProps) {
 
                 <View className="gap-2 sm:gap-3 md:gap-4">
                   <View className="rounded-2xl bg-blue-50 p-4 sm:p-5 md:p-6 min-h-20 sm:min-h-24 md:min-h-28">
-                    <Smartphone color={'#1E40AF'} strokeWidth={2} size={24} className="sm:w-7 sm:h-7 md:w-8 md:h-8" />
+                    <History color={'#1E40AF'} strokeWidth={2} size={24} className="sm:w-7 sm:h-7 md:w-8 md:h-8" />
                     <Text className="text-sm sm:text-base md:text-lg font-semibold text-blue-900">
-                      Connected Devices
+                      History
                     </Text>
                   </View>
 

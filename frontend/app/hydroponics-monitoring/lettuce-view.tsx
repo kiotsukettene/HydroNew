@@ -12,13 +12,13 @@ export default function LettuceView() {
        <SafeAreaView className="flex-1 bg-background">
       <View className="flex-1">
         {/* =========== Page Header =========== */}
-        <View className="relative z-10 bg-[#E7F5EA] dark:bg-[#1A3D1F]">
+        <View className="relative z-10 ">
           <PageHeader title="Hydroponics Monitoring" />
         </View>
 
         {/* =========== Plant Section =========== */}
         <View
-          className="bg-[#E7F5EA] dark:bg-[#1A3D1F]"
+          className="bg-[#E7F5EA] dark:bg-[#1A3D1F] mt-4"
           style={{
             borderBottomLeftRadius: 30,
             borderBottomRightRadius: 30,
