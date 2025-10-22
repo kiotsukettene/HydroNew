@@ -319,16 +319,16 @@ export default function Filtration() {
             </View>
 
             {/* ===== Progress Indicator ===== */}
-            <View className="ml-2 sm:ml-4">
-              <View className="relative h-12 w-12 sm:h-16 sm:w-16">
+            <View className="ml-2 sm:ml-3 md:ml-4">
+              <View className="relative h-12 w-12 sm:h-14 sm:w-14 md:h-16 md:w-16">
                 {/* Outer ring */}
-                <Svg width={48} height={48} className="absolute sm:w-16 sm:h-16">
+                <Svg width={48} height={48} className="absolute sm:w-14 sm:h-14 md:w-16 md:h-16">
                   <Circle
                     cx={24}
                     cy={24}
                     r={20}
                     stroke="#e5e7eb"
-                    strokeWidth={3}
+                    strokeWidth={2.5}
                     fill="transparent"
                   />
                   {/* Progress arc */}
@@ -337,7 +337,7 @@ export default function Filtration() {
                     cy={24}
                     r={20}
                     stroke="#16a34a"
-                    strokeWidth={3}
+                    strokeWidth={2.5}
                     fill="transparent"
                     strokeDasharray={`${2 * Math.PI * 20}`}
                     strokeDashoffset={`${2 * Math.PI * 20 * 0.95}`}
@@ -347,7 +347,7 @@ export default function Filtration() {
                 </Svg>
                 {/* Percentage text */}
                 <View className="absolute inset-0 items-center justify-center">
-                  <Text className="text-xs sm:text-sm font-bold text-emerald-800">0%</Text>
+                  <Text className="text-xs sm:text-sm md:text-base font-bold text-emerald-800">0%</Text>
                 </View>
               </View>
             </View>

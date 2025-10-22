@@ -125,21 +125,21 @@ export default function Monitor() {
            <View className="relative mt-3 w-full overflow-hidden">
             <Image
               source={require('@/assets/images/need-help-bg.png')}
-              className="w-full"
+              className="w-full h-auto min-h-24 sm:min-h-28 md:min-h-32"
               resizeMode="contain"
             />
 
-            <View className="absolute inset-0 items-start justify-center px-6 py-8">
-              <View className="w-full flex-row items-center justify-between gap-3">
-                <View className="flex-1 mt-4">
-                  <Text className="text-xl font-medium" numberOfLines={1} adjustsFontSizeToFit>
+            <View className="absolute inset-0 items-start justify-center px-6  sm:px-6 md:px-8 py-4 sm:py-6 md:py-8">
+              <View className="w-full flex-row items-center justify-between gap-2 sm:gap-3 md:gap-4">
+                <View className="flex-1 mt-2 sm:mt-3 md:mt-4 px-2 sm:px-3 md:px-4">
+                  <Text className="text-xl sm:text-2xl md:text-3xl font-medium" numberOfLines={1} adjustsFontSizeToFit>
                     Need Help?
                   </Text>
-                  <Text className=" text-foreground/50" numberOfLines={2}>
+                  <Text className="text-base sm:text-lg md:text-xl text-foreground/50" numberOfLines={2}>
                     Explore tips and suggestions tailored for you.
                   </Text>
                 </View>
-                <CircleArrowRight color={'#445104'} size={36} />
+                <CircleArrowRight color={'#445104'} size={28} className="sm:w-8 sm:h-8 md:w-9 md:h-9 lg:w-10 lg:h-10" />
               </View>
             </View>
           </View>
