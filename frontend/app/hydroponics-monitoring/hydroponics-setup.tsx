@@ -226,10 +226,12 @@ export default function HydroponicsSetup({ onSetupComplete }: HydroponicsSetupPr
               </View>
             </Card>
 
-            {/* Target Parameters Card */}
+            {/* Target Parameters Card */} 
+            {/*  Nutrient and Water Settings */}
+
             <Card className="p-6 mb-6  shadow-sm border-0">
               <View className="mb-6">
-                <Text className="text-lg font-semibold  mb-2">Target Parameters</Text>
+                <Text className="text-lg font-semibold  mb-2">Ideal Growing Range</Text>
                 <View className="w-full h-1 bg-[#6ECF8B] rounded-full" />
               </View>
               
