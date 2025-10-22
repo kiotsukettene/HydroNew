@@ -51,7 +51,7 @@ export default function Home({ waterQuality, growth }: HomeProps) {
           {/* ===== Main Content ===== */}
           <View className="mt-5">
             {/* ===== Water Quality Card ===== */}
-            <Card className="relative h-60 overflow-hidden rounded-xl border-0 p-0">
+            <Card className="relative h-60 overflow-hidden rounded-2xl border-0 p-0">
               <Image
                 source={require('@/assets/images/home-bg.png')}
                 className="absolute inset-0 h-full w-full"
@@ -119,7 +119,7 @@ export default function Home({ waterQuality, growth }: HomeProps) {
               <Text className="px-2 text-xl font-semibold text-gray-800">Quick Actions</Text>
 
               <View className="mt-3 flex-row gap-3">
-                <Pressable onPress={() => {router.push('/(tabs)/hydroponics')}} className='relative flex-1 justify-between overflow-hidden rounded-3xl bg-green-50 p-4'>
+                <Pressable onPress={() => {router.push('/(tabs)/hydroponics')}} className='relative flex-1 justify-between overflow-hidden rounded-2xl bg-green-50 p-4'>
                   <Leaf color={'#15803D'} strokeWidth={2} size={28} />
                   <View>
                     <Text className="text-xl font-semibold text-green-900">Plant</Text>
@@ -128,14 +128,14 @@ export default function Home({ waterQuality, growth }: HomeProps) {
                 </Pressable>
 
                 <View className="gap-3">
-                  <View className="rounded-3xl bg-blue-50 p-4">
+                  <View className="rounded-2xl bg-blue-50 p-4">
                     <Smartphone color={'#1E40AF'} strokeWidth={2} size={28} />
                     <Text className="text-base font-semibold text-blue-900">
                       Connected Devices
                     </Text>
                   </View>
 
-                  <View className="flex-1 justify-between rounded-3xl bg-yellow-50 p-4">
+                  <View className="flex-1 justify-between rounded-2xl bg-yellow-50 p-4">
                     <ChartColumn color={'#B45309'} strokeWidth={2} size={28} />
                     <View>
                       <Text className="text-base font-semibold text-yellow-900">

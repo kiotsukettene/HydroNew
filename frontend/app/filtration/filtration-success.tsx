@@ -25,7 +25,7 @@ export default function FiltrationSuccessModal({
     >
       <View className="flex-1 bg-foreground/50 items-center justify-center px-6 relative">
         {/* Modal Container */}
-        <View className="rounded-3xl bg-background w-full max-w-sm relative overflow-hidden">
+        <View className="rounded-2xl bg-background w-full max-w-sm relative overflow-hidden">
           
           {/* ===== Background Image at Bottom ===== */}
           <View className="absolute -bottom-1 left-0 right-0">

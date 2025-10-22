@@ -24,7 +24,7 @@ export default function FailedDetailsModal({
     >
       <View className="flex-1 bg-foreground/40 items-center justify-center px-6">
         {/* Modal Container */}
-        <View className="rounded-3xl bg-muted w-full max-w-sm p-6">
+        <View className="rounded-2xl bg-muted w-full max-w-sm p-6">
           
           {/* Header with Failed status and X icon */}
           <View className="flex-row items-center mb-6">
