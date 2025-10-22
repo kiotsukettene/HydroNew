@@ -7,43 +7,39 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Link } from 'expo-router';
 import { PageHeader } from '@/components/ui/page-header';
 import { 
-  Languages,
-  Cog,
-  AudioLines,
-  Eclipse,
-  Archive,
+  ShieldCheck,
+  LockOpen,
+  LogIn,
+  Trash,
   ChevronRight,
   ArrowLeft
 } from 'lucide-react-native';
 
 
-export default function Preferences() {
+export default function SecuritySetting() {
 
   const settings =[
     {
-      icon:Languages, title: 'Language', link: ''
+      icon:LockOpen, title: 'Change Password', link: '/account/security/change-password'
     },
     {
-      icon:AudioLines, title: 'In-app sound', link: ''
+      icon:ShieldCheck, title: 'Permissions', link: '/account/security/permissions'
     },
     {
-      icon:Eclipse, title: 'Appearance', link: ''
+      icon:LogIn, title: 'Login History', link: ''
     },
     {
-      icon:Archive, title: 'Storage', link: ''
+      icon:Trash, title: 'Delete Account', link: '/account/security/delete-account'
     }
-
   ];
 
   return (
     <SafeAreaView className='flex-1'>
       <View className='px-4 flex-1 items-center'>
-        {/* ================= Title  ==================== */}
-          <PageHeader title="Preferences" showNotificationButton={false} />
+          <PageHeader title="Security Settings" showNotificationButton={false} />
         <View className='size-24 bg-[#BFF1CC] rounded-full justify-center items-center mt-6'>
-          <Cog size={60} color="#166534" />
+          <ShieldCheck size={60} color="#166534" />
         </View>
-        {/* ================= Main Body  ==================== */}
         <View className="w-full flex-1 mt-6">
           <Card className="py-2 rounded-lg border border-muted-foreground/10 bg-white shadow-lg">
             <CardContent>
@@ -74,7 +70,6 @@ export default function Preferences() {
             </CardContent>
           </Card>
         </View> 
-        {/* ================= end of main body  ==================== */}
       </View>
     </SafeAreaView>
   )
