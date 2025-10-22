@@ -10,6 +10,7 @@ interface ResetPasswordStore {
   resetPasswordWithToken: (
     email: string,
     newPassword: string,
-    resetToken: string
+    resetToken: string,
+    confirm_password?: string
   ) => Promise<void>;
 }

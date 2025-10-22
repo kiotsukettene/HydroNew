@@ -47,13 +47,14 @@ export const useResetPasswordStore = create<ResetPasswordStore>((set) => ({
     }
   },
 
-  resetPasswordWithToken: async (email, password, resetToken) => {
+  resetPasswordWithToken: async (email, password, resetToken, confirm_password) => {
     set({ loading: true, error: null, message: null });
     try {
       await axiosInstance.post('/reset-password', {
         email,
         password,
         reset_token: resetToken,
+        password_confirmation: confirm_password,
       });
       set({ message: 'Password reset successfully.', email: null, resetToken: null });
     } catch (error: any) {

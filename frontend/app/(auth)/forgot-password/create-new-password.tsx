@@ -14,6 +14,7 @@ import { useResetPasswordStore } from '@/store/auth/resetPasswordStore';
 export default function CreateNewPassword() {
   const {resetPasswordWithToken ,email, resetToken} = useResetPasswordStore();
   const [password, setPassword] = useState('');
+  const [confirm_password, setConfirmPassword] = useState('');
   const [visible, setVisible] = useState(false);
 
   async function onSubmit() {
@@ -21,7 +22,7 @@ export default function CreateNewPassword() {
       console.warn('Missing email or reset token. Please start the reset process again.');
       return;
     }
-    await resetPasswordWithToken(email, password, resetToken);
+    await resetPasswordWithToken(email, password, resetToken, confirm_password);
     router.push('/(auth)/forgot-password/reset-success');
   }
   return (
@@ -80,6 +81,8 @@ export default function CreateNewPassword() {
                   </Label>
                  <View className='mb-6'>
                    <Input
+                    value={confirm_password}
+                    onChangeText={setConfirmPassword}
                     placeholder="•••••••••"
                     secureTextEntry={!visible}
                     returnKeyType="send"
