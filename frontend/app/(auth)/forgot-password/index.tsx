@@ -7,13 +7,17 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { router } from 'expo-router';
 import { Text } from '@/components/ui/text';
+import { useResetPasswordStore } from '@/store/auth/resetPasswordStore';
 
 export default function Index() {
- 
-  const onSubmit = () => {
-    
-      router.push('/(auth)/forgot-password/verification-code');
-    
+  const { resetPassword } = useResetPasswordStore();
+  const [email, setEmailInput] = React.useState('');
+  const { setEmail } = useResetPasswordStore();
+
+  async function onSubmit() {
+    setEmail(email);
+    await resetPassword(email);
+    router.push('/(auth)/forgot-password/verification-code');
   };
 
   return (
@@ -53,6 +57,8 @@ export default function Index() {
 
                   <Label className="font-normal text-muted-foreground">Email</Label>
                   <Input
+                    value={email}
+                    onChangeText={setEmailInput}
                     placeholder="m@example.com"
                     keyboardType="email-address"
                     autoCapitalize="none"
