@@ -9,14 +9,20 @@ import { router } from 'expo-router';
 import { Text } from '@/components/ui/text';
 import { PasswordStrengthMeter } from '@/components/ui/password-stength-meter';
 import PasswordToggle from '@/app/hooks/password-toggle';
+import { useResetPasswordStore } from '@/store/auth/resetPasswordStore';
 
 export default function CreateNewPassword() {
-
+  const {resetPasswordWithToken ,email, resetToken} = useResetPasswordStore();
   const [password, setPassword] = useState('');
   const [visible, setVisible] = useState(false);
 
-  const onSubmit = () => {
-      router.push('/(auth)/forgot-password/reset-success');
+  async function onSubmit() {
+    if (!email || !resetToken) {
+      console.warn('Missing email or reset token. Please start the reset process again.');
+      return;
+    }
+    await resetPasswordWithToken(email, password, resetToken);
+    router.push('/(auth)/forgot-password/reset-success');
   }
   return (
     <SafeAreaView className="flex-1">
