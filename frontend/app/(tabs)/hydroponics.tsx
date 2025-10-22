@@ -1,4 +1,4 @@
-import { View, Image, TouchableOpacity, ScrollView } from 'react-native';
+import { View, Image, TouchableOpacity, ScrollView, Pressable } from 'react-native';
 import React, { useState, useEffect } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { PageHeader } from '@/components/ui/page-header';
@@ -7,12 +7,14 @@ import { Dimensions } from 'react-native';
 import { Text } from '@/components/ui/text';
 import { Card } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
+import { useRouter } from 'expo-router';
 
 
 
 const { height: screenHeight } = Dimensions.get('window');
 
 export default function Hydroponics() {
+  const router = useRouter()
 
   const lettuce = [
     {
@@ -54,6 +56,7 @@ export default function Hydroponics() {
 
         
 
+       <Pressable onPress={() => router.push('/hydroponics-monitoring/lettuce-view')}>
        <View className='p-4 sm:p-6 gap-3'>
         {lettuce.map((item) => (
           <View key={item.id} className=''>
@@ -74,6 +77,7 @@ export default function Hydroponics() {
         ))}
         
        </View>
+       </Pressable>
 
       </View>
       
