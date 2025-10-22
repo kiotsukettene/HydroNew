@@ -1,4 +1,4 @@
-import { View, ScrollView, Image } from 'react-native';
+import { View, ScrollView, Image, Pressable } from 'react-native';
 import React, { useState } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { PageHeader } from '@/components/ui/page-header';
@@ -11,9 +11,12 @@ import { Icon } from '@/components/ui/icon';
 import { Separator } from '@/components/ui/separator';
 import TDSDetailsModal from '../water-monitor/tds-details';
 import PHLevelDetailsModal from '../water-monitor/ph-level-details';
+import { Link, router, useRouter } from 'expo-router';
 
 export default function Monitor() {
 
+
+  const router = useRouter();
   const [isTDSDetailsModalVisible, setIsTDSDetailsModalVisible] = useState(false);
   const [isPHLevelDetailsModalVisible, setIsPHLevelDetailsModalVisible] = useState(false);
 
@@ -82,7 +85,7 @@ export default function Monitor() {
               </View>
 
               {/*  Button */}
-              <Button className="mt-4 rounded-lg bg-muted/70">
+              <Button className="mt-4 rounded-lg bg-muted/70 " onPress={() => {router.push('/(tabs)/filtration')}}>
                 <Text className="font-semibold text-gray-800">Start Filtration</Text>
               </Button>
             </CardContent>
@@ -94,7 +97,7 @@ export default function Monitor() {
             <CardContent className="p-0">
               <View className="flex-row items-center justify-between">
                 <Text className="text-lg font-semibold text-gray-900">Recent Activity</Text>
-                <Button variant="link" className="p-0">
+                <Button variant="link" className="p-0 onPress" onPress={() => {router.push('/water-monitor/recent-activity')}}>
                   <Text className="text-sm font-medium text-secondary">See All</Text>
                 </Button>
               </View>
@@ -118,7 +121,8 @@ export default function Monitor() {
           </Card>
 
           {/* ===== Need Help Card ===== */}
-          <View className="relative mt-3 w-full overflow-hidden">
+         <Pressable onPress={() => {router.push('/help-center')}}>
+           <View className="relative mt-3 w-full overflow-hidden">
             <Image
               source={require('@/assets/images/need-help-bg.png')}
               className="w-full"
@@ -139,6 +143,7 @@ export default function Monitor() {
               </View>
             </View>
           </View>
+         </Pressable>
 
           <View className='mt-4 gap-2 items-center'>
             <View className="flex flex-row items-center justify-between w-full px-2">
