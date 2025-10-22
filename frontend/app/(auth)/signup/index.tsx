@@ -7,7 +7,7 @@ import {
   Platform,
   ScrollView
 } from "react-native";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Text } from "@/components/ui/text";
@@ -18,13 +18,17 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import Svg, { Path } from "react-native-svg";
+import { useAuthStore } from "@/store/auth/authStore"
 
 const { height } = Dimensions.get("window");
 
 export default function SignUp() {
+  const { register , loading, error, needsVerification} = useAuthStore();
+  const [fullName, setFullName] = useState("");
   const [checked, setChecked] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
 
   const router = useRouter();
   const passwordInputRef = useRef<TextInput>(null);
@@ -33,9 +37,24 @@ export default function SignUp() {
     passwordInputRef.current?.focus();
   }
 
-  function onSubmit() {
-    console.log("Signing up with:", email, password);
-    router.push("/signup/email-verification");
+  useEffect(() => {
+    if (needsVerification){
+      router.push('/(auth)/signup/email-verification');
+    }
+  }, [needsVerification]);
+
+  async function onSubmit() {
+    if (!checked) return;
+    try {
+      await register({
+        fullname: fullName,
+        email,
+        password,
+        password_confirmation: confirmPassword,
+      });
+    } catch (error) {
+      console.error("Registration failed:", error);
+    }
   }
 
   return (
@@ -79,6 +98,8 @@ export default function SignUp() {
                     Full Name
                   </Label>
                   <Input
+                    value={fullName}
+                    onChangeText={setFullName}
                     placeholder="John Doe"
                     autoCapitalize="words"
                     returnKeyType="next"
@@ -93,6 +114,8 @@ export default function SignUp() {
                     Email
                   </Label>
                   <Input
+                    value={email}
+                    onChangeText={setEmail}
                     placeholder="m@example.com"
                     keyboardType="email-address"
                     autoCapitalize="none"
@@ -108,6 +131,8 @@ export default function SignUp() {
                     Password
                   </Label>
                   <Input
+                    value={password}
+                    onChangeText={setPassword}
                     placeholder="•••••••••"
                     secureTextEntry
                     ref={passwordInputRef}
@@ -123,6 +148,8 @@ export default function SignUp() {
                     Confirm Password
                   </Label>
                   <Input
+                    value={confirmPassword}
+                    onChangeText={setConfirmPassword}
                     placeholder="•••••••••"
                     secureTextEntry
                     returnKeyType="send"
@@ -149,7 +176,6 @@ export default function SignUp() {
                 </View>
 
                 {/* Sign Up Button */}
-               <Link href={checked ? "/signup/email-verification" : ""} asChild>
                 <Button
                   className="w-full"
                   disabled={!checked}
@@ -157,7 +183,7 @@ export default function SignUp() {
                 >
                   <Text className="text-base">Sign Up</Text>
                 </Button>
-               </Link>
+
                 {/* Separator */}
                 <View className="flex-row items-center">
                   <Separator className="flex-1 bg-muted-foreground/40" />

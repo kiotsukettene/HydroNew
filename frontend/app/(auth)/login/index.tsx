@@ -28,7 +28,7 @@ import {
   Platform,
   ScrollView,
 } from 'react-native';
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Text } from '@/components/ui/text';
@@ -39,6 +39,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import Svg, { Path } from 'react-native-svg';
 import { Checkbox } from '@/components/ui/checkbox';
+import { useAuthStore } from "@/store/auth/authStore";
 import PasswordToggle from '@/app/hooks/password-toggle';
 
 const { height } = Dimensions.get('window');
@@ -47,6 +48,7 @@ export default function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [checked, setChecked] = useState(false);
+  const { login, needsVerification, user } = useAuthStore();
   const [showPassword, setShowPassword] = useState(false);
 
   const router = useRouter();
@@ -56,9 +58,22 @@ export default function Login() {
     passwordInputRef.current?.focus();
   }
 
-  function onSubmit() {
+useEffect(() => {
+  if (!user) return;
+  if (needsVerification) {
+    router.push('/(auth)/signup/email-verification');
+  } else {
+    router.push('/(tabs)/home');
+  }
+}, [user, needsVerification]);
+
+  async function onSubmit() {
+    try {
+      await login(email, password);
+    } catch (error) {
+      console.error("Login failed:", error);
+    }
     console.log('Signing up with:', email, password);
-    router.push('/signup/email-verification');
   }
 
   return (
@@ -99,6 +114,8 @@ export default function Login() {
                 <View className="gap-1">
                   <Label className="font-normal text-muted-foreground">Email</Label>
                   <Input
+                    value={email}
+                    onChangeText={setEmail}
                     placeholder="m@example.com"
                     keyboardType="email-address"
                     autoCapitalize="none"
@@ -142,11 +159,9 @@ export default function Login() {
 
                 {/* LOGIN Button */}
 
-                <Link href={'/on-boarding/first-onboarding'} asChild>
-                  <Button className="w-full"> 
+                  <Button className="w-full" onPress={onSubmit}>
                     <Text className="">Login</Text>
                   </Button>
-                </Link>
 
                 {/* Separator */}
                 <View className="flex-row items-center">
