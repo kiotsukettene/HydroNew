@@ -122,7 +122,7 @@ export default function Monitor() {
 
           {/* ===== Need Help Card ===== */}
          <Pressable onPress={() => {router.push('/help-center')}}>
-           <View className="relative mt-3 w-full overflow-hidden">
+           <View className="relative mt-2 w-full overflow-hidden">
             <Image
               source={require('@/assets/images/need-help-bg.png')}
               className="w-full"
