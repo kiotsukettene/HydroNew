@@ -1,133 +1,83 @@
-import { View, Image, TouchableOpacity } from 'react-native';
+import { View, Image, TouchableOpacity, ScrollView } from 'react-native';
 import React, { useState, useEffect } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { PageHeader } from '@/components/ui/page-header';
 import { Dimensions } from 'react-native';
-import FolderBg from '@/components/ui/folder-bg';
 
 import { Text } from '@/components/ui/text';
-import { Button } from '@/components/ui/button';
-import { Icon } from '@/components/ui/icon';
-import { Droplet } from 'lucide-react-native';
+import { Card } from '@/components/ui/card';
+import { Label } from '@/components/ui/label';
 
-import NoSetup from '@/app/hydroponics-monitoring/no-setup';
+
 
 const { height: screenHeight } = Dimensions.get('window');
 
 export default function Hydroponics() {
-  // State to track if hydroponics setup exists
-  const [hasHydroponicsSetup, setHasHydroponicsSetup] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
 
-  // checking for hydroponics setup
-  useEffect(() => {
-    // TODO: Replace this with actual API call to check if user has hydroponics setup
-    const checkHydroponicsSetup = async () => {
-      try {
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        
-        // TODO: Replace with actual API call
-        
-        setHasHydroponicsSetup(false);
-      } catch (error) {
-        console.error('Error checking hydroponics setup:', error);
-        setHasHydroponicsSetup(false);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    checkHydroponicsSetup();
-  }, []);
-
-  // Function to toggle setup state (for testing purposes)
-  const toggleSetupState = () => {
-    setHasHydroponicsSetup(!hasHydroponicsSetup);
-  };
-
-  // loading state 
-  if (isLoading) {
-    return (
-      <SafeAreaView className="flex-1 bg-background">
-        <View className="flex-1 items-center justify-center">
-          <Text className="text-lg">Loading...</Text>
-        </View>
-      </SafeAreaView>
-    );
+  const lettuce = [
+    {
+    id: 'lettuce-1',
+    name: 'Lettuce 1',
+    setupDate: 'October 22, 2025'
+  },
+  {
+    id: 'lettuce-2',
+    name: 'Lettuce 2',
+    setupDate: 'November 5, 2025'
+  },
+  {
+    id: 'lettuce-3',
+    name: 'Lettuce 3',
+    setupDate: 'November 12, 2025'
+  },
+  {
+    id: 'lettuce-4',
+    name: 'Lettuce 4',
+    setupDate: 'November 19, 2025'
   }
-
-  // Show no-setup screen if no hydroponics setup exists
-  if (!hasHydroponicsSetup) {
-    return <NoSetup onToggleSetup={toggleSetupState} />;
-  }
+];
 
   // ==========  Show main hydroponics monitoring screen if setup exists =============
   return (
-    <SafeAreaView className="flex-1 bg-background">
-      <View className="flex-1">
+   <ScrollView className="">
+     <SafeAreaView className="flex-1">
+      <View className="flex-1  ">
         {/* =========== Page Header =========== */}
-        <View className="relative z-10 bg-[#E7F5EA] dark:bg-[#1A3D1F]">
+        <View className="">
           <PageHeader title="Hydroponics Monitoring" />
+          
         </View>
+          <View className="mb-2 mt-4 px-6 py-4">
+                    <Text className="text-2xl font-bold ">New Crop Setup</Text>
+                    <Text className="text-muted-foreground text-base mt-1">Fill in your crop's details to start monitoring</Text>
+                  </View>
 
-        {/* =========== Plant Section =========== */}
-        <View
-          className="bg-[#E7F5EA] dark:bg-[#1A3D1F]"
-          style={{
-            borderBottomLeftRadius: 30,
-            borderBottomRightRadius: 30,
-          }}>
-          <View className="items-center justify-center py-8">
-            <Image source={require('@/assets/images/lettuce.png')} />
+        
+
+       <View className='p-4 sm:p-6 gap-3'>
+        {lettuce.map((item) => (
+          <View key={item.id} className=''>
+             <Card className='border-muted-foreground/20 bg-muted/30 justify-center items-center overflow-hidden relative p-4 sm:p-6'>
+         <View className='relative flex flex-row items-center justify-between w-full'>
+          <View className='flex-1 pr-4'>
+            <Text className='text-xl sm:text-xl font-semibold'>{item.name}</Text>
+            <Label className='text-muted-foreground font-normal text-xs'>{item.setupDate}</Label>
           </View>
-        </View>
+          <Image 
+            source={require('@/assets/images/lettuce-2.png')} 
+            className='size-12 sm:w-20 sm:h-20 md:w-24 md:h-24 opacity-55' 
+            resizeMode="contain"
+          />
+         </View>
+        </Card>
+          </View>
+        ))}
+        
+       </View>
 
-        {/* =========== Folder Section =========== */}
-        <View className="flex-1 px-4 pt-5">
-         <FolderBg>
-  <View className="flex-1 justify-between p-4">
-    <View>
-      <Text className="mb-4 text-xl font-bold text-white">My Lettuce</Text>
-
-      <View className="flex-row justify-between">
-        <View className="flex-1">
-          <Text className="text-xl font-bold text-white">10 Days</Text>
-          <Text className="text-xs text-lime-200">PLANT AGE</Text>
-
-          <Text className="mt-1 text-xl font-bold text-white">41 %</Text>
-          <Text className="text-xs text-lime-200">HUMIDITY</Text>
-        </View>
-
-        <View className="flex-1">
-          <Text className="text-xl font-bold text-white">18 Days</Text>
-          <Text className="text-xs text-lime-200">ESTIMATED DAYS LEFT</Text>
-
-          <Text className="mt-1 text-xl font-bold text-white">80 %</Text>
-          <Text className="text-xs text-lime-200">WATER TANK AVAILABLE</Text>
-        </View>
-      </View>
-    </View>
-
-    <View className="items-center mt-7">
-      <Button className="w-full rounded-xl bg-emerald-50 ">
-        <Icon as={Droplet} className="text-primary" />
-        <Text className="ml-2  text-primary">Start Pump</Text>
-      </Button>
-      
-      {/* Debug button */}
-      {/* <Button 
-        variant="outline" 
-        className="w-full rounded-xl border-red-200 mt-2"
-        onPress={toggleSetupState}
-      >
-        <Text className="text-red-200">Debug: Toggle Setup State</Text>
-      </Button> */}
-    </View>
-  </View>
-</FolderBg>
-        </View>
       </View>
       
     </SafeAreaView>
+   </ScrollView>
   );
 }

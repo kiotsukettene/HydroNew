@@ -9,11 +9,11 @@ import { Droplet } from 'lucide-react-native'
 
 export default function LettuceView() {
   return (
-     <SafeAreaView className="flex-1 bg-background">
+       <SafeAreaView className="flex-1 bg-background">
       <View className="flex-1">
         {/* =========== Page Header =========== */}
         <View className="relative z-10 bg-[#E7F5EA] dark:bg-[#1A3D1F]">
-          <PageHeader title="My plants" />
+          <PageHeader title="Hydroponics Monitoring" />
         </View>
 
         {/* =========== Plant Section =========== */}
