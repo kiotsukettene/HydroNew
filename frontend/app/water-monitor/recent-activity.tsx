@@ -10,7 +10,6 @@ export default function RecentActivity() {
       id: '1',
       type: 'ph',
       title: 'pH adjusted',
-      subtitle: 'Balanced to optimal range (6.2)',
       time: '2 min ago',
       status: 'success',
     },
@@ -18,7 +17,6 @@ export default function RecentActivity() {
       id: '2',
       type: 'tds',
       title: 'TDS check',
-      subtitle: 'Nutrient level at 750 ppm',
       time: '15 min ago',
       status: 'neutral',
     },
@@ -26,7 +24,6 @@ export default function RecentActivity() {
       id: '3',
       type: 'flow',
       title: 'Flow warning',
-      subtitle: 'Slight drop detected in circulation',
       time: '42 min ago',
       status: 'warning',
     },
@@ -34,7 +31,6 @@ export default function RecentActivity() {
       id: '4',
       type: 'harvest',
       title: 'Harvest reminder',
-      subtitle: 'Romaine batch ready in 2 days',
       time: 'Today, 08:10',
       status: 'neutral',
     },
@@ -54,14 +50,15 @@ export default function RecentActivity() {
           <View className='gap-4'>
             {activities.map((item, index) => (
               <View key={item.id} className='flex-row items-stretch'>
+
                 {/* Timeline node */}
                 <View className='w-8 items-center'>
-                  <View className={`h-2.5 w-2.5 rounded-full ${item.status}`} />
+                  <View className='h-2.5 w-2.5 rounded-full' />
                 </View>
 
                 <View className='flex-1'>
-                  <Card className='rounded-2xl border border-gray-200/70 shadow-sm shadow-black/5'>
-                    <CardContent className='p-4'>
+                  <Card className='rounded-2xl border border-gray-200/70 shadow-sm '>
+                    <CardContent className='p-2'>
                       <View className='flex-row items-start gap-3'>
                        
 
@@ -72,9 +69,7 @@ export default function RecentActivity() {
                               <Text className='text-xs text-muted-foreground'>{item.time}</Text>
                             </View>
                           </View>
-                          <Text className='text-sm text-foreground/60 mt-0.5'>
-                            {item.subtitle}
-                          </Text>
+                          
                         </View>
                       </View>
                     </CardContent>

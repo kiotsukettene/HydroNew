@@ -295,31 +295,7 @@ export default function HydroponicsSetup({ onSetupComplete }: HydroponicsSetupPr
               </View>
             </Card>
 
-            {/* Setup Information Card */}
-            <Card className="p-6 mb-8 bg-white rounded-2xl shadow-sm border-0">
-              <View className="mb-6">
-                <Text className="text-lg font-semibold text-[#2C3E50] mb-2">Setup Information</Text>
-                <View className="w-full h-1 bg-[#A5D6A7] rounded-full" />
-              </View>
-              
-              <View className="space-y-4 gap-3">
-                <View className="flex-row items-center bg-[#F8FFF8] border border-[#E8F5E8] rounded-xl px-3 py-4">
-                  <Icon as={Calendar} size={20} className="text-[#7F8C8D] mr-3" />
-                  <Text className="text-[#7F8C8D] text-base">Setup Date: {formData.setupDate}</Text>
-                </View>
-
-                <View className="flex-row items-center justify-between bg-[#F8FFF8] border border-[#E8F5E8] rounded-xl px-3 py-4">
-                  <View className="flex-row items-center">
-                    <Icon as={CheckCircle} size={20} className="text-primary mr-3" />
-                    <Text className="text-[#7F8C8D] text-base">Status</Text>
-                  </View>
-                  
-                  <Badge className='rounded-full'>
-                  <Text className="text-white text-base font-medium">Active</Text>
-                  </Badge>
-                </View>
-              </View>
-            </Card>
+           
 
             {/* Save Button */}
             <Button 
