@@ -1,11 +1,11 @@
-import { View, ScrollView, Pressable, ActivityIndicator, TextInput } from "react-native";
+import { View, ScrollView, Pressable, ActivityIndicator, TextInput, TouchableOpacity } from "react-native";
 import React, { useEffect, useState } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { PageHeader } from "@/components/ui/page-header";
 import { Text } from "@/components/ui/text";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Minus, Plus, Search } from "lucide-react-native";
+import { Minus, Plus, Search, X } from "lucide-react-native"; // ✅ Added X icon
 import { useHelpCenterStore } from "@/store/auth/helpCenterStore";
 
 export default function FAQ() {
@@ -30,6 +30,11 @@ export default function FAQ() {
 
   const handleSearch = async () => {
     await searchHelpCenter(searchTerm.trim());
+  };
+
+  const handleClearSearch = async () => {
+    setSearchTerm("");
+    await fetchHelpCenter(1); // ✅ Reset to page 1 and clear search filter
   };
 
   const toggleExpanded = (index: number) => {
@@ -75,7 +80,7 @@ export default function FAQ() {
         <View className="items-center">
           <Text className="text-2xl text-primary mt-7">How can we help you?</Text>
 
-          {/* ✅ Search Bar */}
+          {/* ✅ Search Bar with Clear Button */}
           <View className="flex-row items-center border border-muted-foreground/30 rounded-xl mt-3 px-3 py-1">
             <Search size={18} color="#888" />
             <TextInput
@@ -86,6 +91,14 @@ export default function FAQ() {
               className="flex-1 ml-2 text-base"
               returnKeyType="search"
             />
+
+            {/* ✅ Show clear (X) only when text exists */}
+            {searchTerm.length > 0 && (
+              <TouchableOpacity onPress={handleClearSearch} className="px-1">
+                <X size={18} color="#888" />
+              </TouchableOpacity>
+            )}
+
             <Button variant="ghost" onPress={handleSearch}>
               <Text>Search</Text>
             </Button>
