@@ -28,8 +28,9 @@ export default function Monitor() {
   return (
     <ScrollView>
       <SafeAreaView className=''>
-        {/* ===== Page Header ===== */}
-        <PageHeader title="Water Monitoring" />
+              
+          {/* ===== Page Header ===== */}
+          <PageHeader title="Water Monitoring" />
         <View className="p-4">
           {/* ===== Water Quality Card ===== */}
           <Card className="mt-1 overflow-hidden rounded-2xl border-transparent bg-[#BCE7F0] p-4">
@@ -160,6 +161,7 @@ export default function Monitor() {
                 resizeMode="contain"
               />
             </View>
+
         </View>
       </SafeAreaView>
     </ScrollView>
