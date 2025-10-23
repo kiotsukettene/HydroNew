@@ -29,7 +29,6 @@ export default function Index() {
 const settings = [
   { icon: UserRoundPen, title: 'My Account', link: '/account/manage-account' },
   { icon: ShieldCheck, title: 'Security Settings', link: '/account/security-setting' },
-  { icon: Wrench, title: 'Preferences', link: '/account/preferences' },
   { icon: Scroll, title: 'Terms and Conditions', link: '/account/terms-and-conditions' },
   { icon: Lock, title: 'Privacy Policy', link: '/account/privacy-policy' },
   { icon: MessageSquareMore, title: 'FAQs', link: '/account/faq' },
