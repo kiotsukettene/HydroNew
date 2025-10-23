@@ -6,7 +6,8 @@ type User = {
 };
 
 type RegisterPayload = {
-  fullname: string;
+  first_name: string;
+  last_name: string;
   email: string;
   password: string;
   password_confirmation: string;
@@ -17,6 +18,7 @@ type AuthState = {
   token: string | null;
   loading: boolean;
   error: string | null;
+  fieldErrors: Record<string, string[]>;
   message: string | null;
   needsVerification: boolean;
   register: (data: RegisterPayload) => Promise<void>;

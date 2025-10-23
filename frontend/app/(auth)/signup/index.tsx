@@ -20,11 +20,12 @@ import { Checkbox } from "@/components/ui/checkbox";
 import Svg, { Path } from "react-native-svg";
 import { useAuthStore } from "@/store/auth/authStore"
 import PasswordToggle from "@/app/hooks/password-toggle";
+import { PasswordStrengthMeter } from '@/components/ui/password-stength-meter';
 
 const { height } = Dimensions.get("window");
 
 export default function SignUp() {
-  const { register , loading, error, needsVerification} = useAuthStore();
+  const { register , fieldErrors, error, needsVerification} = useAuthStore();
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [checked, setChecked] = useState(false);
@@ -33,6 +34,7 @@ export default function SignUp() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
 
   const router = useRouter();
   const passwordInputRef = useRef<TextInput>(null);
@@ -48,18 +50,21 @@ export default function SignUp() {
   }, [needsVerification]);
 
   async function onSubmit() {
-    if (!checked) return;
-    try {
-      await register({
-        fullname: `${firstName} ${lastName}`.trim(),
-        email,
-        password,
-        password_confirmation: confirmPassword,
-      });
-    } catch (error) {
-      console.error("Registration failed:", error);
-    }
+    setSubmitted(true);
+    if (password !== confirmPassword) {
   }
+  
+  if (!checked) return;
+  await register({
+    first_name: firstName,
+    last_name: lastName,
+    email,
+    password,
+    password_confirmation: confirmPassword,
+  });
+}
+
+
 
   return (
     <SafeAreaView className="flex-1 ">
@@ -108,8 +113,11 @@ export default function SignUp() {
                     autoCapitalize="words"
                     returnKeyType="next"
                     onSubmitEditing={onEmailSubmitEditing}
-                    className="border-muted-foreground/50 text-base"
+                    className={`border ${fieldErrors.first_name ? 'border-red-500' : 'border-muted-foreground/50'} text-base`}
                   />
+                    {fieldErrors.first_name && (
+                      <Text className="text-destructive text-sm">{fieldErrors.first_name[0]}</Text>
+                    )}
                 </View>
 
                 {/* Last Name */}
@@ -124,8 +132,11 @@ export default function SignUp() {
                     autoCapitalize="words"
                     returnKeyType="next"
                     onSubmitEditing={onEmailSubmitEditing}
-                    className="border-muted-foreground/50 text-base "
+                    className={`border ${fieldErrors.last_name ? 'border-red-500' : 'border-muted-foreground/50'} text-base`}
                   />
+                  {fieldErrors.last_name && (
+                    <Text className="text-destructive text-sm">{fieldErrors.last_name[0]}</Text>
+                  )}
                 </View>
 
                 {/* Email */}
@@ -141,8 +152,11 @@ export default function SignUp() {
                     autoCapitalize="none"
                     returnKeyType="next"
                     onSubmitEditing={onEmailSubmitEditing}
-                    className="border-muted-foreground/50 text-base "
+                    className={`border ${fieldErrors.email ? 'border-red-500' : 'border-muted-foreground/50'} text-base`}
                   />
+                  {fieldErrors.email && (
+                    <Text className="text-destructive text-sm">{fieldErrors.email[0]}</Text>
+                  )}
                 </View>
 
                 {/* Password */}
@@ -159,9 +173,9 @@ export default function SignUp() {
                       ref={passwordInputRef}
                       returnKeyType="send"
                       onSubmitEditing={onSubmit}
-                      className="border-muted-foreground/50 text-base pr-12"
+                      className={`border ${fieldErrors.password ? 'border-red-500' : 'border-muted-foreground/50'} text-base pr-12`}
                     />
-                    <PasswordToggle onToggle={setShowPassword} initialState={showPassword} />
+                      <PasswordToggle onToggle={setShowPassword} initialState={showPassword} />
                   </View>
                 </View>
 
@@ -170,18 +184,28 @@ export default function SignUp() {
                   <Label className="text-muted-foreground font-normal">
                     Confirm Password
                   </Label>
-                  <View className="relative">
+                  <View className="relative mt-2">
                     <Input
                       value={confirmPassword}
                       onChangeText={setConfirmPassword}
                       placeholder="•••••••••"
                       secureTextEntry={!showConfirmPassword}
-                      returnKeyType="send"
+                      returnKeyType="send" 
                       onSubmitEditing={onSubmit}
-                      className="border-muted-foreground/50 text-base pr-12"
+                      className={`border text-base pr-12 ${
+                              submitted && confirmPassword !== password
+                                ? 'border-red-500'
+                                : 'border-muted-foreground/50'
+                            }`}
                     />
                     <PasswordToggle onToggle={setShowConfirmPassword} initialState={showConfirmPassword} />
                   </View>
+                    {submitted && confirmPassword !== password && (
+                      <Text className="text-sm text-destructive">
+                        Passwords do not match
+                      </Text>
+                    )}
+                  <PasswordStrengthMeter password={password} />
                 </View>
 
                 {/* Terms */}

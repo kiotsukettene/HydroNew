@@ -1,17 +1,28 @@
-import { View, ScrollView, Image, Pressable } from 'react-native';
-import React, { useState } from 'react';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { PageHeader } from '@/components/ui/page-header';
-import { Card, CardContent } from '@/components/ui/card';
-import { Text } from '@/components/ui/text';
-import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { ArrowUpIcon, BadgeCheckIcon, CircleArrowRight, Info } from 'lucide-react-native'; // Added Info icon
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
 import { Icon } from '@/components/ui/icon';
+import { PageHeader } from '@/components/ui/page-header';
 import { Separator } from '@/components/ui/separator';
-import TDSDetailsModal from '../water-monitor/tds-details';
+import { Text } from '@/components/ui/text';
+import { useRouter } from 'expo-router';
+import { BadgeCheckIcon, CircleArrowRight, Info } from 'lucide-react-native'; // Added Info icon
+import React, { useEffect, useState } from 'react';
+import { Image, Pressable, ScrollView, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import PHLevelDetailsModal from '../water-monitor/ph-level-details';
-import { Link, router, useRouter } from 'expo-router';
+import TDSDetailsModal from '../water-monitor/tds-details';
+
+
+import { db } from '@/src/firebase';
+import { onValue, ref } from 'firebase/database';
+
+interface SensorData {
+  ph: number;
+  tds: number;
+  turbidity: number;
+  timestamp: number;
+}
 
 export default function Monitor() {
 
@@ -21,6 +32,27 @@ export default function Monitor() {
   const [isPHLevelDetailsModalVisible, setIsPHLevelDetailsModalVisible] = useState(false);
 
 
+//firebase data fetching
+ const [sensorData, setSensorData] = useState<SensorData | null>(null);
+const [latestKey, setLatestKey] = useState<string | null>(null);
+  useEffect(() => {
+    const sensorRef = ref(db, 'sensorData/');
+    const unsubscribe = onValue(sensorRef, (snapshot) => {
+      const data = snapshot.val();
+      if (!data) return;
+
+      // Get the latest entry (Firebase push key)
+      const keys = Object.keys(data);
+      const newKey = keys[keys.length - 1];
+      const latestData = data[newKey];
+
+       setLatestKey(newKey);
+      setSensorData(latestData);
+    });
+
+ return () => unsubscribe();
+  }, [latestKey]);
+
   const recentActivities = [
     { id: '1', description: 'Water pH adjusted', time: '8:00 AM' },
     { id: '2', description: 'Filtration completed', time: '9:15 AM' },
@@ -28,8 +60,9 @@ export default function Monitor() {
   return (
     <ScrollView>
       <SafeAreaView className=''>
-        {/* ===== Page Header ===== */}
-        <PageHeader title="Water Monitoring" />
+              
+          {/* ===== Page Header ===== */}
+          <PageHeader title="Water Monitoring" />
         <View className="p-4">
           {/* ===== Water Quality Card ===== */}
           <Card className="mt-1 overflow-hidden rounded-2xl border-transparent bg-[#BCE7F0] p-4">
@@ -39,13 +72,13 @@ export default function Monitor() {
                 <View className="justify-between">
                   <View>
                     <Text className="text-gray-600">pH Level</Text>
-                    <Text className="text-xl font-medium text-gray-800">5.5</Text>
+                    <Text className="text-xl font-medium text-gray-800">{sensorData ? sensorData.ph : '--'}</Text>
                   </View>
 
                   <View className="flex-row items-center">
                     <View>
                       <Text className="text-gray-600">TDS</Text>
-                      <Text className="text-xl font-medium text-gray-800">600 ppm</Text>
+                      <Text className="text-xl font-medium text-gray-800">{sensorData ? `${Math.round(sensorData.tds)} ppm` : '--'}</Text>
                     </View>
 
                     <Button variant={'ghost'} onPress={() => setIsTDSDetailsModalVisible(true)}>
@@ -59,7 +92,7 @@ export default function Monitor() {
 
                   <View>
                     <Text className="text-gray-600">Turbidity</Text>
-                    <Text className="text-xl font-medium text-gray-800">34.5</Text>
+                    <Text className="text-xl font-medium text-gray-800">{sensorData ? sensorData.turbidity.toFixed(2) : '--'}</Text>
                   </View>
                 </View>
 
@@ -160,6 +193,7 @@ export default function Monitor() {
                 resizeMode="contain"
               />
             </View>
+
         </View>
       </SafeAreaView>
     </ScrollView>
