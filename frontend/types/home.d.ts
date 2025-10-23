@@ -13,3 +13,17 @@ export type HomeProps = {
   waterQuality: WaterQuality;
   growth: GrowthProgress;
 };
+
+interface DashboardData {
+  user: string;
+  pHLevel: number;
+  unit: string;
+  status: string;
+}
+
+interface DashboardState {
+  data: DashboardData | null;
+  loading: boolean;
+  error: string | null;
+  fetchDashboard: () => Promise<void>;
+}

@@ -3,6 +3,7 @@ import axiosInstance from "@/api/axiosInstance";
 import { handleAxiosError } from "@/api/handleAxiosError";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
+
 export const useAuthStore = create<AuthState>((set, get) => ({
   user: null,
   token: null,
@@ -57,7 +58,21 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       const { message, fieldErrors } = handleAxiosError(err);
       set({ loading: false, error: message, fieldErrors: { ...fieldErrors } });
     }
-  },
+
+    set({
+      loading: false,
+      user: response.data.user || null,
+      token,
+      needsVerification: response.data.needs_verification ?? false,
+    });
+
+    return response.data;
+  } catch (err: any) {
+    const message =
+      err.response?.data?.message || "Login failed. Try again.";
+    set({ loading: false, error: message });
+  }
+},
 
   // verify OTP
   verifyOtp: async (otp: string) => {
