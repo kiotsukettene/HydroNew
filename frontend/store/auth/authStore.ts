@@ -6,6 +6,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   token: null,
   loading: false,
   error: null,
+  fieldErrors: {},
   message: null,
   needsVerification: false,
 
@@ -13,12 +14,9 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   register: async (data) => {
     set({ loading: true, error: null });
     try {
-      const [first_name, ...rest] = data.fullname.split(" ");
-      const last_name = rest.join(" ");
-
       const response = await axiosInstance.post("/register", {
-        first_name,
-        last_name,
+        first_name: data.first_name,
+        last_name: data.last_name,
         email: data.email,
         password: data.password,
         password_confirmation: data.password_confirmation,

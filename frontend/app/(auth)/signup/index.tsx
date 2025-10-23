@@ -20,6 +20,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import Svg, { Path } from "react-native-svg";
 import { useAuthStore } from "@/store/auth/authStore"
 import PasswordToggle from "@/app/hooks/password-toggle";
+import { InputWithIcon } from "@/components/ui/input-with-icon";
 
 const { height } = Dimensions.get("window");
 
@@ -51,7 +52,8 @@ export default function SignUp() {
     if (!checked) return;
     try {
       await register({
-        fullname: `${firstName} ${lastName}`.trim(),
+        first_name: firstName,
+        last_name: lastName,
         email,
         password,
         password_confirmation: confirmPassword,
@@ -151,7 +153,7 @@ export default function SignUp() {
                     Password
                   </Label>
                   <View className="relative">
-                    <Input
+                    <InputWithIcon
                       value={password}
                       onChangeText={setPassword}
                       placeholder="•••••••••"
@@ -160,8 +162,8 @@ export default function SignUp() {
                       returnKeyType="send"
                       onSubmitEditing={onSubmit}
                       className="border-muted-foreground/50 text-base pr-12"
+                      rightIcon={<PasswordToggle onToggle={setShowPassword} initialState={showPassword} />}
                     />
-                    <PasswordToggle onToggle={setShowPassword} initialState={showPassword} />
                   </View>
                 </View>
 
@@ -171,7 +173,7 @@ export default function SignUp() {
                     Confirm Password
                   </Label>
                   <View className="relative">
-                    <Input
+                    <InputWithIcon
                       value={confirmPassword}
                       onChangeText={setConfirmPassword}
                       placeholder="•••••••••"
@@ -179,8 +181,8 @@ export default function SignUp() {
                       returnKeyType="send"
                       onSubmitEditing={onSubmit}
                       className="border-muted-foreground/50 text-base pr-12"
+                      rightIcon={<PasswordToggle onToggle={setShowConfirmPassword} initialState={showConfirmPassword} />}
                     />
-                    <PasswordToggle onToggle={setShowConfirmPassword} initialState={showConfirmPassword} />
                   </View>
                 </View>
 
