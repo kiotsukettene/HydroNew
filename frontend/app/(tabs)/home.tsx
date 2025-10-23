@@ -43,7 +43,7 @@ export default function Home({ waterQuality, growth }: HomeProps) {
               <Text className="text-base text-foreground/70">Hello,</Text>
               <Text className="text-2xl font-semibold text-foreground/80">Momo!</Text>
             </View>
-            <Button variant={'ghost'}>
+            <Button variant={'ghost'} onPress={() => router.push('/notifications')}>
               <BellIcon size={22} strokeWidth={3} color={'#445104'} />
             </Button>
           </View>
