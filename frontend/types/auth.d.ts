@@ -18,7 +18,7 @@ type AuthState = {
   token: string | null;
   loading: boolean;
   error: string | null;
-  fieldErrors: Record<string, string>;
+  fieldErrors: Record<string, string[]>;
   message: string | null;
   needsVerification: boolean;
   register: (data: RegisterPayload) => Promise<void>;
