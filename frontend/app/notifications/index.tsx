@@ -116,7 +116,7 @@ export default function Notifications() {
 
   return (
     <ScrollView className="flex-1 bg-white">
-      <SafeAreaView className="p-4">
+      <SafeAreaView className="">
         {/* ===== Page Header ===== */}
         <PageHeader 
           title="Notifications"
@@ -124,11 +124,12 @@ export default function Notifications() {
           showNotificationButton={false}
         />
         
-        {/* ===== Clear All Button ===== */}
+      <View className='p-4'>
+          {/* ===== Clear All Button ===== */}
         {notifications.length > 0 && (
           <View className="flex-row justify-end mb-2">
             <TouchableOpacity onPress={handleClearAll}>
-              <Text className="text-sm text-primary">Clear all</Text>
+              <Text className="text-primary">Clear all</Text>
             </TouchableOpacity>
           </View>
         )}
@@ -143,7 +144,7 @@ export default function Notifications() {
             <Text className="text-lg font-semibold text-gray-900 mb-2">
               No Notifications Here
             </Text>
-            <Text className="text-sm text-gray-500 text-center px-8 mb-4">
+            <Text className=" text-gray-500 text-center px-8 mb-4">
               There is no notification to show right now
             </Text>
             <TouchableOpacity 
@@ -172,6 +173,7 @@ export default function Notifications() {
             <View className="h-20" />
           </>
         )}
+      </View>
       </SafeAreaView>
     </ScrollView>
   )

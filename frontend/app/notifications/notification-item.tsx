@@ -33,7 +33,7 @@ export default function NotificationItem({
   return (
     <TouchableOpacity 
       onPress={onPress}
-      className={`flex-row p-4 border-b border-gray-200 ${!isRead ? 'bg-gray-50' : 'bg-white'}`}
+      className={`flex-row p-4 rounded-xl border-b border-gray-200 ${!isRead ? 'bg-green-50' : 'bg-background'}`}
     >
       {/* Icon */}
       <View className={`w-10 h-10 rounded-full ${bgColor} items-center justify-center mr-3`}>
@@ -41,12 +41,12 @@ export default function NotificationItem({
       </View>
 
       {/* Content */}
-      <View className="flex-1">
+      <View className="flex-1 gap-2">
         <View className="flex-row items-center justify-between mb-1">
-          <Text className="text-sm font-semibold text-gray-900">{title}</Text>
+          <Text className=" font-semibold text-gray-900">{title}</Text>
           <Text className="text-xs text-gray-500">{time}</Text>
         </View>
-        <Text className="text-xs text-gray-600 leading-4">{message}</Text>
+        <Text className="text-sm text-gray-600 leading-4">{message}</Text>
       </View>
     </TouchableOpacity>
   )
