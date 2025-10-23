@@ -93,7 +93,7 @@ useEffect(() => {
           />
 
           {/* --- FORM SECTION --- */}
-          <View className="mt-[-7rem] flex-1 items-center">
+          <View className="mt-[-10rem] flex-1 items-center">
             <Card className="w-[90%] max-w-md rounded-lg border-muted-foreground/10 bg-white p-2 shadow-lg">
               <View>
                 <Image
@@ -198,9 +198,9 @@ useEffect(() => {
 
                 {/* Footer */}
                 <Text className="mt-2 text-center text-muted-foreground">
-                  Already have an account?{' '}
-                  <Link href="/login" asChild>
-                    <Text className="font-medium text-primary">Sign in</Text>
+                  Doesn't have an account?{' '}
+                  <Link href="/signup" asChild>
+                    <Text className="font-medium text-primary">Sign up</Text>
                   </Link>
                 </Text>
               </CardContent>
