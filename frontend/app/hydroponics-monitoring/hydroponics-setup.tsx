@@ -11,6 +11,8 @@ import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
 import { ArrowLeft, Save, Calendar, CheckCircle, ChevronDown, Play, Plus, Minus, Leaf } from 'lucide-react-native';
 import { Badge } from '@/components/ui/badge';
+import { useHydroponicSetupStore } from "@/store/hydroponics/hydroponicSetupStore";
+
 
 
 interface HydroponicsSetupData {
@@ -33,6 +35,7 @@ interface HydroponicsSetupProps {
 
 export default function HydroponicsSetup({ onSetupComplete }: HydroponicsSetupProps) {
   const router = useRouter();
+  const { createHydroponicSetup, error } = useHydroponicSetupStore();
   const [formData, setFormData] = useState<HydroponicsSetupData>({
     cropName: '',
     numberOfCrops: '',
@@ -43,7 +46,7 @@ export default function HydroponicsSetup({ onSetupComplete }: HydroponicsSetupPr
     targetTdsMin: '800',
     targetTdsMax: '1200',
     waterAmount: '5',
-    setupDate: new Date().toISOString().split('T')[0], // Today's date
+    setupDate: new Date().toISOString().split('T')[0], 
     status: 'active',
   });
 
@@ -91,7 +94,40 @@ export default function HydroponicsSetup({ onSetupComplete }: HydroponicsSetupPr
     return true;
   };
 
+  const onSubmit = async () => {
+    if (!validateForm()) return;
 
+    setIsSubmitting(true);
+
+    try {
+      const setupData = {
+        crop_name: formData.cropName,
+        number_of_crops: parseInt(formData.numberOfCrops, 10),
+        bed_size: formData.bedSize,
+        nutrient_solution: formData.nutrientSolution,
+        target_ph_min: parseFloat(formData.targetPh),
+        target_ph_max: parseFloat(formData.targetPhMax),
+        target_tds_min: parseInt(formData.targetTdsMin, 10),
+        target_tds_max: parseInt(formData.targetTdsMax, 10),
+        water_amount: `${formData.waterAmount}L`,
+        pump_config: null,
+      };
+
+      await createHydroponicSetup(setupData);
+
+      if (error) {
+        Alert.alert("Error", error);
+      } else {
+        Alert.alert("Success", "Hydroponic setup created successfully!");
+        router.push('/(tabs)/hydroponics');
+      }
+    } catch (err) {
+      console.error("Hydroponic setup creation failed:", err);
+      Alert.alert("Error", "Failed to create setup. Please try again.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   const bedSizeOptions = [
     { value: 'small', label: 'Small' },
@@ -303,33 +339,15 @@ export default function HydroponicsSetup({ onSetupComplete }: HydroponicsSetupPr
             {/* Save Button */}
             <Button 
               className="w-full"
-              onPress={async () => {
-                if (!validateForm()) {
-                  return;
-                }
-                
-                setIsSubmitting(true);
-                
-                try {
-                  // TODO: Replace with actual API call to save setup
-                  await new Promise(resolve => setTimeout(resolve, 1000));
-                  
-                  // Navigate to hydroponics page after successful save
-                  router.push('/(tabs)/hydroponics');
-                } catch (error) {
-                  console.error('Error saving setup:', error);
-                  Alert.alert('Error', 'Failed to save setup. Please try again.');
-                } finally {
-                  setIsSubmitting(false);
-                }
-              }}
+              onPress={onSubmit}
               disabled={isSubmitting}
             >
               <Icon as={Save} size={18} className="text-muted mr-2" />
-              <Text className=" ">
+              <Text>
                 {isSubmitting ? 'Creating Setup...' : 'Save Plant Setup'}
               </Text>
             </Button>
+
           </View>
         </ScrollView>
       </View>
