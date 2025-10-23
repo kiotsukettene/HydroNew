@@ -22,12 +22,12 @@ export default function SecuritySetting() {
     {
       icon:LockOpen, title: 'Change Password', link: '/account/security/change-password'
     },
-    {
-      icon:ShieldCheck, title: 'Permissions', link: '/account/security/permissions'
-    },
-    {
-      icon:LogIn, title: 'Login History', link: ''
-    },
+    // {
+    //   icon:ShieldCheck, title: 'Permissions', link: '/account/security/permissions'
+    // },
+    // {
+    //   icon:LogIn, title: 'Login History', link: ''
+    // },
     {
       icon:Trash, title: 'Delete Account', link: '/account/security/delete-account'
     }
