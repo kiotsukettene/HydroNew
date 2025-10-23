@@ -1,60 +1,94 @@
-import { View, Text, ScrollView } from 'react-native'
-import React from 'react'
+import { View, ScrollView, Pressable } from 'react-native'
+import React, { useState } from 'react'
 import { SafeAreaView } from 'react-native-safe-area-context'
-import { ArrowLeft } from 'lucide-react-native'
-import { PageHeader } from '@/components/ui/page-header';
+import { PageHeader } from '@/components/ui/page-header'
+import { Input } from '@/components/ui/input'
+import { Text } from '@/components/ui/text'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent } from '@/components/ui/card'
+import { Minus, Plus } from 'lucide-react-native'
 
 export default function FAQ() {
+  const [expandedItems, setExpandedItems] = useState<number[]>([0]) // First item expanded by default
+
+  const faqData = [
+    {
+      question: "What types of plants can I grow in this system?",
+answer: "This system is designed exclusively for growing lettuce. It is optimized for various fast-growing, leafy varieties such as Romaine, Butterhead, and Loose-leaf types, which perform best in this hydroponic setup."    },
+    {
+      question: "Does the UV filter need regular maintenance or replacement?",
+      answer: "Yes, the UV filter requires regular maintenance. It should be cleaned monthly and replaced every 6-12 months depending on usage. Regular maintenance ensures optimal water purification and system efficiency."
+    },
+    {
+      question: "What type of wastewater can I use?",
+      answer: "The system is designed for greywater, which comes from household activities like showers, sinks, and laundry. Greywater is safer to recycle because it usually contains soaps, mild organic matter, and nutrients that can be treated and reused for hydroponics."
+    },
+    {
+      question: "Can I monitor the system remotely if I'm away from home?",
+      answer: "Yes, the system includes remote monitoring capabilities through our mobile app. You can check water quality, pH levels, nutrient concentrations, and system status from anywhere. You'll also receive notifications for any issues that require attention."
+    }
+  ]
+
+  const toggleExpanded = (index: number) => {
+    setExpandedItems(prev => 
+      prev.includes(index) 
+        ? prev.filter(item => item !== index)
+        : [...prev, index]
+    )
+  }
+
   return (
-     <SafeAreaView className='flex-1'>
-      <View className='px-4 pt-4 flex-1'>
-        {/* ================= Title  ==================== */}
-        <PageHeader title="FAQs" showNotificationButton={false} />
-        
-        <ScrollView
-          showsVerticalScrollIndicator={true}
-          contentContainerStyle={{ paddingBottom: 32 }}
-        >
+    <ScrollView>
+      <SafeAreaView className='p-4'>
+        <PageHeader title='Help Center'/>
 
-          <Text className="text-lg font-poppins-semibold text-primary mt-4 mb-1">
-            1. How does a Microbial Fuel Cell work?
-          </Text>
-          <Text className="text-base font-poppins text-muted-foreground leading-relaxed mb-3 text-justify">
-            A Microbial Fuel Cell (MFC) uses microorganisms to break down organic matter in wastewater.
-            During this process, the microbes release electrons, which are captured by electrodes to
-            generate electricity. This allows simultaneous wastewater treatment and energy recovery.
-          </Text>
+        <View className='items-center'>
+          <Text className='text-2xl text-primary mt-7'>How can we help you?</Text>
 
-          <Text className="text-lg font-poppins-semibold text-primary mb-1">
-            2. Why combine MFC with hydroponics?
-          </Text>
-          <Text className="text-base font-poppins text-muted-foreground leading-relaxed mb-3 text-justify">
-            Hydroponics requires a continuous supply of clean water and often depends on external energy
-            sources for monitoring systems. By integrating MFC-treated wastewater, we aim to provide a
-            sustainable water source for hydroponics and a low-power energy supply for sensors or small
-            devices.
-          </Text>
+          <Input placeholder='Type your question here...' className='border-2 border-muted-foreground/30 mt-3'></Input>
 
-          <Text className="text-lg font-poppins-semibold text-primary mb-1">
-            3. What type of wastewater did you use?
-          </Text>
-          <Text className="text-base font-poppins text-muted-foreground leading-relaxed mb-3 text-justify">
-            For the study, we used [specify if domestic, agricultural, or synthetic wastewater], as it is
-            commonly available and contains organic matter suitable for microbial activity.
-          </Text>
+        </View>
 
-          <Text className="text-lg font-poppins-semibold text-primary mb-1">
-            4. What is the expected energy output?
-          </Text>
-          <Text className="text-base font-poppins text-muted-foreground leading-relaxed mb-3 text-justify">
-            The energy output of MFCs is relatively low, usually in the range of milliwatts, which is not
-            enough for large-scale power but sufficient for low-power devices such as sensors, LED
-            indicators, or monitoring equipment in hydroponics systems.
-          </Text>
+        <View className='flex flex-row items-center justify-between mt-4'>
+            <Text className='font-semibold text-primary text-lg'>Top Questions</Text>
+            <Button variant={'link'}>
+              <Text className='text-primary'>View All</Text>
+            </Button>
+          </View>
 
-        </ScrollView>
-      </View> 
-
+          <View className='mt-4 space-y-3 gap-5'>
+            {faqData.map((item, index) => {
+              const isExpanded = expandedItems.includes(index)
+              
+              return (
+                <Card key={index} className=' border border-gray-200 rounded-xl'>
+                  <Pressable onPress={() => toggleExpanded(index)}>
+                    <CardContent className='p-4'>
+                      <View className='flex-row items-center justify-between'>
+                        <Text className='flex-1 font-semibold  text-base pr-3'>
+                          {item.question}
+                        </Text>
+                        {isExpanded ? (
+                          <Minus size={20} color='#445104' />
+                        ) : (
+                          <Plus size={20} color='#445104' />
+                        )}
+                      </View>
+                      
+                      {isExpanded && (
+                        <View className='mt-3 pt-3 border-t border-muted-foreground/20'>
+                          <Text className='text-gray-700 text-sm leading-5'>
+                            {item.answer}
+                          </Text>
+                        </View>
+                      )}
+                    </CardContent>
+                  </Pressable>
+                </Card>
+              )
+            })}
+          </View>
       </SafeAreaView>
+    </ScrollView>
   )
 }
