@@ -128,12 +128,12 @@ export default function Home({ waterQuality, growth }: HomeProps) {
                 </Pressable>
 
                 <View className="gap-2 sm:gap-3 md:gap-4">
-                  <View className="rounded-2xl bg-blue-50 p-4 sm:p-5 md:p-6 min-h-20 sm:min-h-24 md:min-h-28">
+                  <Pressable onPress={() => router.push('/history')} className="rounded-2xl bg-blue-50 p-4 sm:p-5 md:p-6 min-h-20 sm:min-h-24 md:min-h-28">
                     <History color={'#1E40AF'} strokeWidth={2} size={24} className="sm:w-7 sm:h-7 md:w-8 md:h-8" />
                     <Text className="text-sm sm:text-base md:text-lg font-semibold text-blue-900">
                       History
                     </Text>
-                  </View>
+                  </Pressable>
 
                   <View className="flex-1 justify-between rounded-2xl bg-yellow-50 p-4 sm:p-5 md:p-6 min-h-20 sm:min-h-24 md:min-h-28">
                     <ChartColumn color={'#B45309'} strokeWidth={2} size={24} className="sm:w-7 sm:h-7 md:w-8 md:h-8" />
