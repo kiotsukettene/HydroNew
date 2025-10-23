@@ -1,5 +1,5 @@
-import { View, Image, TouchableOpacity, ScrollView, Pressable } from 'react-native';
-import React from 'react';
+import { View, Image, TouchableOpacity, ScrollView, Pressable, ActivityIndicator } from 'react-native';
+import React, { useEffect } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Button } from '@/components/ui/button';
 import {
@@ -15,21 +15,53 @@ import { Text } from '@/components/ui/text';
 
 import type { HomeProps } from '@/types/home';
 import { useRouter } from 'expo-router';
+import { useDashboardStore } from '@/store/auth/dashboardStore';
 
-export default function Home({ waterQuality, growth }: HomeProps) {
+export default function Home() {
 
   const router = useRouter()
   
-  //  Temporary mock data 
-  waterQuality = waterQuality || {
-    pHLevel: 6.5,
-    status: 'Good',
-    level: 'Low',
-  };
+  // //  Temporary mock data 
+  // waterQuality = waterQuality || {
+  //   pHLevel: 6.5,
+  //   status: 'Good',
+  //   level: 'Low',
+  // };
 
-  growth = growth || {
-    percentage: 45,
-  };
+  // growth = growth || {
+  //   percentage: 45,
+  // };
+
+  const { data, loading, error, fetchDashboard } = useDashboardStore();
+  
+  useEffect(() => {
+    fetchDashboard();
+  }, []);
+
+  if (loading) {
+     return (
+      <SafeAreaView className="flex-1 items-center justify-center">
+        <ActivityIndicator size="large" color="#2D7D7D" />
+        <Text className="mt-2 text-lg text-gray-600">Loading dashboard...</Text>
+      </SafeAreaView>
+    );
+  }
+
+  if (error) {
+    return (
+      <SafeAreaView className="flex-1 items-center justify-center">
+        <Text className="text-red-500 text-lg">{error}</Text>
+        <Button onPress={fetchDashboard}>Retry</Button>
+      </SafeAreaView>
+    );
+  }
+
+   const waterQuality = data
+    ? { pHLevel: data.pHLevel, status: data.status, unit: data.unit }
+    : { pHLevel: 0, status: 'Unknown', unit: '' };
+
+  const userName = data?.user || 'User';
+  const growth = { percentage: 45 }; // Still mock data for now
 
   return (
     <ScrollView>
@@ -41,7 +73,7 @@ export default function Home({ waterQuality, growth }: HomeProps) {
           <View className="flex-row items-center justify-between pt-2">
             <View>
               <Text className="text-base text-foreground/70">Hello,</Text>
-              <Text className="text-2xl font-semibold text-foreground/80">Momo!</Text>
+              <Text className="text-2xl font-semibold text-foreground/80">{userName}!</Text>
             </View>
             <Button variant={'ghost'} onPress={() => router.push('/notifications')}>
               <BellIcon size={22} strokeWidth={3} color={'#445104'} />
@@ -86,7 +118,7 @@ export default function Home({ waterQuality, growth }: HomeProps) {
                     </Text>
                     <View className="rounded-full bg-yellow-100 px-3 py-1">
                       <Text className="text-center text-sm font-medium">
-                        {waterQuality.level}
+                        Low
                       </Text>
                     </View>
                   </View>

@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import axiosInstance from "@/api/axiosInstance";
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export const useAuthStore = create<AuthState>((set, get) => ({
   user: null,
@@ -40,24 +41,31 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   },
 
   // login
-  login: async (email, password) => {
-    set({ loading: true, error: null });
-    try {
-      const response = await axiosInstance.post("/login", { email, password });
+ login: async (email, password) => {
+  set({ loading: true, error: null });
+  try {
+    const response = await axiosInstance.post("/login", { email, password });
 
-      set({
-        loading: false,
-        user: response.data.user || null,
-        token: response.data.token || null,
-        needsVerification: response.data.needs_verification ?? false,
-      });
-      return response.data;
-    } catch (err: any) {
-      const message =
-        err.response?.data?.message || "Login failed. Try again.";
-      set({ loading: false, error: message });
+    const token = response.data.token || null;
+
+    if (token) {
+      await AsyncStorage.setItem("token", token); // 👈 Store it here!
     }
-  },
+
+    set({
+      loading: false,
+      user: response.data.user || null,
+      token,
+      needsVerification: response.data.needs_verification ?? false,
+    });
+
+    return response.data;
+  } catch (err: any) {
+    const message =
+      err.response?.data?.message || "Login failed. Try again.";
+    set({ loading: false, error: message });
+  }
+},
 
   // verify OTP
   verifyOtp: async (otp: string) => {
