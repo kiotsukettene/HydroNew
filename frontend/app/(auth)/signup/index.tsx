@@ -52,7 +52,6 @@ export default function SignUp() {
   async function onSubmit() {
     setSubmitted(true);
     if (password !== confirmPassword) {
-    return;
   }
   
   if (!checked) return;

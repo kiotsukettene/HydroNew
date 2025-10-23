@@ -33,7 +33,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       console.log(response.data.message);
     } catch (err: any) {
     const { message, fieldErrors } = handleAxiosError(err);
-    set({ loading: false, error: message, fieldErrors });
+    set({ loading: false, error: message, fieldErrors: { ...fieldErrors } });
   }
   },
 
@@ -52,7 +52,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       return response.data;
     } catch (err: any) {
       const { message, fieldErrors } = handleAxiosError(err);
-      set({ loading: false, error: message, fieldErrors });
+      set({ loading: false, error: message, fieldErrors: { ...fieldErrors } });
     }
   },
 
@@ -82,7 +82,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       return response.data;
     } catch (err: any) {
       const { message, fieldErrors } = handleAxiosError(err);
-      set({ loading: false, error: message, fieldErrors });
+      set({ loading: false, error: message, fieldErrors: { ...fieldErrors } });
     }
   },
 
@@ -97,7 +97,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         }
       }); 
       console.log("Response:", response.data);
-      set({
+      set({ 
         loading: false,
         error: null,
         message: response.data.message

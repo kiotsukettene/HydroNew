@@ -12,6 +12,8 @@ export function handleAxiosError(err: any) {
       Object.keys(data.errors).forEach((field) => {
         fieldErrors[field] = data.errors[field];
       });
+    } else if (data.message) {
+      fieldErrors["general"] = [data.message];
     }
   } else if (err.request) {
     message = "No response from server. Please check your internet connection.";
