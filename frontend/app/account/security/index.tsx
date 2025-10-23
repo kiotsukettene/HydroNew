@@ -66,17 +66,7 @@ const settings = [
             </Text>
           </View>
           <View className="flex-row justify-between mt-4 gap-5">
-            <View className="items-center">
-              <View className='flex-row items-center'>
-                <Share2 size={16} color="#166534" />
-                <Text className="text-xl font-bold text-primary">65</Text>
-              </View>
-              <Text className="text-muted-foreground">Devices</Text>
-            </View>
-            <Separator
-              orientation="vertical"
-              className="text-muted-foreground"
-            />
+         
             <View className="items-center">
               <View className='flex-row items-center'>
                 <Zap size={16} color="#166534" />
