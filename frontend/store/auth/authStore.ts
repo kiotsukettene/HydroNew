@@ -1,24 +1,23 @@
 import { create } from "zustand";
 import axiosInstance from "@/api/axiosInstance";
+import { handleAxiosError } from "@/api/handleAxiosError";
 
 export const useAuthStore = create<AuthState>((set, get) => ({
   user: null,
   token: null,
   loading: false,
   error: null,
+  fieldErrors: {},
   message: null,
   needsVerification: false,
 
   // register
   register: async (data) => {
-    set({ loading: true, error: null });
+    set({ loading: true, error: null, fieldErrors: {} });
     try {
-      const [first_name, ...rest] = data.fullname.split(" ");
-      const last_name = rest.join(" ");
-
       const response = await axiosInstance.post("/register", {
-        first_name,
-        last_name,
+        first_name: data.first_name,
+        last_name: data.last_name,
         email: data.email,
         password: data.password,
         password_confirmation: data.password_confirmation,
@@ -33,15 +32,14 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
       console.log(response.data.message);
     } catch (err: any) {
-      const message =
-        err.response?.data?.message || "Registration failed. Try again.";
-      set({ loading: false, error: message });
-    }
+    const { message, fieldErrors } = handleAxiosError(err);
+    set({ loading: false, error: message, fieldErrors: { ...fieldErrors } });
+  }
   },
 
   // login
   login: async (email, password) => {
-    set({ loading: true, error: null });
+    set({ loading: true, error: null, fieldErrors: {} });
     try {
       const response = await axiosInstance.post("/login", { email, password });
 
@@ -53,15 +51,14 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       });
       return response.data;
     } catch (err: any) {
-      const message =
-        err.response?.data?.message || "Login failed. Try again.";
-      set({ loading: false, error: message });
+      const { message, fieldErrors } = handleAxiosError(err);
+      set({ loading: false, error: message, fieldErrors: { ...fieldErrors } });
     }
   },
 
   // verify OTP
   verifyOtp: async (otp: string) => {
-    set({ loading: true, error: null });
+    set({ loading: true, error: null, fieldErrors: {} });
     try {
       const token = get().token; 
       if (!token) throw new Error("No verification token found");
@@ -84,14 +81,13 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       });
       return response.data;
     } catch (err: any) {
-      const message =
-        err.response?.data?.message || "OTP verification failed. Try again.";
-      set({ loading: false, error: message });
+      const { message, fieldErrors } = handleAxiosError(err);
+      set({ loading: false, error: message, fieldErrors: { ...fieldErrors } });
     }
   },
 
   resendOtp: async () => {
-    set({loading: true, error: null});
+    set({loading: true, error: null, fieldErrors: {}});
     try {
       const token = get().token;
       if (!token) throw new Error("No verification token found");
@@ -101,14 +97,15 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         }
       }); 
       console.log("Response:", response.data);
-      set({
+      set({ 
         loading: false,
         error: null,
         message: response.data.message
       });
 
     } catch (err: any) {
-
+      const { message, fieldErrors } = handleAxiosError(err);
+      set({ loading: false, error: message, fieldErrors });
     }
 
   },

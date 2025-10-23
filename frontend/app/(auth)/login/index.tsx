@@ -45,10 +45,14 @@ import PasswordToggle from '@/app/hooks/password-toggle';
 const { height } = Dimensions.get('window');
 
 export default function Login() {
+  const login = useAuthStore((state) => state.login);
+  const user = useAuthStore((state) => state.user);
+  const needsVerification = useAuthStore((state) => state.needsVerification);
+  const fieldErrors = useAuthStore((state) => state.fieldErrors);
+
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [checked, setChecked] = useState(false);
-  const { login, needsVerification, user } = useAuthStore();
   const [showPassword, setShowPassword] = useState(false);
 
   const router = useRouter();
@@ -121,8 +125,13 @@ useEffect(() => {
                     autoCapitalize="none"
                     returnKeyType="next"
                     onSubmitEditing={onEmailSubmitEditing}
-                    className="border-muted-foreground/50 text-base h-12"
+                    className={`border text-base h-12 ${
+                      fieldErrors.general ? "border-red-500" : "border-muted-foreground/50"
+                    }`}
                   />
+                  {fieldErrors.general && (
+                    <Text className="text-sm text-destructive">{fieldErrors.general[0]}</Text>
+                  )}
                 </View>
 
                 {/* Password */}
@@ -133,14 +142,20 @@ useEffect(() => {
                       placeholder="•••••••••"
                       returnKeyType="send"
                       onSubmitEditing={onSubmit}
-                      className="border-muted-foreground/50 text-base text-foreground h-12"
+                      className={`border text-base h-12 pr-12 ${
+                        fieldErrors.general ? "border-red-500" : "border-muted-foreground/50"
+                      }`}
                       value={password}
                       onChangeText={setPassword}
                       secureTextEntry={!showPassword}
                     />
                     <PasswordToggle onToggle={setShowPassword} initialState={showPassword} />
                   </View>
-
+                    {fieldErrors.general && (
+                      <Text className="text-sm text-destructive mt-1">
+                        {fieldErrors.general[0]}
+                      </Text>
+                    )}
                   <View className="mb-2 mt-3 flex-row items-center justify-between">
                     {/* Terms */}
                     <View className="flex-row items-center justify-center gap-2">
