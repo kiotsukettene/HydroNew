@@ -198,9 +198,9 @@ useEffect(() => {
 
                 {/* Footer */}
                 <Text className="mt-2 text-center text-muted-foreground">
-                  Already have an account?{' '}
-                  <Link href="/login" asChild>
-                    <Text className="font-medium text-primary">Sign in</Text>
+                  Doesn't have an account?{' '}
+                  <Link href="/signup" asChild>
+                    <Text className="font-medium text-primary">Sign up</Text>
                   </Link>
                 </Text>
               </CardContent>

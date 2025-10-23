@@ -19,6 +19,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Checkbox } from "@/components/ui/checkbox";
 import Svg, { Path } from "react-native-svg";
 import { useAuthStore } from "@/store/auth/authStore"
+import PasswordToggle from "@/app/hooks/password-toggle";
 
 const { height } = Dimensions.get("window");
 
@@ -30,6 +31,8 @@ export default function SignUp() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const router = useRouter();
   const passwordInputRef = useRef<TextInput>(null);
@@ -147,16 +150,19 @@ export default function SignUp() {
                   <Label className="text-muted-foreground font-normal">
                     Password
                   </Label>
-                  <Input
-                    value={password}
-                    onChangeText={setPassword}
-                    placeholder="•••••••••"
-                    secureTextEntry
-                    ref={passwordInputRef}
-                    returnKeyType="send"
-                    onSubmitEditing={onSubmit}
-                    className="border-muted-foreground/50 text-base "
-                  />
+                  <View className="relative">
+                    <Input
+                      value={password}
+                      onChangeText={setPassword}
+                      placeholder="•••••••••"
+                      secureTextEntry={!showPassword}
+                      ref={passwordInputRef}
+                      returnKeyType="send"
+                      onSubmitEditing={onSubmit}
+                      className="border-muted-foreground/50 text-base pr-12"
+                    />
+                    <PasswordToggle onToggle={setShowPassword} initialState={showPassword} />
+                  </View>
                 </View>
 
                 {/* Confirm Password */}
@@ -164,15 +170,18 @@ export default function SignUp() {
                   <Label className="text-muted-foreground font-normal">
                     Confirm Password
                   </Label>
-                  <Input
-                    value={confirmPassword}
-                    onChangeText={setConfirmPassword}
-                    placeholder="•••••••••"
-                    secureTextEntry
-                    returnKeyType="send"
-                    onSubmitEditing={onSubmit}
-                    className="border-muted-foreground/50 text-base"
-                  />
+                  <View className="relative">
+                    <Input
+                      value={confirmPassword}
+                      onChangeText={setConfirmPassword}
+                      placeholder="•••••••••"
+                      secureTextEntry={!showConfirmPassword}
+                      returnKeyType="send"
+                      onSubmitEditing={onSubmit}
+                      className="border-muted-foreground/50 text-base pr-12"
+                    />
+                    <PasswordToggle onToggle={setShowConfirmPassword} initialState={showConfirmPassword} />
+                  </View>
                 </View>
 
                 {/* Terms */}
