@@ -434,6 +434,7 @@ export default function Filtration() {
           onViewDetails={() => {
             setShowSuccessModal(false);
             router.push('/filtration/filtration-details');
+            resetProcess();
           }}
         />
       </SafeAreaView>
