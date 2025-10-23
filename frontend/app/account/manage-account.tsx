@@ -50,11 +50,13 @@ export default function ManageAccount() {
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         style={{ flex: 1 }}>
         <ScrollView contentContainerStyle={{ flexGrow: 1 }} showsVerticalScrollIndicator={false}>
+             {/* ================= Title  ==================== */}
+            <PageHeader title="Manage Account" showNotificationButton={false} />
           <View className='px-4 flex-1 justify-between'>
             <View>
+              
               <View className='items-center'>
-                {/* ================= Title  ==================== */}
-                  <PageHeader title="Manage Account" showNotificationButton={false} />
+             
                 {/* ================= Profile Image  ==================== */}
                 <View className="relative items-center mt-3">
                   <Image

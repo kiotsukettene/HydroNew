@@ -15,7 +15,6 @@ import {
   Scroll,
   Lock,
   MessageSquareMore,
-  Ellipsis,
 } from 'lucide-react-native'
 import React from 'react'
 import { SafeAreaView } from 'react-native-safe-area-context'
@@ -39,10 +38,13 @@ const settings = [
   return (
     <SafeAreaView className='flex-1'>
       <View className='px-4 flex-1 '>
-                  <View className="flex-row items-center w-full px-4">
-            <PageHeader title="Account" showNotificationButton={false} />
-            <Ellipsis size={22} color="#166534" />
-          </View>
+        <View className="flex-row items-center w-full">
+          <PageHeader 
+            title="Account" 
+            showNotificationButton={false} 
+            showEllipsisButton={true}
+          />
+        </View>
         <View className='items-center'>
           {/* ================= Title  ==================== */}
           <View className="relative items-center">
