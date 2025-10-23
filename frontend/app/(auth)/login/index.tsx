@@ -93,7 +93,7 @@ useEffect(() => {
           />
 
           {/* --- FORM SECTION --- */}
-          <View className="mt-[-7rem] flex-1 items-center">
+          <View className="mt-[-10rem] flex-1 items-center">
             <Card className="w-[90%] max-w-md rounded-lg border-muted-foreground/10 bg-white p-2 shadow-lg">
               <View>
                 <Image

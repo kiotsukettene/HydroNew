@@ -24,7 +24,8 @@ const { height } = Dimensions.get("window");
 
 export default function SignUp() {
   const { register , loading, error, needsVerification} = useAuthStore();
-  const [fullName, setFullName] = useState("");
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
   const [checked, setChecked] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -47,7 +48,7 @@ export default function SignUp() {
     if (!checked) return;
     try {
       await register({
-        fullname: fullName,
+        fullname: `${firstName} ${lastName}`.trim(),
         email,
         password,
         password_confirmation: confirmPassword,
@@ -78,8 +79,8 @@ export default function SignUp() {
           />
 
           {/* --- FORM SECTION --- */}
-          <View className="flex-1 items-center mt-[-7rem]"> 
-            <Card className="bg-white border-muted-foreground/10 rounded-lg shadow-lg w-[90%] max-w-md p-2 py-2">
+          <View className="flex-1 items-center mt-[-10rem]"> 
+            <Card className="bg-white border-muted-foreground/10 rounded-xl shadow-lg w-[90%] max-w-md p-2 py-2">
               <CardHeader className="items-center mt-3">
                 <CardTitle className="text-primary text-xl">
                   Create your account
@@ -92,19 +93,35 @@ export default function SignUp() {
               <CardContent className="gap-2.5 px-4">
 
 
-                {/* Full Name */}
+                {/* First Name */}
                 <View className="gap-1">
                   <Label className="text-muted-foreground font-normal">
-                    Full Name
+                    First Name
                   </Label>
                   <Input
-                    value={fullName}
-                    onChangeText={setFullName}
-                    placeholder="John Doe"
+                    value={firstName}
+                    onChangeText={setFirstName}
+                    placeholder="John"
                     autoCapitalize="words"
                     returnKeyType="next"
                     onSubmitEditing={onEmailSubmitEditing}
-                    className="border-muted-foreground/50 text-base h-12"
+                    className="border-muted-foreground/50 text-base"
+                  />
+                </View>
+
+                {/* Last Name */}
+                <View className="gap-1">
+                  <Label className="text-muted-foreground font-normal">
+                    Last Name
+                  </Label>
+                  <Input
+                    value={lastName}
+                    onChangeText={setLastName}
+                    placeholder="Doe"
+                    autoCapitalize="words"
+                    returnKeyType="next"
+                    onSubmitEditing={onEmailSubmitEditing}
+                    className="border-muted-foreground/50 text-base "
                   />
                 </View>
 
@@ -121,7 +138,7 @@ export default function SignUp() {
                     autoCapitalize="none"
                     returnKeyType="next"
                     onSubmitEditing={onEmailSubmitEditing}
-                    className="border-muted-foreground/50 text-base h-12"
+                    className="border-muted-foreground/50 text-base "
                   />
                 </View>
 
@@ -138,7 +155,7 @@ export default function SignUp() {
                     ref={passwordInputRef}
                     returnKeyType="send"
                     onSubmitEditing={onSubmit}
-                    className="border-muted-foreground/50 text-base h-12"
+                    className="border-muted-foreground/50 text-base "
                   />
                 </View>
 
@@ -154,21 +171,21 @@ export default function SignUp() {
                     secureTextEntry
                     returnKeyType="send"
                     onSubmitEditing={onSubmit}
-                    className="border-muted-foreground/50 text-base h-12"
+                    className="border-muted-foreground/50 text-base"
                   />
                 </View>
 
                 {/* Terms */}
-                <View className="flex-row items-center gap-2">
+                <View className="flex-row items-center gap-2 mt-1">
                   <Checkbox
                     checked={checked}
                     onCheckedChange={setChecked}
                     className="border-primary"
                   />
-                  <Text className="text-xs text-muted-foreground flex-1">
+                  <Text className="text-sm text-muted-foreground flex-1">
                     By signing up, you agree to the{" "}
                     <Link href={"/signup/terms"}>
-                    <Text className="text-primary text-xs font-medium">
+                    <Text className="text-primary text-sm font-medium">
                       Terms and Conditions
                     </Text>.
                     </Link>

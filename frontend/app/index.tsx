@@ -44,6 +44,6 @@ export default function Screen() {
       </View>
     </>
   ) : (
-    <Redirect href="/(tabs)/home" />
+    <Redirect href="/welcome" />
   );
 }
