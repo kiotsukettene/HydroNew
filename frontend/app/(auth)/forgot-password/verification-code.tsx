@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { router } from 'expo-router';
 import { Text } from '@/components/ui/text';
+import { useResetPasswordStore } from '@/store/auth/resetPasswordStore';
 
 interface VerificationCodeProps {
   code: string;
@@ -14,16 +15,22 @@ interface VerificationCodeProps {
 }
 
 export default function VerificationCode() {
+  const { verifyResetCode, email } = useResetPasswordStore();
   const [code, setCode] = useState<string>('');
 
-  const onChangeCode = () => {
-    const digitsOnly = code.replace(/\D/g, '').slice(0, 5);
+  const onChangeCode = (text: string) => {
+    const digitsOnly = text.replace(/\D/g, '').slice(0, 6);
     setCode(digitsOnly);
   };
 
-  const onSubmit = () => {
-      router.push('/(auth)/forgot-password/create-new-password');
-   
+  async function onSubmit() {
+    if (!email) {
+    console.warn('Email not found — please go back and enter it again.');
+    return;
+    }
+
+    await verifyResetCode(email, code);
+    router.push('/(auth)/forgot-password/create-new-password');
   };
 
   return (
@@ -57,8 +64,9 @@ export default function VerificationCode() {
                 <View className="w-full flex-row items-center justify-center gap-1.5">
                   <Input
                     id={code}
+                    value={code}
                     keyboardType="numeric"
-                    maxLength={5}
+                    maxLength={6}
                     onChangeText={onChangeCode}
                     autoCapitalize="none"
                     returnKeyType="next"
