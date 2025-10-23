@@ -22,11 +22,7 @@ export default function RootLayout() {
   const [fontsLoaded] = useFonts({
     'FingerPaint-Regular': require('@/assets/fonts/Finger_Paint/FingerPaint-Regular.ttf'),
     'FingerPaint': require('@/assets/fonts/Finger_Paint/FingerPaint-Regular.ttf'),
-    'Poppins-Regular': require('@/assets/fonts/Poppins/Poppins-Regular.ttf'),
-    'Poppins-Medium': require('@/assets/fonts/Poppins/Poppins-Medium.ttf'),
-    'Poppins-SemiBold': require('@/assets/fonts/Poppins/Poppins-SemiBold.ttf'),
-    'Poppins-Bold': require('@/assets/fonts/Poppins/Poppins-Bold.ttf'),
-    'Poppins-Light': require('@/assets/fonts/Poppins/Poppins-Light.ttf'),
+    
   });
 
   useEffect(() => {

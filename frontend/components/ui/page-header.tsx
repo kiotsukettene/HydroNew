@@ -38,7 +38,7 @@ export function PageHeader({
     }
   };
   return (
-    <View className="flex-row items-center justify-between px-4 py-3 ">
+    <View className="flex-row items-center justify-between px-4 py-1 ">
       {/* Left Side - Back Button */}
       <View className="flex-1">
         {showBackButton ? (

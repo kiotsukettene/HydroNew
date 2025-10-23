@@ -51,12 +51,12 @@ module.exports = {
         hairline: hairlineWidth(),
       },
       fontFamily: {
-        'sans': ['Poppins-Regular', 'Poppins', 'system-ui', 'sans-serif'],
-        'poppins': ['Poppins-Regular', 'Poppins', 'system-ui', 'sans-serif'],
-        'poppins-medium': ['Poppins-Medium', 'Poppins', 'system-ui', 'sans-serif'],
-        'poppins-semibold': ['Poppins-SemiBold', 'Poppins', 'system-ui', 'sans-serif'],
-        'poppins-bold': ['Poppins-Bold', 'Poppins', 'system-ui', 'sans-serif'],
-        'poppins-light': ['Poppins-Light', 'Poppins', 'system-ui', 'sans-serif'],
+        'sans': ['Inter', 'system-ui', 'sans-serif'],
+        'inter': ['Inter', 'system-ui', 'sans-serif'],
+        'inter-medium': ['Inter', 'system-ui', 'sans-serif'],
+        'inter-semibold': ['Inter', 'system-ui', 'sans-serif'],
+        'inter-bold': ['Inter', 'system-ui', 'sans-serif'],
+        'inter-light': ['Inter', 'system-ui', 'sans-serif'],
         'finger-paint': ['FingerPaint-Regular', 'FingerPaint', 'system-ui'],
       },
       keyframes: {

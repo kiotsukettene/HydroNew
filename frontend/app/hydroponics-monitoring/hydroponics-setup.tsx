@@ -42,7 +42,7 @@ export default function HydroponicsSetup({ onSetupComplete }: HydroponicsSetupPr
     targetPhMax: '7.0',
     targetTdsMin: '800',
     targetTdsMax: '1200',
-    waterAmount: '',
+    waterAmount: '5',
     setupDate: new Date().toISOString().split('T')[0], // Today's date
     status: 'active',
   });
@@ -200,6 +200,18 @@ export default function HydroponicsSetup({ onSetupComplete }: HydroponicsSetupPr
                   )}
                 </View>
 
+                 {/* Water Amount */}
+                <View>
+                  <Text className="text-base font-medium text-[#34495E] mb-2">Water Amount (Liters)</Text>
+                  <Input
+                    value={formData.waterAmount}
+                    editable={false}
+                    keyboardType="numeric"
+                    className="border border-muted-foreground/50 rounded-xl px-3 py-4 bg-gray-100 text-[#2C3E50] text-base"
+                    placeholderTextColor="#95A5A6"
+                  />
+                </View>
+
                 {/* Nutrient Solution */}
                 <View>
                   <Text className="text-base font-medium  mb-2">Nutrient Solution</Text>
@@ -214,10 +226,12 @@ export default function HydroponicsSetup({ onSetupComplete }: HydroponicsSetupPr
               </View>
             </Card>
 
-            {/* Target Parameters Card */}
+            {/* Target Parameters Card */} 
+            {/*  Nutrient and Water Settings */}
+
             <Card className="p-6 mb-6  shadow-sm border-0">
               <View className="mb-6">
-                <Text className="text-lg font-semibold  mb-2">Target Parameters</Text>
+                <Text className="text-lg font-semibold  mb-2">Ideal Growing Range</Text>
                 <View className="w-full h-1 bg-[#6ECF8B] rounded-full" />
               </View>
               
@@ -280,18 +294,7 @@ export default function HydroponicsSetup({ onSetupComplete }: HydroponicsSetupPr
                   </View>
                 </View>
 
-                {/* Water Amount */}
-                <View>
-                  <Text className="text-base font-medium text-[#34495E] mb-2">Water Amount (Liters)</Text>
-                  <Input
-                    placeholder="e.g., 50"
-                    value={formData.waterAmount}
-                    onChangeText={(value) => handleInputChange('waterAmount', value)}
-                    keyboardType="numeric"
-                    className="border border-muted-foreground/50rounded-xl px-3 py-4 bg-[#FAFFFA] text-[#2C3E50] focus:border-[#4CAF50] text-base"
-                    placeholderTextColor="#95A5A6"
-                  />
-                </View>
+               
               </View>
             </Card>
 

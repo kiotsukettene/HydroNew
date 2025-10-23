@@ -6,8 +6,9 @@ import {
   ArrowRightIcon,
   BellIcon,
   ChartColumn,
+  History,
   Leaf,
-  Smartphone,
+
 } from 'lucide-react-native';
 import { Card, CardContent } from '@/components/ui/card';
 import { Text } from '@/components/ui/text';
@@ -27,7 +28,6 @@ export default function Home({ waterQuality, growth }: HomeProps) {
   };
 
   growth = growth || {
-    plantType: 'Lettuce',
     percentage: 45,
   };
 
@@ -51,7 +51,7 @@ export default function Home({ waterQuality, growth }: HomeProps) {
           {/* ===== Main Content ===== */}
           <View className="mt-5">
             {/* ===== Water Quality Card ===== */}
-            <Card className="relative h-60 overflow-hidden rounded-xl border-0 p-0">
+            <Card className="relative h-60 overflow-hidden rounded-2xl border-0 p-0">
               <Image
                 source={require('@/assets/images/home-bg.png')}
                 className="absolute inset-0 h-full w-full"
@@ -96,7 +96,7 @@ export default function Home({ waterQuality, growth }: HomeProps) {
 
             {/* ===== Growth Card ===== */}
             <View className="mt-5">
-              <TouchableOpacity className="relative h-32 justify-between overflow-hidden rounded-2xl bg-primary p-6">
+              <TouchableOpacity className="relative h-32 justify-between overflow-hidden rounded-2xl bg-primary p-6" onPress={() => router.push('/(tabs)/hydroponics')}>
                 <Image
                   source={require('@/assets/images/growth-bg.png')}
                   className="absolute -right-16 -top-10 h-64 w-64 opacity-70"
@@ -105,7 +105,7 @@ export default function Home({ waterQuality, growth }: HomeProps) {
 
                 <View>
                   <Text className="items-center text-lg text-lime-100">
-                    {growth.plantType} growth progress
+                    Lettuce growth progress
                   </Text>
                   <Text className="mt-1 text-4xl font-bold text-muted">
                     {growth.percentage}% <ArrowRightIcon size={20} color="#D9F99D" />
@@ -115,30 +115,30 @@ export default function Home({ waterQuality, growth }: HomeProps) {
             </View>
 
             {/* ===== Quick Actions ===== */}
-            <View className="mt-7">
-              <Text className="px-2 text-xl font-semibold text-gray-800">Quick Actions</Text>
+            <View className="mt-6 sm:mt-7 md:mt-8">
+              <Text className="px-2 text-lg sm:text-xl md:text-2xl font-semibold text-gray-800">Quick Actions</Text>
 
-              <View className="mt-3 flex-row gap-3">
-                <Pressable onPress={() => {router.push('/(tabs)/hydroponics')}} className='relative flex-1 justify-between overflow-hidden rounded-3xl bg-green-50 p-4'>
-                  <Leaf color={'#15803D'} strokeWidth={2} size={28} />
+              <View className="mt-3 sm:mt-4 md:mt-5 flex-row gap-2 sm:gap-3 md:gap-4">
+                <Pressable onPress={() => {router.push('/(tabs)/hydroponics')}} className='relative flex-1 justify-between overflow-hidden rounded-2xl bg-green-50 p-4 sm:p-5 md:p-6 min-h-24 sm:min-h-28 md:min-h-32'>
+                  <Leaf color={'#15803D'} strokeWidth={2} size={24} className="sm:w-7 sm:h-7 md:w-8 md:h-8" />
                   <View>
-                    <Text className="text-xl font-semibold text-green-900">Plant</Text>
-                    <Text className="text-xl font-semibold text-green-900">Status</Text>
+                    <Text className="text-lg sm:text-xl md:text-2xl font-semibold text-green-900">Plant</Text>
+                    <Text className="text-lg sm:text-xl md:text-2xl font-semibold text-green-900">Status</Text>
                   </View>
                 </Pressable>
 
-                <View className="gap-3">
-                  <View className="rounded-3xl bg-blue-50 p-4">
-                    <Smartphone color={'#1E40AF'} strokeWidth={2} size={28} />
-                    <Text className="text-base font-semibold text-blue-900">
-                      Connected Devices
+                <View className="gap-2 sm:gap-3 md:gap-4">
+                  <View className="rounded-2xl bg-blue-50 p-4 sm:p-5 md:p-6 min-h-20 sm:min-h-24 md:min-h-28">
+                    <History color={'#1E40AF'} strokeWidth={2} size={24} className="sm:w-7 sm:h-7 md:w-8 md:h-8" />
+                    <Text className="text-sm sm:text-base md:text-lg font-semibold text-blue-900">
+                      History
                     </Text>
                   </View>
 
-                  <View className="flex-1 justify-between rounded-3xl bg-yellow-50 p-4">
-                    <ChartColumn color={'#B45309'} strokeWidth={2} size={28} />
+                  <View className="flex-1 justify-between rounded-2xl bg-yellow-50 p-4 sm:p-5 md:p-6 min-h-20 sm:min-h-24 md:min-h-28">
+                    <ChartColumn color={'#B45309'} strokeWidth={2} size={24} className="sm:w-7 sm:h-7 md:w-8 md:h-8" />
                     <View>
-                      <Text className="text-base font-semibold text-yellow-900">
+                      <Text className="text-sm sm:text-base md:text-lg font-semibold text-yellow-900">
                         Report and Analytics
                       </Text>
                     </View>

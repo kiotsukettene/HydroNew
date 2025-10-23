@@ -61,7 +61,7 @@ answer: "This system is designed exclusively for growing lettuce. It is optimize
               const isExpanded = expandedItems.includes(index)
               
               return (
-                <Card key={index} className=' border border-gray-200 rounded-xl'>
+                <Card key={index} className=' border border-gray-200 rounded-2xl'>
                   <Pressable onPress={() => toggleExpanded(index)}>
                     <CardContent className='p-4'>
                       <View className='flex-row items-center justify-between'>
