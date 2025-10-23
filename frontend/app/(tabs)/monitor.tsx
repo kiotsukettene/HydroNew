@@ -27,14 +27,15 @@ export default function Monitor() {
   ];
   return (
     <ScrollView>
-      <SafeAreaView className='p-4'>
-        <View className="">
-          
+      <SafeAreaView className=''>
+              
           {/* ===== Page Header ===== */}
           <PageHeader title="Water Monitoring" />
+        <View className="p-4">
+    
 
           {/* ===== Water Quality Card ===== */}
-          <Card className="mt-4 overflow-hidden rounded-2xl border-transparent bg-[#BCE7F0] p-4">
+          <Card className="mt-1 overflow-hidden rounded-2xl border-transparent bg-[#BCE7F0] p-4">
             <CardContent className="p-2">
               <View className="flex-row justify-between">
                 {/* Left Column: Details */}
@@ -85,7 +86,7 @@ export default function Monitor() {
               </View>
 
               {/*  Button */}
-              <Button className="mt-4 rounded-lg bg-muted/70 " onPress={() => {router.push('/(tabs)/filtration')}}>
+              <Button className="mt-4 rounded-lg bg-muted/70 hover:bg-muted/90 active:bg-muted/80 hover:scale-105 active:scale-95 transition-all duration-200" onPress={() => {router.push('/(tabs)/filtration')}}>
                 <Text className="font-semibold text-gray-800">Start Filtration</Text>
               </Button>
             </CardContent>

@@ -1,6 +1,6 @@
 import React from 'react';
 import { View } from 'react-native';
-import { ArrowLeft, BellIcon } from 'lucide-react-native';
+import { ArrowLeft, BellIcon, MoreHorizontal } from 'lucide-react-native';
 import { Button } from '@/components/ui/button';
 import { Text } from '@/components/ui/text';
 import { useRouter } from 'expo-router';
@@ -9,16 +9,20 @@ interface PageHeaderProps {
   title: string;
   onBackPress?: () => void;
   onNotificationPress?: () => void;
+  onEllipsisPress?: () => void;
   showBackButton?: boolean;
   showNotificationButton?: boolean;
+  showEllipsisButton?: boolean;
 }
 
 export function PageHeader({
   title,
   onBackPress,
   onNotificationPress,
+  onEllipsisPress,
   showBackButton = true,
   showNotificationButton = true,
+  showEllipsisButton = false,
 }: PageHeaderProps) {
   const router = useRouter();
 
@@ -30,6 +34,12 @@ export function PageHeader({
     }
   };
 
+  const handleEllipsisPress = () => {
+    if (onEllipsisPress) {
+      onEllipsisPress();
+    }
+  };
+
   const handleBackPress = () => {
     if (onBackPress) {
       onBackPress();
@@ -38,7 +48,7 @@ export function PageHeader({
     }
   };
   return (
-    <View className="flex-row items-center justify-between px-4 py-1 ">
+    <View className="flex-row items-center justify-between px-4 py-3">
       {/* Left Side - Back Button */}
       <View className="flex-1">
         {showBackButton ? (
@@ -61,9 +71,9 @@ export function PageHeader({
         </Text>
       </View>
 
-      {/* Right Side - Notification Button */}
-      <View className="flex-1 items-end">
-        {showNotificationButton ? (
+      {/* Right Side - Notification and Ellipsis Buttons */}
+      <View className="flex-1 flex-row items-center justify-end gap-2">
+        {showNotificationButton && (
           <Button
             variant="ghost"
             onPress={handleNotificationPress}
@@ -71,7 +81,17 @@ export function PageHeader({
           >
             <BellIcon size={24} color="#445104" strokeWidth={3} />
           </Button>
-        ) : (
+        )}
+        {showEllipsisButton && (
+          <Button
+            variant="ghost"
+            onPress={handleEllipsisPress}
+            className="w-10 h-10 p-0"
+          >
+            <MoreHorizontal size={24} color="#000000" strokeWidth={2} />
+          </Button>
+        )}
+        {!showNotificationButton && !showEllipsisButton && (
           <View className="w-10" />
         )}
       </View>

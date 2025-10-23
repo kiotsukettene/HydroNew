@@ -38,7 +38,7 @@ export default function Home({ waterQuality, growth }: HomeProps) {
 
           
           {/* ===== Page Header ===== */}
-          <View className="flex-row items-center justify-between pt-5">
+          <View className="flex-row items-center justify-between pt-2">
             <View>
               <Text className="text-base text-foreground/70">Hello,</Text>
               <Text className="text-2xl font-semibold text-foreground/80">Momo!</Text>

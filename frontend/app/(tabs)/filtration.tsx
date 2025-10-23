@@ -16,6 +16,7 @@ import {
   ShieldCheck,
 } from 'lucide-react-native';
 import FailedDetailsModal from '../hydroponics-monitoring/failed-details';
+import { router } from 'expo-router';
 
 // Types 
 interface FiltrationStage {
@@ -432,6 +433,8 @@ export default function Filtration() {
           }}
           onViewDetails={() => {
             setShowSuccessModal(false);
+            router.push('/filtration/filtration-details');
+            resetProcess();
           }}
         />
       </SafeAreaView>
