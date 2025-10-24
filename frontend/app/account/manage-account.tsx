@@ -26,11 +26,10 @@ import { PageHeader } from '@/components/ui/page-header';
 export default function ManageAccount() {
 
   const [editable, isEditable] = useState(false);
-  const [username, setUsername] = useState("juandelacruz");
-  const [fullname, setFullname] = useState("Juan Dela Cruz");
+  const [firstName, setFirstName] = useState("Juan");
+  const [lastName, setLastName] = useState("Dela Cruz");
   const [email, setEmail] = useState("juan.delacruz@example.com");
-  const [contact, setContact] = useState("09000000000");
-  const [birthdate, setBirthdate] = useState("2000-01-01");
+  const [address, setAddress] = useState("123 Main St, Anytown, USA");
   const [profileImage, setProfileImage] = useState<string | null>(null);
 
   const openImagePicker = async () => {
@@ -73,28 +72,28 @@ export default function ManageAccount() {
                 </View>
               </View>
               {/* ================= Main Body ==================== */}
-              {/*username */}
+              {/*first name */}
               <View className='mt-6 gap-1'>
-                <Label className="font-normal text-muted-foreground">Username</Label>
+                <Label className="font-normal text-muted-foreground">First Name</Label>
                 <InputWithIcon
-                  value={username}
-                  onChangeText={setUsername}
+                  value={firstName}
+                  onChangeText={setFirstName}
                   editable={editable}
                   rightIcon={<AtSign size={20} color="#6B7280" />}
-                  placeholder='username'
+                  placeholder='First Name'
                   autoCapitalize='none'
                   className="border-muted-foreground/50 text-base text-black"
                 > 
                 </InputWithIcon> 
               </View>
-              {/*fullname */}
+              {/*lastname */}
               <View className='mt-2 gap-1'>
-                <Label className="font-normal text-muted-foreground">Full Name</Label>
+                <Label className="font-normal text-muted-foreground">Last Name</Label>
                 <InputWithIcon
-                  value={fullname}
-                  onChangeText={setFullname}
+                  value={lastName}
+                  onChangeText={setLastName}
                   editable={editable}
-                  placeholder='fullname'
+                  placeholder='Last Name'
                   rightIcon={<User size={20} color="#6B7280" />}
                   autoCapitalize='none'
                   className="border-muted-foreground/50 text-base text-black"
@@ -117,16 +116,14 @@ export default function ManageAccount() {
               {/*contact */}
               {/*birthdate */}
               <View className='mt-2 gap-1'>
-                <Label className="font-normal text-muted-foreground">Birthdate</Label>
+                <Label className="font-normal text-muted-foreground">Address</Label>
                 <InputWithIcon
-                  value={birthdate}
-                  onChangeText={setBirthdate}
+                  value={address}
+                  onChangeText={setAddress}
                   editable={editable}
-                  rightIcon={<Calendar size={20} color="#6B7280" />}
-                  placeholder='birthdate'
+                  placeholder='address'
                   autoCapitalize='none'
                   className="border-muted-foreground/50 text-base text-black"
-                  onIconPress={openImagePicker}
                 >
                 </InputWithIcon>
               </View>

@@ -16,15 +16,17 @@ import {
   Lock,
   MessageSquareMore,
 } from 'lucide-react-native'
-import React from 'react'
+import React, { useEffect} from 'react'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { Separator } from '@/components/ui/separator';
 import { Card, CardContent } from '@/components/ui/card';
 import { Text } from '@/components/ui/text';
 import { Link } from 'expo-router';
 import { PageHeader } from '@/components/ui/page-header';
+import { useAccountStore } from '@/store/account/accountStore';
  
 export default function Index() {
+  const { account,fetchAccount, error } = useAccountStore();
 
 const settings = [
   { icon: UserRoundPen, title: 'My Account', link: '/account/manage-account' },
@@ -33,6 +35,10 @@ const settings = [
   { icon: Lock, title: 'Privacy Policy', link: '/account/privacy-policy' },
   { icon: MessageSquareMore, title: 'FAQs', link: '/account/faq' },
 ];
+
+useEffect(() => {
+    fetchAccount();
+}, [fetchAccount]);
 
   return (
     <SafeAreaView className='flex-1'>
@@ -47,23 +53,23 @@ const settings = [
         <View className='items-center'>
           {/* ================= Title  ==================== */}
           <View className="relative items-center">
-            <Image
+         {/*  <Image
               source={require('@/assets/images/welcome-bg.png')}
               resizeMode="cover"
               className="size-32 rounded-full"
-            />
+            /> */}
           </View>
           {/* ================= Main Body  ==================== */}
           <View className='mt-4 px-4'>
             <Text 
               className='text-2xl text-center text-gray-800 font-medium'
               >
-                Juan Dela Cruz
+                {account?.full_name || 'Jhon Doe'}
               </Text>
             <Text 
               className='text-md text-center text-muted-foreground italic'
               >
-                user.example@gmail.com
+                {account?.email || 'user.example@gmail.com'}
             </Text>
           </View>
           <View className="flex-row justify-between mt-4 gap-5">
