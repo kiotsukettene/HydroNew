@@ -22,8 +22,11 @@ import { useState } from 'react';
 import React from 'react'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { PageHeader } from '@/components/ui/page-header';
+import { useAccountStore } from '@/store/account/accountStore';
+import { PasswordStrengthMeter } from '@/components/ui/password-stength-meter';
 
 export default function SecuritySettings() {
+  const { updatePassword } = useAccountStore();
 
   const [oldPassword, setOldPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
@@ -34,6 +37,24 @@ export default function SecuritySettings() {
   const [showOld, setShowOld] = useState(false);
   const [showNew, setShowNew] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
+
+  const handleUpdatePassword = async () => {
+    if (newPassword !== confirmPassword) {
+      return;
+    }
+    try {
+      await updatePassword({
+        current_password: oldPassword,
+        new_password: newPassword,
+        new_password_confirmation: confirmPassword,
+      });
+        setOldPassword('');
+        setNewPassword('');
+        setConfirmPassword('');
+      setShowModal(false);
+    } catch (error) {
+    }
+  };
 
   return (
     <SafeAreaView className='flex-1'>
@@ -102,6 +123,7 @@ export default function SecuritySettings() {
                   }
                 />
               </View>
+              <PasswordStrengthMeter password={newPassword} />
             </View>
           </View>
           <View className='w-full px-4 mb-4'>
@@ -124,7 +146,7 @@ export default function SecuritySettings() {
             modalDescription="Are you sure you want to update your password?"
             confirmText="Confirm"
             confirmButtonColor="bg-primary"
-            onConfirm={console.log}
+            onConfirm={handleUpdatePassword}
             onCancel={() => setShowModal(false)}
           />
 

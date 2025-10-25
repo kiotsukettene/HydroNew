@@ -2,6 +2,7 @@ import { create } from "zustand";
 import axiosInstance from "@/api/axiosInstance";
 import { handleAxiosError } from "@/api/handleAxiosError";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useAccountStore } from "../account/accountStore";
 
 
 const storage = {
@@ -51,7 +52,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       });
 
       await storage.setItem("token", response.data.token);
-      console.log("Registration successful:", response.data.message);
+
     } catch (err: any) {
       const { message, fieldErrors } = handleAxiosError(err);
       set({ loading: false, error: message, fieldErrors });
@@ -64,7 +65,8 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
     try {
       const response = await axiosInstance.post("/login", { email, password });
-
+      await storage.setItem("token", response.data.token);
+      axiosInstance.defaults.headers.common["Authorization"] = `Bearer ${response.data.token}`;
       set({
         loading: false,
         user: response.data.user || null,
@@ -72,7 +74,8 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         needsVerification: response.data.needs_verification ?? false,
       });
 
-      await storage.setItem("token", response.data.token);
+      await useAccountStore.getState().fetchAccount();
+
       return response.data;
     } catch (err: any) {
       const { message, fieldErrors } = handleAxiosError(err);
