@@ -26,7 +26,7 @@ import { PageHeader } from '@/components/ui/page-header';
 import { useAccountStore } from '@/store/account/accountStore';
  
 export default function Index() {
-  const { account,fetchAccount, error } = useAccountStore();
+  const { account, error } = useAccountStore();
 
 const settings = [
   { icon: UserRoundPen, title: 'My Account', link: '/account/manage-account' },
@@ -35,10 +35,6 @@ const settings = [
   { icon: Lock, title: 'Privacy Policy', link: '/account/privacy-policy' },
   { icon: MessageSquareMore, title: 'FAQs', link: '/account/faq' },
 ];
-
-useEffect(() => {
-    fetchAccount();
-}, [fetchAccount]);
 
   return (
     <SafeAreaView className='flex-1'>
@@ -64,7 +60,7 @@ useEffect(() => {
             <Text 
               className='text-2xl text-center text-gray-800 font-medium'
               >
-                {account?.full_name || 'Jhon Doe'}
+                {account?.first_name + ' ' + account?.last_name || 'Jhon Doe'}
               </Text>
             <Text 
               className='text-md text-center text-muted-foreground italic'

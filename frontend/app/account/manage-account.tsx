@@ -22,14 +22,17 @@ import * as ImagePicker from 'expo-image-picker';
 import React from 'react'
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { PageHeader } from '@/components/ui/page-header';
+import { useAccountStore } from '@/store/account/accountStore';
 
 export default function ManageAccount() {
 
+  const { account, updateAccount, updateProfilePicture } = useAccountStore();
+
   const [editable, isEditable] = useState(false);
-  const [firstName, setFirstName] = useState("Juan");
-  const [lastName, setLastName] = useState("Dela Cruz");
-  const [email, setEmail] = useState("juan.delacruz@example.com");
-  const [address, setAddress] = useState("123 Main St, Anytown, USA");
+  const [firstName, setFirstName] = useState(account?.first_name || "Juan");
+  const [lastName, setLastName] = useState(account?.last_name || "Dela Cruz");
+  const [email, setEmail] = useState(account?.email || "juan.delacruz@example.com");
+  const [address, setAddress] = useState(account?.address || "123 Main St, Anytown, USA");
   const [profileImage, setProfileImage] = useState<string | null>(null);
 
   const openImagePicker = async () => {
@@ -40,6 +43,25 @@ export default function ManageAccount() {
     });
     if(!result.canceled) {
       setProfileImage(result.assets[0].uri);
+    }
+  };
+
+  const handleUpdateAccount = async () => {
+    try {
+
+      await updateAccount({
+        first_name: firstName,
+        last_name: lastName,
+        address,
+      });
+
+      // if (profileImage) {
+      //  await updateProfilePicture({ profile_image: profileImage });
+      //  setProfileImage(profileImage);
+      //}
+      isEditable(false);
+    } catch (error) {
+      console.error(error);
     }
   };
 
@@ -59,16 +81,18 @@ export default function ManageAccount() {
                 {/* ================= Profile Image  ==================== */}
                 <View className="relative items-center mt-3">
                   <Image
-                    source={profileImage ? { uri: profileImage } : require('@/assets/images/welcome-bg.png')}
-                    resizeMode="cover"
+                    source={profileImage ? { uri: profileImage } : require('@/assets/images/no-profile.jpg')}
+                    resizeMode="contain"
                     className="size-32 rounded-full"
                   />
-                  <Pressable
-                    className="absolute bottom-0 right-2 bg-primary size-10 rounded-full items-center justify-center border-2 border-white shadow-md"
-                    onPress={openImagePicker}
-                    >
-                    <Camera size={24} color="white" />
-                  </Pressable>
+                  {editable && (
+                    <Pressable
+                      className="absolute bottom-0 right-2 bg-primary size-10 rounded-full items-center justify-center border-2 border-white shadow-md"
+                      onPress={openImagePicker}
+                      >
+                      <Camera size={24} color="white" />
+                    </Pressable>
+                  )}
                 </View>
               </View>
               {/* ================= Main Body ==================== */}
@@ -106,7 +130,7 @@ export default function ManageAccount() {
                 <InputWithIcon
                   value={email}
                   onChangeText={setEmail}
-                  editable={editable}
+                  editable={false}
                   placeholder='email' 
                   autoCapitalize='none'
                   className="border-muted-foreground/50 text-base text-black"
@@ -129,13 +153,18 @@ export default function ManageAccount() {
               </View>
             </View>
             <View className='mb-4'>
-              <Button 
-                onPress={() => isEditable(!editable)}
-              >
-                <Text className="">
-                  {editable ? 'Save Changes' : 'Edit Information'}
-                </Text>
-              </Button>
+            <Button
+              onPress={ () => {
+                if (editable) {
+                  handleUpdateAccount(); 
+                }
+                isEditable(!editable);
+              }}
+            >
+              <Text>
+                {editable ? 'Save Changes' : 'Edit Information'}
+              </Text>
+            </Button>
             </View>
             {/* ================= end of main body  ==================== */}
           </View>
