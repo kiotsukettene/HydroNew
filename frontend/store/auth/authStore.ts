@@ -3,26 +3,28 @@ import axiosInstance from "@/api/axiosInstance";
 import { handleAxiosError } from "@/api/handleAxiosError";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useAccountStore } from "../account/accountStore";
+import { Platform } from "react-native";
 
+const isWeb = Platform.OS === "web";
 
 const storage = {
   setItem: async (key: string, value: string) => {
-    if (typeof window !== "undefined") {
-      localStorage.setItem(key, value);
+    if (isWeb) {
+      window.localStorage.setItem(key, value);
     } else {
       await AsyncStorage.setItem(key, value);
     }
   },
   getItem: async (key: string) => {
-    if (typeof window !== "undefined") {
-      return localStorage.getItem(key);
+    if (isWeb) {
+      return window.localStorage.getItem(key);
     } else {
       return await AsyncStorage.getItem(key);
     }
   },
   removeItem: async (key: string) => {
-    if (typeof window !== "undefined") {
-      localStorage.removeItem(key);
+    if (isWeb) {
+      window.localStorage.removeItem(key);
     } else {
       await AsyncStorage.removeItem(key);
     }
