@@ -25,26 +25,23 @@ const { height } = Dimensions.get('window');
 export default function EmailVerification() {
   const { countdown, restartCountdown } = useCountdown(30);
   const [code, setCode] = React.useState('');
-  const { verifyOtp, resendOtp } = useAuthStore();
+  const { verifyOtp, resendOtp, error, resetErrors } = useAuthStore();
 
   const onChangeCode = (value: string) => {
+    resetErrors();
     const digitsOnly = value.replace(/\D/g, '').slice(0, 6);
     setCode(digitsOnly);
   };
 
-  const onSubmit = async () => {
-    if (/^\d{6}$/.test(code)) {
-      try {
-        await verifyOtp(code);
-        router.push('/(auth)/signup/verification-success');
-      }
-      catch (error) {
-        console.error("OTP Verification failed:", error);
-      }
-    } else {
-      console.warn('Please enter a valid 6-digit code');
+const onSubmit = async () => {
+  if (/^\d{6}$/.test(code)) {
+    const res: any = await verifyOtp(code);
+
+    if (res && !error) {
+      router.push("/(auth)/signup/verification-success");
     }
-  };
+  }
+};
 
   const onResendOtp = async() => {
     try {
@@ -101,6 +98,11 @@ export default function EmailVerification() {
             </CardHeader>
 
             <CardContent className="gap-6">
+              {error && (
+                <Text className="text-red-500 text-center text-sm">
+                  {error}
+                </Text>
+              )}
               <View className="gap-6">
                 <View className="gap-1.5">
                   <Input
@@ -114,7 +116,9 @@ export default function EmailVerification() {
                     onChangeText={onChangeCode}
                     maxLength={6}
                     onSubmitEditing={onSubmit}
-                    className="items-center h-14 text-muted-foreground justify-center text-center text-2xl tracking-widest font-medium space-x-2"
+                    className={`items-center h-14 justify-center text-center text-2xl tracking-widest font-medium space-x-2 ${
+                      error ? 'border-red-500 text-red-600' : 'text-muted-foreground'
+                    }`}
                   />
                   <Button
                     variant="link"

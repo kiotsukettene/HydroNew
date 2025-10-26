@@ -34,7 +34,7 @@ const IMAGE_STYLE: ImageStyle = {
 
 export default function Screen() {
   const { colorScheme } = useColorScheme();
-  const isLoggedIn = true; // Replace with real auth check
+  const isLoggedIn = false; // Replace with real auth check
 
   return isLoggedIn ? (
     <>

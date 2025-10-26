@@ -22,15 +22,17 @@ import * as ImagePicker from 'expo-image-picker';
 import React from 'react'
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { PageHeader } from '@/components/ui/page-header';
+import { useAccountStore } from '@/store/account/accountStore';
 
 export default function ManageAccount() {
 
+  const { account, updateAccount, updateProfilePicture } = useAccountStore();
+
   const [editable, isEditable] = useState(false);
-  const [username, setUsername] = useState("juandelacruz");
-  const [fullname, setFullname] = useState("Juan Dela Cruz");
-  const [email, setEmail] = useState("juan.delacruz@example.com");
-  const [contact, setContact] = useState("09000000000");
-  const [birthdate, setBirthdate] = useState("2000-01-01");
+  const [firstName, setFirstName] = useState(account?.first_name || "Juan");
+  const [lastName, setLastName] = useState(account?.last_name || "Dela Cruz");
+  const [email, setEmail] = useState(account?.email || "juan.delacruz@example.com");
+  const [address, setAddress] = useState(account?.address || "123 Main St, Anytown, USA");
   const [profileImage, setProfileImage] = useState<string | null>(null);
 
   const openImagePicker = async () => {
@@ -41,6 +43,25 @@ export default function ManageAccount() {
     });
     if(!result.canceled) {
       setProfileImage(result.assets[0].uri);
+    }
+  };
+
+  const handleUpdateAccount = async () => {
+    try {
+
+      await updateAccount({
+        first_name: firstName,
+        last_name: lastName,
+        address,
+      });
+
+      // if (profileImage) {
+      //  await updateProfilePicture({ profile_image: profileImage });
+      //  setProfileImage(profileImage);
+      //}
+      isEditable(false);
+    } catch (error) {
+      console.error(error);
     }
   };
 
@@ -60,41 +81,43 @@ export default function ManageAccount() {
                 {/* ================= Profile Image  ==================== */}
                 <View className="relative items-center mt-3">
                   <Image
-                    source={profileImage ? { uri: profileImage } : require('@/assets/images/welcome-bg.png')}
-                    resizeMode="cover"
+                    source={profileImage ? { uri: profileImage } : require('@/assets/images/no-profile.jpg')}
+                    resizeMode="contain"
                     className="size-32 rounded-full"
                   />
-                  <Pressable
-                    className="absolute bottom-0 right-2 bg-primary size-10 rounded-full items-center justify-center border-2 border-white shadow-md"
-                    onPress={openImagePicker}
-                    >
-                    <Camera size={24} color="white" />
-                  </Pressable>
+                  {editable && (
+                    <Pressable
+                      className="absolute bottom-0 right-2 bg-primary size-10 rounded-full items-center justify-center border-2 border-white shadow-md"
+                      onPress={openImagePicker}
+                      >
+                      <Camera size={24} color="white" />
+                    </Pressable>
+                  )}
                 </View>
               </View>
               {/* ================= Main Body ==================== */}
-              {/*username */}
+              {/*first name */}
               <View className='mt-6 gap-1'>
-                <Label className="font-normal text-muted-foreground">Username</Label>
+                <Label className="font-normal text-muted-foreground">First Name</Label>
                 <InputWithIcon
-                  value={username}
-                  onChangeText={setUsername}
+                  value={firstName}
+                  onChangeText={setFirstName}
                   editable={editable}
                   rightIcon={<AtSign size={20} color="#6B7280" />}
-                  placeholder='username'
+                  placeholder='First Name'
                   autoCapitalize='none'
                   className="border-muted-foreground/50 text-base text-black"
                 > 
                 </InputWithIcon> 
               </View>
-              {/*fullname */}
+              {/*lastname */}
               <View className='mt-2 gap-1'>
-                <Label className="font-normal text-muted-foreground">Full Name</Label>
+                <Label className="font-normal text-muted-foreground">Last Name</Label>
                 <InputWithIcon
-                  value={fullname}
-                  onChangeText={setFullname}
+                  value={lastName}
+                  onChangeText={setLastName}
                   editable={editable}
-                  placeholder='fullname'
+                  placeholder='Last Name'
                   rightIcon={<User size={20} color="#6B7280" />}
                   autoCapitalize='none'
                   className="border-muted-foreground/50 text-base text-black"
@@ -107,7 +130,7 @@ export default function ManageAccount() {
                 <InputWithIcon
                   value={email}
                   onChangeText={setEmail}
-                  editable={editable}
+                  editable={false}
                   placeholder='email' 
                   autoCapitalize='none'
                   className="border-muted-foreground/50 text-base text-black"
@@ -117,28 +140,31 @@ export default function ManageAccount() {
               {/*contact */}
               {/*birthdate */}
               <View className='mt-2 gap-1'>
-                <Label className="font-normal text-muted-foreground">Birthdate</Label>
+                <Label className="font-normal text-muted-foreground">Address</Label>
                 <InputWithIcon
-                  value={birthdate}
-                  onChangeText={setBirthdate}
+                  value={address}
+                  onChangeText={setAddress}
                   editable={editable}
-                  rightIcon={<Calendar size={20} color="#6B7280" />}
-                  placeholder='birthdate'
+                  placeholder='address'
                   autoCapitalize='none'
                   className="border-muted-foreground/50 text-base text-black"
-                  onIconPress={openImagePicker}
                 >
                 </InputWithIcon>
               </View>
             </View>
             <View className='mb-4'>
-              <Button 
-                onPress={() => isEditable(!editable)}
-              >
-                <Text className="">
-                  {editable ? 'Save Changes' : 'Edit Information'}
-                </Text>
-              </Button>
+            <Button
+              onPress={ () => {
+                if (editable) {
+                  handleUpdateAccount(); 
+                }
+                isEditable(!editable);
+              }}
+            >
+              <Text>
+                {editable ? 'Save Changes' : 'Edit Information'}
+              </Text>
+            </Button>
             </View>
             {/* ================= end of main body  ==================== */}
           </View>
