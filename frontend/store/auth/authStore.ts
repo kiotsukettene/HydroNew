@@ -4,6 +4,8 @@ import { handleAxiosError } from "@/api/handleAxiosError";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useAccountStore } from "../account/accountStore";
 import { Platform } from "react-native";
+import { signInWithPopup } from "firebase/auth";
+import { auth, provider } from "@/src/firebase";
 
 const isWeb = Platform.OS === "web";
 
@@ -144,6 +146,48 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       set({ loading: false, error: message, fieldErrors });
     }
   },
+
+  loginWithGoogle: async () => {
+  set({ loading: true, error: null, fieldErrors: {} });
+
+  try {
+    // Step 1: Google Sign-In via Firebase Web SDK
+    const result = await signInWithPopup(auth, provider);
+    const user = result.user;
+
+    // Step 2: Get Firebase ID token
+    const firebaseToken = await user.getIdToken();
+
+    // Step 3: Send token to your Laravel backend
+    const response = await axiosInstance.post("/google-login", {
+      token: firebaseToken,
+    });
+
+    // Step 4: Save Laravel-issued token
+    const backendToken = response.data.access_token;
+    await storage.setItem("token", backendToken);
+
+    axiosInstance.defaults.headers.common["Authorization"] = `Bearer ${backendToken}`;
+
+    set({
+      loading: false,
+      user: response.data.user || null,
+      token: backendToken,
+      error: null,
+      fieldErrors: {},
+      needsVerification: false,
+    });
+
+    // Optionally fetch account info if you have that function
+    await useAccountStore.getState().fetchAccount();
+
+    return response.data;
+  } catch (err: any) {
+    const { message, fieldErrors } = handleAxiosError(err);
+    set({ loading: false, error: message, fieldErrors });
+    return null;
+  }
+},
 
   logout: async () => {
     await storage.removeItem("token");

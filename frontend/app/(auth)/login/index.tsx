@@ -6,30 +6,24 @@ import {
   KeyboardAvoidingView,
   Platform,
   ScrollView,
-} from "react-native";
-import { useEffect, useRef, useState } from "react";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { Text } from "@/components/ui/text";
-import { Link, useRouter } from "expo-router";
-import { SafeAreaView } from "react-native-safe-area-context";
-import { Separator } from "@/components/ui/separator";
-import { Label } from "@/components/ui/label";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import Svg, { Path } from "react-native-svg";
-import { Checkbox } from "@/components/ui/checkbox";
-import { useAuthStore } from "@/store/auth/authStore";
-import PasswordToggle from "@/app/hooks/password-toggle";
-import { loginSchema } from "@/validators/authSchema";
-import { ZodError } from "zod";
+} from 'react-native';
+import { useEffect, useRef, useState } from 'react';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { Text } from '@/components/ui/text';
+import { Link, useRouter } from 'expo-router';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { Separator } from '@/components/ui/separator';
+import { Label } from '@/components/ui/label';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import Svg, { Path } from 'react-native-svg';
+import { Checkbox } from '@/components/ui/checkbox';
+import { useAuthStore } from '@/store/auth/authStore';
+import PasswordToggle from '@/app/hooks/password-toggle';
+import { loginSchema } from '@/validators/authSchema';
+import { ZodError } from 'zod';
 
-const { height } = Dimensions.get("window");
+const { height } = Dimensions.get('window');
 
 export default function Login() {
   const login = useAuthStore((state) => state.login);
@@ -39,8 +33,8 @@ export default function Login() {
   const needsVerification = useAuthStore((state) => state.needsVerification);
   const [zodErrors, setZodErrors] = useState<{ email?: string; password?: string }>({});
 
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [checked, setChecked] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
@@ -51,6 +45,16 @@ export default function Login() {
     passwordInputRef.current?.focus();
   }
 
+  const { loginWithGoogle } = useAuthStore.getState();
+
+  async function handleGoogleLogin() {
+    try {
+      await loginWithGoogle();
+    } catch (err) {
+      console.error('Google login failed:', err);
+    }
+  }
+
   useEffect(() => {
     if (error) resetErrors();
     setZodErrors({});
@@ -59,17 +63,17 @@ export default function Login() {
   useEffect(() => {
     if (!user) return;
     if (needsVerification) {
-      router.push("/(auth)/signup/email-verification");
+      router.push('/(auth)/signup/email-verification');
     } else {
-      router.push("/(tabs)/home");
+      router.push('/(tabs)/home');
     }
   }, [user, needsVerification]);
 
-  function getInputBorderStyle(field: "email" | "password") {
-  if (zodErrors[field]) return "border-red-500"; 
-  if (error) return "border-red-500";   
-  return "border-muted-foreground/50";   
-}
+  function getInputBorderStyle(field: 'email' | 'password') {
+    if (zodErrors[field]) return 'border-red-500';
+    if (error) return 'border-red-500';
+    return 'border-muted-foreground/50';
+  }
 
   async function onSubmit() {
     try {
@@ -90,24 +94,19 @@ export default function Login() {
     }
   }
 
-
   return (
     <SafeAreaView className="flex-1">
       <KeyboardAvoidingView
-        behavior={Platform.OS === "ios" ? "padding" : undefined}
-        style={{ flex: 1 }}
-      >
-        <ScrollView
-          contentContainerStyle={{ flexGrow: 1 }}
-          showsVerticalScrollIndicator={false}
-        >
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        style={{ flex: 1 }}>
+        <ScrollView contentContainerStyle={{ flexGrow: 1 }} showsVerticalScrollIndicator={false}>
           {/* --- TOP IMAGE --- */}
           <Image
-            source={require("@/assets/images/sign-up-bg.png")}
+            source={require('@/assets/images/sign-up-bg.png')}
             resizeMode="cover"
             style={{
               height: (height * 1) / 3,
-              width: "100%",
+              width: '100%',
             }}
           />
 
@@ -116,7 +115,7 @@ export default function Login() {
             <Card className="w-[90%] max-w-md rounded-lg border-muted-foreground/10 bg-white p-2 shadow-lg">
               <View>
                 <Image
-                  source={require("@/assets/images/Logo.png")}
+                  source={require('@/assets/images/Logo.png')}
                   resizeMode="contain"
                   className="mx-auto mt-3 size-16"
                 />
@@ -124,24 +123,18 @@ export default function Login() {
 
               <CardHeader className="items-center">
                 <CardTitle className="text-3xl text-primary">Login</CardTitle>
-                <CardDescription className="text-center text-md">
+                <CardDescription className="text-md text-center">
                   Welcome back! Let’s get growing.
                 </CardDescription>
               </CardHeader>
 
               <CardContent className="gap-2.5 px-4">
                 {/* --- error message --- */}
-                {error && (
-                  <Text className="text-center text-red-500 font-medium">
-                    {error}
-                  </Text>
-                )}
+                {error && <Text className="text-center font-medium text-red-500">{error}</Text>}
 
                 {/* Email */}
                 <View className="gap-1">
-                  <Label className="font-normal text-muted-foreground">
-                    Email
-                  </Label>
+                  <Label className="font-normal text-muted-foreground">Email</Label>
                   <Input
                     value={email}
                     onChangeText={setEmail}
@@ -150,35 +143,30 @@ export default function Login() {
                     autoCapitalize="none"
                     returnKeyType="next"
                     onSubmitEditing={onEmailSubmitEditing}
-                    className={`border text-base h-12 ${getInputBorderStyle("email")}`}
+                    className={`h-12 border text-base ${getInputBorderStyle('email')}`}
                   />
                   {zodErrors.email && (
-                    <Text className="text-destructive text-sm">{zodErrors.email}</Text>
+                    <Text className="text-sm text-destructive">{zodErrors.email}</Text>
                   )}
                 </View>
 
                 {/* Password */}
                 <View className="gap-1">
-                  <Label className="font-normal text-muted-foreground">
-                    Password
-                  </Label>
+                  <Label className="font-normal text-muted-foreground">Password</Label>
                   <View className="relative">
                     <Input
                       placeholder="•••••••••"
                       returnKeyType="send"
                       onSubmitEditing={onSubmit}
-                      className={`border text-base h-12 pr-12 ${getInputBorderStyle("password")}`}
+                      className={`h-12 border pr-12 text-base ${getInputBorderStyle('password')}`}
                       value={password}
                       onChangeText={setPassword}
                       secureTextEntry={!showPassword}
                     />
-                    <PasswordToggle
-                      onToggle={setShowPassword}
-                      initialState={showPassword}
-                    />
+                    <PasswordToggle onToggle={setShowPassword} initialState={showPassword} />
                   </View>
                   {zodErrors.password && (
-                    <Text className="text-destructive text-sm">{zodErrors.password}</Text>
+                    <Text className="text-sm text-destructive">{zodErrors.password}</Text>
                   )}
                   <View className="mb-2 mt-3 flex-row items-center justify-between">
                     {/* Remember Me */}
@@ -188,14 +176,10 @@ export default function Login() {
                         onCheckedChange={setChecked}
                         className="border-primary"
                       />
-                      <Text className="self-end text-muted-foreground">
-                        Remember me?
-                      </Text>
+                      <Text className="self-end text-muted-foreground">Remember me?</Text>
                     </View>
                     <Link href="/forgot-password">
-                      <Text className="self-end text-primary/70">
-                        Forgot Password
-                      </Text>
+                      <Text className="self-end text-primary/70">Forgot Password</Text>
                     </Link>
                   </View>
                 </View>
@@ -206,7 +190,7 @@ export default function Login() {
                 </Button>
 
                 {/* Separator */}
-                <View className="flex-row items-center mt-2">
+                <View className="mt-2 flex-row items-center">
                   <Separator className="flex-1 bg-muted-foreground/40" />
                   <Text className="px-3 text-muted-foreground">or</Text>
                   <Separator className="flex-1 bg-muted-foreground/40" />
@@ -215,8 +199,8 @@ export default function Login() {
                 {/* Google Button */}
                 <Button
                   variant="outline"
-                  className="w-full flex-row items-center justify-center gap-2 mt-2"
-                >
+                  className="mt-2 w-full flex-row items-center justify-center gap-2"
+                  onPress={handleGoogleLogin}>
                   <Svg width={20} height={20} viewBox="0 0 48 48">
                     <Path
                       fill="#4285F4"
@@ -235,14 +219,12 @@ export default function Login() {
                       d="M23.49 41c3.39 0 6.24-1.12 8.32-3.04l-3.66-2.84c-1.05.7-2.41 1.12-4.66 1.12-3.39 0-6-1.93-6.93-4.72l-3.86 3C15.4 38.42 19.11 41 23.49 41z"
                     />
                   </Svg>
-                  <Text className="font-normal text-secondary">
-                    Login with Google
-                  </Text>
+                  <Text className="font-normal text-secondary">Login with Google</Text>
                 </Button>
 
                 {/* Footer */}
                 <Text className="mt-2 text-center text-muted-foreground">
-                  Doesn't have an account?{" "}
+                  Doesn't have an account?{' '}
                   <Link href="/signup" asChild>
                     <Text className="font-medium text-primary">Sign up</Text>
                   </Link>
