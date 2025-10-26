@@ -103,6 +103,10 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         { otp },
         { headers: { Authorization: `Bearer ${token}` } }
       );
+      const fullToken = response.data.token;
+      await storage.setItem("token", fullToken);
+      
+      await useAccountStore.getState().fetchAccount();
 
       set({
         loading: false,
