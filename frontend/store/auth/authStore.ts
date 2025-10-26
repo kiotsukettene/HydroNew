@@ -38,6 +38,12 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   message: null,
   needsVerification: false,
 
+  resetErrors: () =>
+    set({
+      fieldErrors: {},
+      error: null,
+  }),
+
   register: async (data) => {
     set({ loading: true, error: null, fieldErrors: {} });
 
@@ -108,6 +114,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     } catch (err: any) {
       const { message, fieldErrors } = handleAxiosError(err);
       set({ loading: false, error: message, fieldErrors });
+      return null;
     }
   },
 

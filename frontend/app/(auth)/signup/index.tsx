@@ -21,11 +21,14 @@ import Svg, { Path } from "react-native-svg";
 import { useAuthStore } from "@/store/auth/authStore"
 import PasswordToggle from "@/app/hooks/password-toggle";
 import { PasswordStrengthMeter } from '@/components/ui/password-stength-meter';
+import { ZodError } from "zod";
+import { signUpSchema } from "@/validators/authSchema";
+import { handleAxiosError } from "@/api/handleAxiosError";
 
 const { height } = Dimensions.get("window");
 
 export default function SignUp() {
-  const { register , fieldErrors, error, needsVerification} = useAuthStore();
+  const { register , fieldErrors, error, resetErrors, needsVerification} = useAuthStore();
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [checked, setChecked] = useState(false);
@@ -44,24 +47,45 @@ export default function SignUp() {
   }
 
   useEffect(() => {
-    if (needsVerification){
-      router.push('/(auth)/signup/email-verification');
+  resetErrors();
+  }, [firstName, lastName, email, password, confirmPassword]);
+
+  useEffect(() => {
+    if (needsVerification) {
+      router.push("/(auth)/signup/email-verification");
     }
   }, [needsVerification]);
 
-  async function onSubmit() {
-    setSubmitted(true);
-    if (password !== confirmPassword) {
+
+async function onSubmit() {
+  setSubmitted(true);
+  resetErrors();
+
+  try {
+    const validatedData = signUpSchema.parse({
+      first_name: firstName,
+      last_name: lastName,
+      email,
+      password,
+      password_confirmation: confirmPassword,
+    });
+
+    if (!checked) return;
+
+    await register(validatedData);
+
+  } catch (err: any) {
+    if (err instanceof ZodError) {
+      const newFieldErrors: Record<string, string[]> = {};
+      for (const [field, messages] of Object.entries(err.flatten().fieldErrors)) {
+        if (messages) newFieldErrors[field] = messages;
+      }
+      useAuthStore.setState({ fieldErrors: newFieldErrors });
+    } else {
+      const { message, fieldErrors } = handleAxiosError(err);
+      useAuthStore.setState({ error: message, fieldErrors });
+    }
   }
-  
-  if (!checked) return;
-  await register({
-    first_name: firstName,
-    last_name: lastName,
-    email,
-    password,
-    password_confirmation: confirmPassword,
-  });
 }
 
 
@@ -167,7 +191,10 @@ export default function SignUp() {
                   <View className="relative">
                     <Input
                       value={password}
-                      onChangeText={setPassword}
+                      onChangeText={(text) => {
+                        setPassword(text);
+                        if (submitted) setSubmitted(false);
+                      }}
                       placeholder="•••••••••"
                       secureTextEntry={!showPassword}
                       ref={passwordInputRef}
