@@ -67,28 +67,37 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     }
   },
 
-  login: async (email, password) => {
-    set({ loading: true, error: null, fieldErrors: {} });
+login: async (email, password) => {
+  set({ loading: true, error: null, fieldErrors: {} });
 
-    try {
-      const response = await axiosInstance.post("/login", { email, password });
-      await storage.setItem("token", response.data.token);
-      axiosInstance.defaults.headers.common["Authorization"] = `Bearer ${response.data.token}`;
-      set({
-        loading: false,
-        user: response.data.user || null,
-        token: response.data.token || null,
-        needsVerification: response.data.needs_verification ?? false,
-      });
+  try {
+    const response = await axiosInstance.post("/login", { email, password });
+    const { token, user, needs_verification, message } = response.data;
 
-      await useAccountStore.getState().fetchAccount();
-
-      return response.data;
-    } catch (err: any) {
-      const { message, fieldErrors } = handleAxiosError(err);
-      set({ loading: false, error: message, fieldErrors });
+    if (!token) {
+      throw new Error(message || "Invalid credentials");
     }
-  },
+
+    await storage.setItem("token", token);
+
+    set({
+      loading: false,
+      user: user || null,
+      token,
+      needsVerification: needs_verification ?? false,
+    });
+    await useAccountStore.getState().fetchAccount();
+
+    return response.data;
+  } catch (err: any) {
+    const { message, fieldErrors } = handleAxiosError(err);
+    console.error("Login error:", message);
+    set({ loading: false, error: message, fieldErrors });
+    return null;
+  }
+},
+
+
 
   verifyOtp: async (otp: string) => {
     set({ loading: true, error: null, fieldErrors: {} });

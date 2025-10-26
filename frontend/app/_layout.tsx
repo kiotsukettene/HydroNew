@@ -9,6 +9,9 @@ import { useColorScheme } from 'nativewind';
 import { useFonts } from 'expo-font';
 import * as SplashScreen from 'expo-splash-screen';
 import { useEffect } from 'react';
+import { Toaster } from "sonner-native";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
+
 
 export {
   ErrorBoundary,
@@ -36,15 +39,18 @@ export default function RootLayout() {
   }
 
   return (
-    <ThemeProvider value={NAV_THEME[colorScheme ?? 'light']}>
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <ThemeProvider value={NAV_THEME[colorScheme ?? 'light']}>
       <StatusBar style={colorScheme === 'dark' ? 'light' : 'dark'} />
-      <Stack
-        screenOptions={{
-          headerShown: false,
+        <Stack
+          screenOptions={{
+            headerShown: false,
         }}
-      >
-      </Stack>
-      <PortalHost />
-    </ThemeProvider>
+        >
+        </Stack> 
+        <PortalHost />
+      <Toaster position="top-center" />
+     </ThemeProvider>
+    </GestureHandlerRootView>
   );
 }
