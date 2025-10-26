@@ -75,7 +75,8 @@ login: async (email, password) => {
     const { token, user, needs_verification, message } = response.data;
 
     if (!token) {
-      throw new Error(message || "Invalid credentials");
+      set({ loading: false, error: message || "Invalid credentials" });
+      return null;
     }
 
     await storage.setItem("token", token);
