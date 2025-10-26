@@ -12,7 +12,7 @@ import { Card } from '@/components/ui/card';
 import { ArrowLeft, Save, Calendar, CheckCircle, ChevronDown, Play, Plus, Minus, Leaf } from 'lucide-react-native';
 import { Badge } from '@/components/ui/badge';
 import { useHydroponicSetupStore } from "@/store/hydroponics/hydroponicSetupStore";
-
+import { toast } from 'sonner-native';
 
 
 interface HydroponicsSetupData {
@@ -116,9 +116,9 @@ export default function HydroponicsSetup({ onSetupComplete }: HydroponicsSetupPr
       await createHydroponicSetup(setupData);
 
       if (error) {
-        Alert.alert("Error", error);
+        toast.error(" Failed to create hydroponic setup. Please try again.");
       } else {
-        Alert.alert("Success", "Hydroponic setup created successfully!");
+        toast.success("Hydroponic setup created successfully!");
         router.push('/(tabs)/hydroponics');
       }
     } catch (err) {

@@ -19,6 +19,7 @@ import { Text } from '@/components/ui/text';
 import { router } from 'expo-router';
 import { Input } from '@/components/ui/input';
 import { useAuthStore } from '@/store/auth/authStore';
+import { toast } from 'sonner-native';
 
 const { height } = Dimensions.get('window');
 
@@ -39,6 +40,7 @@ const onSubmit = async () => {
 
     if (res && !error) {
       router.push("/(auth)/signup/verification-success");
+      toast.success("Account Created!");
     }
   }
 };
