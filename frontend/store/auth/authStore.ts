@@ -40,6 +40,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   },
 
   // login
+ // login
   login: async (email, password) => {
     set({ loading: true, error: null, fieldErrors: {} });
     try {
@@ -58,21 +59,8 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       const { message, fieldErrors } = handleAxiosError(err);
       set({ loading: false, error: message, fieldErrors: { ...fieldErrors } });
     }
+  },
 
-    set({
-      loading: false,
-      user: response.data.user || null,
-      token,
-      needsVerification: response.data.needs_verification ?? false,
-    });
-
-    return response.data;
-  } catch (err: any) {
-    const message =
-      err.response?.data?.message || "Login failed. Try again.";
-    set({ loading: false, error: message });
-  }
-},
 
   // verify OTP
   verifyOtp: async (otp: string) => {
