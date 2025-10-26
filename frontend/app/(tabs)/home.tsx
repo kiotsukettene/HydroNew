@@ -128,20 +128,35 @@ export default function Home() {
 
             {/* ===== Growth Card ===== */}
             <View className="mt-5">
-              <TouchableOpacity className="relative h-32 justify-between overflow-hidden rounded-2xl bg-primary p-6" onPress={() => router.push('/(tabs)/hydroponics')}>
+              <TouchableOpacity className="relative min-h-40 overflow-hidden rounded-2xl bg-primary p-6" onPress={() => router.push('/(tabs)/hydroponics')}>
                 <Image
                   source={require('@/assets/images/growth-bg.png')}
                   className="absolute -right-16 -top-10 h-64 w-64 opacity-70"
                   resizeMode="contain"
                 />
 
-                <View>
-                  <Text className="items-center text-lg text-lime-100">
-                    Lettuce growth progress
-                  </Text>
-                  <Text className="mt-1 text-4xl font-bold text-muted">
-                    {growth.percentage}% <ArrowRightIcon size={20} color="#D9F99D" />
-                  </Text>
+                <View className="flex-1 justify-between">
+                  {/* Badge and Title */}
+                  <View>
+                    <View className="mb-1 self-start rounded-full bg-lime-400/20 px-3 py-1">
+                      <Text className="text-xs font-semibold uppercase tracking-wide text-lime-200">
+                        Nearest to Harvest
+                      </Text>
+                    </View>
+                    <Text className="text-lg font-medium text-muted px-2">
+                      Lettuce A
+                    </Text>
+                  </View>
+                  
+                  {/* Growth Percentage */}
+                  <View className="flex-row items-center px-2">
+                    <Text className="text-5xl font-bold text-white">
+                      {growth.percentage}%
+                    </Text>
+                    <View className="ml-2">
+                      <ArrowRightIcon size={24} color="#D9F99D" />
+                    </View>
+                  </View>
                 </View>
               </TouchableOpacity>
             </View>

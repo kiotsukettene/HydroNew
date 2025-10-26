@@ -1,4 +1,4 @@
-import { View, Text, Image } from 'react-native'
+import { View, Image } from 'react-native'
 import React from 'react'
 import { Button } from '@/components/ui/button'
 import { Icon } from '@/components/ui/icon'
@@ -6,6 +6,7 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 import { PageHeader } from '@/components/ui/page-header'
 import FolderBg from '@/components/ui/folder-bg'
 import { Droplet } from 'lucide-react-native'
+import { Text } from '@/components/ui/text'
 
 export default function LettuceView() {
   return (
