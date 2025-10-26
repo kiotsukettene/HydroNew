@@ -67,6 +67,9 @@ export default function Hydroponics() {
                               <Label className="text-xs font-normal text-muted-foreground">
                                 {new Date(item.setup_date).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
                               </Label>
+                              <Text className="mt-1 text-sm font-medium text-green-600">
+                                Growth: {item.growth_percentage ? `${item.growth_percentage}%` : '45%'}
+                              </Text>
                             </View>
                             <Image
                               source={require('@/assets/images/lettuce-2.png')}
