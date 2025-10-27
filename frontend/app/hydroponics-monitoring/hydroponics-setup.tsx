@@ -1,4 +1,4 @@
-import { View, Image, TouchableOpacity, ScrollView, Alert, Switch, Animated } from 'react-native';
+import { View, Image, TouchableOpacity, ScrollView, Switch, Animated } from 'react-native';
 import React, { useState, useRef } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { PageHeader } from '@/components/ui/page-header';
@@ -13,6 +13,7 @@ import { ArrowLeft, Save, Calendar, CheckCircle, ChevronDown, Play, Plus, Minus,
 import { Badge } from '@/components/ui/badge';
 import { useHydroponicSetupStore } from "@/store/hydroponics/hydroponicSetupStore";
 import { toast } from 'sonner-native';
+
 
 
 interface HydroponicsSetupData {
@@ -35,7 +36,7 @@ interface HydroponicsSetupProps {
 
 export default function HydroponicsSetup({ onSetupComplete }: HydroponicsSetupProps) {
   const router = useRouter();
-  const { createHydroponicSetup, error } = useHydroponicSetupStore();
+  const { createHydroponicSetup, error, resetError } = useHydroponicSetupStore();
   const [formData, setFormData] = useState<HydroponicsSetupData>({
     cropName: '',
     numberOfCrops: '',
@@ -67,37 +68,90 @@ export default function HydroponicsSetup({ onSetupComplete }: HydroponicsSetupPr
     handleInputChange(field, newValue.toString());
   };
 
- 
-  const validateForm = () => {
-    const requiredFields = [
-      'cropName', 'numberOfCrops', 'nutrientSolution', 
-      'targetPh', 'targetPhMax', 'targetTdsMin', 'targetTdsMax', 'waterAmount'
-    ];
+  // Validation function
+  const validateSetupData = (data: {
+    crop_name: string;
+    number_of_crops: number;
+    bed_size: string;
+    nutrient_solution: string;
+    target_ph_min: number;
+    target_ph_max: number;
+    target_tds_min: number;
+    target_tds_max: number;
+    water_amount: string;
+    pump_config?: any;
+  }) => {
+    // Check required fields
+    if (!data.crop_name?.trim()) {
+      return { valid: false, error: 'Crop name is required' };
+    }
     
-    for (const field of requiredFields) {
-      if (!formData[field as keyof HydroponicsSetupData]) {
-        Alert.alert('Validation Error', `Please fill in ${field.replace(/([A-Z])/g, ' $1').toLowerCase()}`);
-        return false;
-      }
+    if (!data.number_of_crops) {
+      return { valid: false, error: 'Number of crops is required' };
+    }
+    
+    if (!data.nutrient_solution?.trim()) {
+      return { valid: false, error: 'Nutrient solution is required' };
+    }
+    
+    if (!data.target_ph_min || !data.target_ph_max) {
+      return { valid: false, error: 'Target pH range is required' };
+    }
+    
+    if (!data.target_tds_min || !data.target_tds_max) {
+      return { valid: false, error: 'Target TDS range is required' };
+    }
+    
+    if (!data.water_amount) {
+      return { valid: false, error: 'Water amount is required' };
     }
     
     // Validate numeric fields
-    const numericFields = ['numberOfCrops', 'targetPh', 'targetPhMax', 'targetTdsMin', 'targetTdsMax', 'waterAmount'];
-    for (const field of numericFields) {
-      const value = formData[field as keyof HydroponicsSetupData];
-      if (isNaN(Number(value)) || Number(value) <= 0) {
-        Alert.alert('Validation Error', `${field.replace(/([A-Z])/g, ' $1').toLowerCase()} must be a valid positive number`);
-        return false;
-      }
+    const numberOfCrops = parseInt(data.number_of_crops as any);
+    if (isNaN(numberOfCrops) || numberOfCrops <= 0) {
+      return { valid: false, error: 'Number of crops must be a positive number' };
     }
     
-    return true;
+    const targetPhMin = parseFloat(data.target_ph_min as any);
+    if (isNaN(targetPhMin) || targetPhMin <= 0) {
+      return { valid: false, error: 'Target pH minimum must be a valid positive number' };
+    }
+    
+    const targetPhMax = parseFloat(data.target_ph_max as any);
+    if (isNaN(targetPhMax) || targetPhMax <= 0) {
+      return { valid: false, error: 'Target pH maximum must be a valid positive number' };
+    }
+    
+    if (targetPhMax <= targetPhMin) {
+      return { valid: false, error: 'Target pH maximum must be greater than minimum' };
+    }
+    
+    const targetTdsMin = parseInt(data.target_tds_min as any);
+    if (isNaN(targetTdsMin) || targetTdsMin <= 0) {
+      return { valid: false, error: 'Target TDS minimum must be a valid positive number' };
+    }
+    
+    const targetTdsMax = parseInt(data.target_tds_max as any);
+    if (isNaN(targetTdsMax) || targetTdsMax <= 0) {
+      return { valid: false, error: 'Target TDS maximum must be a valid positive number' };
+    }
+    
+    if (targetTdsMax <= targetTdsMin) {
+      return { valid: false, error: 'Target TDS maximum must be greater than minimum' };
+    }
+    
+    // Extract water amount number
+    const waterAmountNum = parseFloat(data.water_amount.replace(/L/i, '').trim());
+    if (isNaN(waterAmountNum) || waterAmountNum <= 0) {
+      return { valid: false, error: 'Water amount must be a valid positive number' };
+    }
+    
+    return { valid: true };
   };
 
   const onSubmit = async () => {
-    if (!validateForm()) return;
-
     setIsSubmitting(true);
+    resetError();
 
     try {
       const setupData = {
@@ -113,17 +167,28 @@ export default function HydroponicsSetup({ onSetupComplete }: HydroponicsSetupPr
         pump_config: null,
       };
 
+      // Validate using local validation function
+      const validation = validateSetupData(setupData);
+      if (!validation.valid) {
+        toast.error(validation.error || 'Validation failed');
+        setIsSubmitting(false);
+        return;
+      }
+
       await createHydroponicSetup(setupData);
 
-      if (error) {
-        toast.error(" Failed to create hydroponic setup. Please try again.");
+      // Get the current error state after the async operation
+      const currentError = useHydroponicSetupStore.getState().error;
+      
+      if (currentError) {
+        toast.error(currentError);
       } else {
         toast.success("Hydroponic setup created successfully!");
         router.push('/(tabs)/hydroponics');
       }
     } catch (err) {
       console.error("Hydroponic setup creation failed:", err);
-      Alert.alert("Error", "Failed to create setup. Please try again.");
+      toast.error("Failed to create setup. Please try again.");
     } finally {
       setIsSubmitting(false);
     }
