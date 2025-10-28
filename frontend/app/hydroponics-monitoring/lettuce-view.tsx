@@ -1,5 +1,5 @@
 import { View, Image } from 'react-native'
-import React from 'react'
+import React, { useEffect} from 'react'
 import { Button } from '@/components/ui/button'
 import { Icon } from '@/components/ui/icon'
 import { SafeAreaView } from 'react-native-safe-area-context'
@@ -7,8 +7,26 @@ import { PageHeader } from '@/components/ui/page-header'
 import FolderBg from '@/components/ui/folder-bg'
 import { Droplet } from 'lucide-react-native'
 import { Text } from '@/components/ui/text'
+import { useLocalSearchParams } from 'expo-router'
+import { useHydroponicSetupStore } from '@/store/hydroponics/hydroponicSetupStore'
+import { useYieldStore } from '@/store/hydroponics/hydroponicYieldStore'
+
 
 export default function LettuceView() {
+  const params = useLocalSearchParams();
+  const setupId = params.id;
+  const { hydroponicSetups } = useHydroponicSetupStore();
+  const { yields, fetchYieldBySetup, loading, error } = useYieldStore();
+  const setup = hydroponicSetups.find((setup) => setup.id === Number(setupId));
+
+  useEffect(() =>{ 
+    if (setupId){
+      fetchYieldBySetup(Number(setupId));
+    }
+  }, [setupId]);
+
+  const yieldData = yields.length > 0 ? yields[0] : null;
+
   return (
        <SafeAreaView className="flex-1 bg-background">
       <View className="flex-1">
@@ -34,11 +52,11 @@ export default function LettuceView() {
          <FolderBg>
   <View className="flex-1 justify-between p-4">
     <View>
-      <Text className="mb-4 text-xl font-bold text-white">My Lettuce</Text>
+      <Text className="mb-4 text-xl font-bold text-white">My {setup?.crop_name}</Text>
 
       <View className="flex-row justify-between">
         <View className="flex-1">
-          <Text className="text-xl font-bold text-white">10 Days</Text>
+          <Text className="text-xl font-bold text-white">{yieldData?.plant_age} Days</Text>
           <Text className="text-xs text-lime-200">PLANT AGE</Text>
 
           <Text className="mt-1 text-xl font-bold text-white">41 %</Text>
@@ -46,15 +64,15 @@ export default function LettuceView() {
         </View>
 
         <View className="flex-1">
-          <Text className="text-xl font-bold text-white">18 Days</Text>
+          <Text className="text-xl font-bold text-white">{yieldData?.days_left} Days</Text>
           <Text className="text-xs text-lime-200">ESTIMATED DAYS LEFT</Text>
 
-          <Text className="mt-1 text-xl font-bold text-white">80 %</Text>
+          <Text className="mt-1 text-xl font-bold text-white">{setup?.water_amount} %</Text>
           <Text className="text-xs text-lime-200">WATER TANK AVAILABLE</Text>
         </View>
       </View>
     </View>
-
+ 
     <View className="items-center mt-7">
       <Button className="w-full rounded-xl bg-emerald-50 ">
         <Icon as={Droplet} className="text-primary" />

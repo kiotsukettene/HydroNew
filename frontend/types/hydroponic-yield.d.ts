@@ -6,6 +6,12 @@ export type HydroponicYield = {
   health_status: string;
   actual_yield: number | null;
   harvest_date: string | null;
+  plant_age: number;
+  humidity: number;
+  days_left: number;
+  water_level: number;
+  created_at: string;
+  updated_at: string;
   notes: string | null;
   system_generated: boolean;
 };

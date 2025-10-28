@@ -56,32 +56,37 @@ export default function Hydroponics() {
                   <Text>Add New Plant</Text>
                 </Button>
 
-                <Pressable onPress={() => router.push('/hydroponics-monitoring/lettuce-view')} className="mt-4">
                   <View className="gap-3 sm:p-6">
                     {hydroponicSetups.map((item) => (
                       <View key={item.id}>
-                        <Card className="relative items-center justify-center overflow-hidden border-muted-foreground/50 bg-muted/30 py-8 px-6 sm:p-6">
-                          <View className="relative flex w-full flex-row items-center justify-between">
-                            <View className="flex-1 pr-4">
-                              <Text className="text-xl font-semibold sm:text-xl">{item.crop_name}</Text>
-                              <Label className="text-xs font-normal text-muted-foreground">
-                                {new Date(item.setup_date).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
-                              </Label>
-                              <Text className="mt-1 text-sm font-medium text-green-600">
-                                Growth: {item.growth_percentage ? `${item.growth_percentage}%` : '45%'}
-                              </Text>
+                        <Pressable key={item.id} 
+                          onPress={() => router.push({
+                            pathname: "/hydroponics-monitoring/lettuce-view",
+                            params: { id: item.id }
+                          })}
+                          className="mt-4">
+                          <Card className="relative items-center justify-center overflow-hidden border-muted-foreground/50 bg-muted/30 py-8 px-6 sm:p-6">
+                            <View className="relative flex w-full flex-row items-center justify-between">
+                              <View className="flex-1 pr-4">
+                                <Text className="text-xl font-semibold sm:text-xl">{item.crop_name}</Text>
+                                <Label className="text-xs font-normal text-muted-foreground">
+                                  {new Date(item.setup_date).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
+                                </Label>
+                                <Text className="mt-1 text-sm font-medium text-green-600">
+                                  Growth: {item.growth_percentage ? `${item.growth_percentage}%` : '45%'}
+                                </Text>
+                              </View>
+                              <Image
+                                source={require('@/assets/images/lettuce-2.png')}
+                                className="size-12 opacity-55 sm:h-20 sm:w-20 md:h-24 md:w-24"
+                                resizeMode="contain"
+                              />
                             </View>
-                            <Image
-                              source={require('@/assets/images/lettuce-2.png')}
-                              className="size-12 opacity-55 sm:h-20 sm:w-20 md:h-24 md:w-24"
-                              resizeMode="contain"
-                            />
-                          </View>
-                        </Card>
+                          </Card>
+                        </Pressable>
                       </View>
                     ))}
                   </View>
-                </Pressable>
               </View>
             </Card>
           </View>
