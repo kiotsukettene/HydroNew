@@ -38,8 +38,8 @@ module.exports = {
           foreground: 'hsl(var(--popover-foreground))',
         },
         card: {
-          DEFAULT: 'hsl(var(--card))',
-          foreground: 'hsl(var(--card-foreground))',
+          DEFAULT: 'hsl(0, 0%, 100%)',
+          foreground: 'hsl(0, 0%, 3.9%)',
         },
       },
       borderRadius: {
