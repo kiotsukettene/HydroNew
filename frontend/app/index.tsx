@@ -12,20 +12,20 @@ const LOGO = {
   dark: require('@/assets/images/react-native-reusables-dark.png'),
 };
 
-const SCREEN_OPTIONS = {
-  light: {
-    title: 'React Native Reusables',
-    headerTransparent: true,
-    headerShadowVisible: true,
-    headerStyle: { backgroundColor: THEME.light.background },
-  },
-  dark: {
-    title: 'React Native Reusables',
-    headerTransparent: true,
-    headerShadowVisible: true,
-    headerStyle: { backgroundColor: THEME.dark.background },
-  },
-};
+// const SCREEN_OPTIONS = {
+//   light: {
+//     title: 'React Native Reusables',
+//     headerTransparent: true,
+//     headerShadowVisible: true,
+//     headerStyle: { backgroundColor: THEME.light.background },
+//   },
+//   dark: {
+//     title: 'React Native Reusables',
+//     headerTransparent: true,
+//     headerShadowVisible: true,
+//     headerStyle: { backgroundColor: THEME.dark.background },
+//   },
+// };
 
 const IMAGE_STYLE: ImageStyle = {
   height: 76,
@@ -38,7 +38,7 @@ export default function Screen() {
 
   return isLoggedIn ? (
     <>
-      <Stack.Screen options={SCREEN_OPTIONS[colorScheme ?? 'light']} />
+      {/* <Stack.Screen options={SCREEN_OPTIONS[colorScheme ?? 'light']} /> */}
       <View className="flex-1 items-center justify-center gap-8 p-4">
         <Redirect href="/(tabs)/home" />
       </View>

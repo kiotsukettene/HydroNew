@@ -59,7 +59,7 @@ const [latestKey, setLatestKey] = useState<string | null>(null);
   ];
   return (
     <ScrollView>
-      <SafeAreaView className=''>
+      <SafeAreaView className='bg-white'>
               
           {/* ===== Page Header ===== */}
           <PageHeader title="Water Monitoring" />
@@ -116,7 +116,7 @@ const [latestKey, setLatestKey] = useState<string | null>(null);
               </View>
 
               {/*  Button */}
-              <Button className="mt-4 rounded-lg bg-muted/70 hover:bg-muted/90 active:bg-muted/80 hover:scale-105 active:scale-95 transition-all duration-200" onPress={() => {router.push('/(tabs)/filtration')}}>
+              <Button className="mt-4 rounded-lg bg-white/70 hover:bg-muted-foreground/70 active:bg-muted-foreground/80 hover:scale-105 active:scale-95 transition-all duration-200" onPress={() => {router.push('/(tabs)/filtration')}}>
                 <Text className="font-semibold text-gray-800">Start Filtration</Text>
               </Button>
             </CardContent>
@@ -166,7 +166,7 @@ const [latestKey, setLatestKey] = useState<string | null>(null);
                   <Text className="text-xl sm:text-2xl md:text-3xl font-medium" numberOfLines={1} adjustsFontSizeToFit>
                     Need Help?
                   </Text>
-                  <Text className="text-base sm:text-lg md:text-xl text-foreground/50" numberOfLines={2}>
+                  <Text className="text-base mt-2 sm:text-lg md:text-xl " numberOfLines={2}>
                     Explore tips and suggestions tailored for you.
                   </Text>
                 </View>

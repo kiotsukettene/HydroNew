@@ -65,7 +65,7 @@ export default function SecuritySettings() {
           {/* ================= Title page  ==================== */}
           <View>
             <PageHeader title="Change Password" showNotificationButton={false} />
-            <Text className="text-md text-muted-foreground font-poppins-medium text-center mt-8">
+            <Text className="text-muted-foreground font-poppins-medium text-center mt-4">
               Create a new password for your account
             </Text>
             {/* ================= Main Body  ==================== */}

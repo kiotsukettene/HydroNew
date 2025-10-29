@@ -37,8 +37,8 @@ const settings = [
 ];
 
   return (
-    <SafeAreaView className='flex-1'>
-      <View className='px-4 flex-1 '>
+    <SafeAreaView className='flex-1 bg-background'>
+      
         <View className="flex-row items-center w-full">
           <PageHeader 
             title="Account" 
@@ -46,7 +46,8 @@ const settings = [
             showEllipsisButton={true}
           />
         </View>
-        <View className='items-center'>
+        <View className='flex-1 px-4'>
+          <View className='items-center'>
           {/* ================= Title  ==================== */}
           <View className="relative items-center">
          {/*  <Image
@@ -56,7 +57,7 @@ const settings = [
             /> */}
           </View>
           {/* ================= Main Body  ==================== */}
-          <View className='mt-4 px-4'>
+          <View className='mt-4 px-'>
             <Text 
               className='text-2xl text-center text-gray-800 font-medium'
               >
@@ -129,7 +130,7 @@ const settings = [
         </View>
 
         <View className="mt-2 flex-1">
-          <Card className="flex-1 rounded-lg border border-muted-foreground/10 bg-white shadow-lg">
+          <Card className="flex-1 rounded-lg border border-muted-foreground/20  shadow-lg">
             <CardContent className="flex-1 px-4 -m-5">
               <ScrollView
                 showsVerticalScrollIndicator={true}
@@ -161,7 +162,8 @@ const settings = [
           </Card>
         </View>
             {/* ================= end of main body  ==================== */}
-      </View>
+        </View>
+    
     </SafeAreaView>
   )
 }

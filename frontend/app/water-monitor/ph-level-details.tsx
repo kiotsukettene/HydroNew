@@ -56,8 +56,8 @@ export default function PHLevelDetailsModal({ visible, onClose, phData }: PHLeve
       animationType="fade"
       onRequestClose={onClose}
     >
-      <View className="flex-1 bg-foreground/50 justify-center items-center px-4">
-        <Card className="w-full max-w-sm">
+      <View className="flex-1 bg-foreground/50 justify-center items-center px-4 ">
+        <Card className="w-full max-w-sm ">
           <CardHeader className="flex-row items-center justify-between">
             <CardTitle className="text-secondary font-bold text-xl">
               {data.title}
@@ -66,12 +66,12 @@ export default function PHLevelDetailsModal({ visible, onClose, phData }: PHLeve
               variant="ghost"
               onPress={onClose}
             >
-              <X size={16} />
+              <X size={16} className='text-muted-foreground' />
             </Button>
           </CardHeader>
 
           <CardContent className="space-y-4 mb-2">
-            <Text className="text-base">
+            <Text className="text-base text-muted-foreground">
               {data.description}
             </Text>
             

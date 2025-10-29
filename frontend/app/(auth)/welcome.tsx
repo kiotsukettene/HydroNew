@@ -21,10 +21,10 @@ const WelcomeScreen = () => {
       <SafeAreaView className="flex-1 justify-between items-center ">
         {/* Text */}
         <View className="flex-1 justify-center items-center px-6">
-          <Text className="text-5xl text-foreground font-finger-paint text-center">
+          <Text className="text-5xl  font-finger-paint text-center">
             Welcome to <Text className=" text-5xl text-primary">HydroNew</Text>
           </Text>
-          <Text className="text-center text-muted-foreground text-base my-3 font-light">
+          <Text className="text-center text-muted-foreground text-base my-2 ">
             Sustainable solutions start here — powered by nature and intelligence.
           </Text>
         </View>

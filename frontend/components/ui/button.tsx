@@ -68,7 +68,7 @@ const buttonTextVariants = cva(
           'text-primary group-active:text-primary',
           Platform.select({ web: 'group-hover:text-primary' })
         ),
-        secondary: 'text-secondary-foreground',
+        secondary: 'text-secondary-foreground ',
         ghost: 'group-active:text-accent-foreground',
         link: cn(
           'text-primary group-active:underline',

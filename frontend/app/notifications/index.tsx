@@ -127,7 +127,8 @@ export default function Notifications() {
       <View className='p-4'>
           {/* ===== Clear All Button ===== */}
         {notifications.length > 0 && (
-          <View className="flex-row justify-end mb-2">
+          <View className="flex-row justify-between mb-2">
+            <Text className='font-semibold'>All</Text>
             <TouchableOpacity onPress={handleClearAll}>
               <Text className="text-primary">Clear all</Text>
             </TouchableOpacity>

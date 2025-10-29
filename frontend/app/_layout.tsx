@@ -40,8 +40,6 @@ export default function RootLayout() {
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
-      <ThemeProvider value={NAV_THEME[colorScheme ?? 'light']}>
-      <StatusBar style={colorScheme === 'dark' ? 'light' : 'dark'} />
         <Stack
           screenOptions={{
             headerShown: false,
@@ -50,7 +48,6 @@ export default function RootLayout() {
         </Stack> 
         <PortalHost />
       <Toaster position="top-center" />
-     </ThemeProvider>
     </GestureHandlerRootView>
   );
 }
