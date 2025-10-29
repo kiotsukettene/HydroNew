@@ -39,7 +39,7 @@ export default function HydroponicsSetup({ onSetupComplete }: HydroponicsSetupPr
   const { createHydroponicSetup, error, resetError } = useHydroponicSetupStore();
   const [formData, setFormData] = useState<HydroponicsSetupData>({
     cropName: '',
-    numberOfCrops: '',
+    numberOfCrops: '1',
     bedSize: 'medium',
     nutrientSolution: '',
     targetPh: '6.5',
@@ -201,7 +201,7 @@ export default function HydroponicsSetup({ onSetupComplete }: HydroponicsSetupPr
   ];
 
   return (
-    <SafeAreaView className="flex-1 ">
+    <SafeAreaView className="flex-1 bg-background">
       <View className="flex-1">
         {/* =========== Header Section =========== */}
         <View className="px-6 pt-6 pb-4 ">
@@ -214,20 +214,14 @@ export default function HydroponicsSetup({ onSetupComplete }: HydroponicsSetupPr
           </View>
         </View>
 
-        {/* =========== Background Elements =========== */}
-        <View className="absolute top-20 right-0 opacity-5">
-          <View className="w-32 h-32 bg-[#4CAF50] rounded-full" />
-        </View>
-        <View className="absolute top-40 left-0 opacity-5">
-          <View className="w-24 h-24 bg-[#6ECF8B] rounded-full" />
-        </View>
+      
 
         {/* =========== Form Section =========== */}
         <ScrollView className="flex-1 px-6" showsVerticalScrollIndicator={false}>
           <View className="pb-8">
             
             {/* Crop Details Card */}
-            <Card className="p-6 mb-6 rounded-2xl shadow-sm border-0">
+            <Card className="p-6 mb-6 rounded-2xl shadow-sm border border-muted-foreground/20">
               <View className="mb-6">
                 <Text className="text-lg font-semibold  mb-2">Crop Details</Text>
                 <View className="w-full h-1 bg-[#4CAF50] rounded-full" />
@@ -259,7 +253,7 @@ export default function HydroponicsSetup({ onSetupComplete }: HydroponicsSetupPr
                     
                     <View className="flex-1 items-center">
                       <Text className="text-lg font-semibold ">
-                        {formData.numberOfCrops || '0'}
+                        {formData.numberOfCrops }
                       </Text>
                     </View>
                     
