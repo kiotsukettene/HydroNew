@@ -143,7 +143,7 @@ export default function Home() {
                         Nearest to Harvest
                       </Text>
                     </View>
-                    <Text className="text-lg font-medium text-foreground px-2">
+                    <Text className="text-lg font-medium text-muted px-2">
                       Lettuce A
                     </Text>
                   </View>
