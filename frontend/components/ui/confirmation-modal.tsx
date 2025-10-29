@@ -1,7 +1,8 @@
 import React from 'react';
-import { View, Text, Modal } from 'react-native';
+import { View, Modal } from 'react-native';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils'; 
+import { Text } from '@/components/ui/text';
 
 interface ConfirmationModalProps {
   visible: boolean;
@@ -34,7 +35,7 @@ export const ConfirmationModal = ({
       onRequestClose={onCancel}
     >
       <View className="flex-1 bg-black/40 items-center justify-center">
-        <View className="bg-white rounded-2xl w-64 p-6 items-center mx-6">
+        <View className="bg-white rounded-2xl  p-6 items-center mx-6">
           {/* Icon */}
           <View
             className={cn(
@@ -61,7 +62,8 @@ export const ConfirmationModal = ({
             <View className="flex-1">
               <Button
                 onPress={onCancel}
-                className="bg-muted active:bg-muted/80 w-full h-10 items-center justify-center"
+                variant={'ghost'}
+                className="active:bg-muted/80 w-full border border-muted-foreground/30 h-10 items-center justify-center"
               >
                 <Text className="text-muted-foreground font-medium">
                   Cancel

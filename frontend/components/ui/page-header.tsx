@@ -1,9 +1,11 @@
-import React from 'react';
-import { View } from 'react-native';
-import { ArrowLeft, BellIcon, MoreHorizontal } from 'lucide-react-native';
+import React, { useState } from 'react';
+import { View, Alert } from 'react-native';
+import { ArrowLeft, BellIcon, MoreHorizontal, LogOut } from 'lucide-react-native';
 import { Button } from '@/components/ui/button';
 import { Text } from '@/components/ui/text';
 import { useRouter } from 'expo-router';
+import { useAuthStore } from '@/store/auth/authStore';
+import { ConfirmationModal } from '@/components/ui/confirmation-modal';
 
 interface PageHeaderProps {
   title: string;
@@ -25,6 +27,8 @@ export function PageHeader({
   showEllipsisButton = false,
 }: PageHeaderProps) {
   const router = useRouter();
+  const logout = useAuthStore((s) => s.logout);
+  const [showLogoutModal, setShowLogoutModal] = useState(false);
 
   const handleNotificationPress = () => {
     if (onNotificationPress) {
@@ -37,7 +41,15 @@ export function PageHeader({
   const handleEllipsisPress = () => {
     if (onEllipsisPress) {
       onEllipsisPress();
+      return;
     }
+    setShowLogoutModal(true);
+  };
+
+  const confirmLogout = async () => {
+    setShowLogoutModal(false);
+    await logout();
+    router.replace('/(auth)/login');
   };
 
   const handleBackPress = () => {
@@ -48,6 +60,7 @@ export function PageHeader({
     }
   };
   return (
+    <>
     <View className="flex-row items-center justify-between px-4 py-3">
       {/* Left Side - Back Button */}
       <View className="flex-1">
@@ -96,5 +109,19 @@ export function PageHeader({
         )}
       </View>
     </View>
+
+    {/* Logout Confirmation Modal */}
+    <ConfirmationModal
+      visible={showLogoutModal}
+      icon={<LogOut size={40} color="#fff" />}
+      modalTitle="Logout"
+      modalDescription="Are you sure you want to logout?"
+      confirmText="Logout"
+      iconBgColor="bg-red-500"
+      confirmButtonColor="bg-red-500 active:bg-red-600"
+      onCancel={() => setShowLogoutModal(false)}
+      onConfirm={confirmLogout}
+    />
+    </>
   );
 }
