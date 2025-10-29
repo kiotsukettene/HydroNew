@@ -39,7 +39,7 @@ answer: "This system is designed exclusively for growing lettuce. It is optimize
 
   return (
     <ScrollView>
-      <SafeAreaView className='p-4'>
+      <SafeAreaView className=' bg-background'>
         <PageHeader title='Help Center'/>
 
         <View className='items-center'>

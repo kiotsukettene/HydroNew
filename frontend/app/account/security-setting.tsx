@@ -34,14 +34,14 @@ export default function SecuritySetting() {
   ];
 
   return (
-    <SafeAreaView className='flex-1'>
+    <SafeAreaView className='flex-1 bg-background'>
       <View className='px-4 flex-1 items-center'>
           <PageHeader title="Security Settings" showNotificationButton={false} />
         <View className='size-24 bg-[#BFF1CC] rounded-full justify-center items-center mt-6'>
           <ShieldCheck size={60} color="#166534" />
         </View>
         <View className="w-full flex-1 mt-6">
-          <Card className="py-2 rounded-lg border border-muted-foreground/10 bg-white shadow-lg">
+          <Card className="py-2 rounded-lg border border-muted-foreground/20 shadow-lg">
             <CardContent>
               {settings.map((item, index) => {
                 const isDestructive = item.title === 'Delete Account'; 

@@ -204,11 +204,9 @@ export default function HydroponicsSetup({ onSetupComplete }: HydroponicsSetupPr
     <SafeAreaView className="flex-1 bg-background">
       <View className="flex-1">
         {/* =========== Header Section =========== */}
-        <View className="px-6 pt-6 pb-4 ">
-       
-
-           <PageHeader title="" />
-          <View className="mb-2 mt-4">
+        <View className=" pb-4 ">
+          <PageHeader title="" />
+          <View className="mb-2 mt-4 px-6">
             <Text className="text-2xl font-bold ">New Crop Setup</Text>
             <Text className="text-muted-foreground text-base mt-1">Fill in your crop's details to start monitoring</Text>
           </View>

@@ -7,11 +7,11 @@ import { PageHeader } from '@/components/ui/page-header';
 export default function TermsAndConditions() {
   return (
     <SafeAreaView className="flex-1">
-      <View className="px-4 pt-4 flex-1 items-center">
+      <View className="flex-1 items-center">
         <PageHeader title="Terms & Conditions" showNotificationButton={false} />
 
         {/* Scrollable content */}
-        <ScrollView
+        <ScrollView className='px-6'
           showsVerticalScrollIndicator={true}
           contentContainerStyle={{flexGrow: 1}}
         >
