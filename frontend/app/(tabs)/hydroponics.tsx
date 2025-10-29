@@ -27,7 +27,7 @@ export default function Hydroponics() {
   if (!hydroponicSetups || hydroponicSetups.length === 0) return <NoSetup />;
 
   return (
-    <SafeAreaView className="relative flex-1">
+    <SafeAreaView className="relative flex-1 bg-white">
       <Image
         source={require('@/assets/images/list-bg.png')}
         className="absolute w-full"
@@ -65,7 +65,7 @@ export default function Hydroponics() {
                             params: { id: item.id }
                           })}
                           className="mt-4">
-                          <Card className="relative items-center justify-center overflow-hidden border-muted-foreground/50 bg-muted/30 py-8 px-6 sm:p-6">
+                          <Card className="relative items-center justify-center overflow-hidden border-muted-foreground/20 bg-lime-50/20 py-8 px-6 sm:p-6">
                             <View className="relative flex w-full flex-row items-center justify-between">
                               <View className="flex-1 pr-4">
                                 <Text className="text-xl font-semibold sm:text-xl">{item.crop_name}</Text>

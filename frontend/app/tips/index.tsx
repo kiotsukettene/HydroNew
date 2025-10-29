@@ -9,7 +9,7 @@ import { Badge } from '@/components/ui/badge';
 export default function Index() {
   return (
     <ScrollView>
-    <SafeAreaView>
+    <SafeAreaView className='bg-white'>
       <View>
         <PageHeader title="Tips and Suggestions"></PageHeader>
       </View>

@@ -64,16 +64,16 @@ export default function Home() {
   const growth = { percentage: 45 }; // Still mock data for now
 
   return (
-    <ScrollView>
-      <SafeAreaView>
-        <View className="p-4">
+    <ScrollView className='bg-white'>
+      <SafeAreaView className=''>
+        <View className="p-4 ">
 
           
           {/* ===== Page Header ===== */}
           <View className="flex-row items-center justify-between pt-2">
             <View>
-              <Text className="text-base text-foreground/70">Hello,</Text>
-              <Text className="text-2xl font-semibold text-foreground/80">{userName}!</Text>
+              <Text className="text-base ">Hello,</Text>
+              <Text className="text-2xl font-semibold ">{userName}!</Text>
             </View>
             <Button variant={'ghost'} onPress={() => router.push('/notifications')}>
               <BellIcon size={22} strokeWidth={3} color={'#445104'} />
@@ -106,7 +106,7 @@ export default function Home() {
                       Water Status
                     </Text>
                     <View className="rounded-full bg-yellow-100 px-3 py-1">
-                      <Text className="text-center text-sm font-medium">
+                      <Text className="text-center text-sm font-medium text-yellow-800">
                         {waterQuality.status}
                       </Text>
                     </View>
@@ -117,7 +117,7 @@ export default function Home() {
                       Water Level
                     </Text>
                     <View className="rounded-full bg-yellow-100 px-3 py-1">
-                      <Text className="text-center text-sm font-medium">
+                      <Text className="text-center text-sm font-medium text-yellow-800">
                         Low
                       </Text>
                     </View>
@@ -143,7 +143,7 @@ export default function Home() {
                         Nearest to Harvest
                       </Text>
                     </View>
-                    <Text className="text-lg font-medium text-muted px-2">
+                    <Text className="text-lg font-medium text-foreground px-2">
                       Lettuce A
                     </Text>
                   </View>
