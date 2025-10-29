@@ -264,7 +264,7 @@ export default function Filtration() {
 
  
   return (  
-    <SafeAreaView className="flex-1 relative">
+    <SafeAreaView className="flex-1 relative bg-background">
       <Image
         source={require('@/assets/images/filtration-bg.png')}
         className="absolute w-full"
