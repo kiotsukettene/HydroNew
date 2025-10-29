@@ -17,11 +17,10 @@ export const useYieldStore = create<HydroponicYieldState>((set, get) => ({
   loading: false,
   error: null,
 
-  // fetch all yields belonging to the authenticated user
   fetchYields: async () => {
     set({ loading: true, error: null });
     try {
-      const response = await axiosInstance.get("/yields");
+      const response = await axiosInstance.get("/hydroponic-yields");
       set({ yields: response.data.data || [], loading: false });
     } catch (err: any) {
       const { message } = handleAxiosError(err);
@@ -29,11 +28,10 @@ export const useYieldStore = create<HydroponicYieldState>((set, get) => ({
     }
   },
 
-  //fetch specific yield by setup id
   fetchYieldBySetup: async (setupId: number) => {
     set({ loading: true, error: null });
     try {
-      const response = await axiosInstance.get(`/yields/${setupId}`);
+      const response = await axiosInstance.get(`/hydroponic-yields/${setupId}`);
       set({ yields: response.data.data || [], loading: false });
     } catch (err: any) {
       const { message } = handleAxiosError(err);
@@ -48,7 +46,7 @@ export const useYieldStore = create<HydroponicYieldState>((set, get) => ({
   ) => {
     set({ loading: true, error: null });
     try {
-      const response = await axiosInstance.put(`/yields/${yieldId}`, payload);
+      const response = await axiosInstance.put(`/hydroponic-yields/${yieldId}`, payload);
 
       const updatedYield: HydroponicYield = response.data.data;
       const updatedYields = get().yields.map((y) =>
