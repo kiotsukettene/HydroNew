@@ -12,6 +12,7 @@ import { Image, Pressable, ScrollView, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import PHLevelDetailsModal from '../water-monitor/ph-level-details';
 import TDSDetailsModal from '../water-monitor/tds-details';
+import  PhScale from '@/components/ui/ph-meter';
 
 
 import { db } from '@/src/firebase';
@@ -186,12 +187,8 @@ const [latestKey, setLatestKey] = useState<string | null>(null);
                 visible={isPHLevelDetailsModalVisible}
                 onClose={() => setIsPHLevelDetailsModalVisible(false)}
                 />
-              </View>            
-              <Image
-              source={require('@/assets/images/ph-level-indicator.png')} 
-                className="w-full"
-                resizeMode="contain"
-              />
+              </View>
+              <PhScale phValue={sensorData ? sensorData.ph : 0} />
             </View>
 
         </View>
