@@ -93,9 +93,7 @@ export default function SecuritySettings() {
         style={{ flex: 1 }}
       >
         <ScrollView
-          contentContainerStyle={{ flexGrow: 1 }}
-          showsVerticalScrollIndicator={false}
-          className="px-4 flex-1 justify-between"
+          
         >
           {/* ================= Title page  ==================== */}
           <PageHeader title="Change Password" showNotificationButton={false} />
