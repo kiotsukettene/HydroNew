@@ -23,7 +23,6 @@ type UpdateProfilePictureData = {
 type updatePasswordData = {
   current_password: string;
   new_password: string;
-  new_password_confirmation: string;
 };
 
 type AccountState = {

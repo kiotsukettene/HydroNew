@@ -3,17 +3,17 @@ import React, { useState, useRef } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { PageHeader } from '@/components/ui/page-header';
 import { useRouter } from 'expo-router';
-
+import { z } from 'zod';
 import { Text } from '@/components/ui/text';
 import { Button } from '@/components/ui/button';
 import { Icon } from '@/components/ui/icon';
 import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
 import { ArrowLeft, Save, Calendar, CheckCircle, ChevronDown, Play, Plus, Minus, Leaf } from 'lucide-react-native';
-import { Badge } from '@/components/ui/badge';
+import { useEffect } from 'react';
 import { useHydroponicSetupStore } from "@/store/hydroponics/hydroponicSetupStore";
 import { toast } from 'sonner-native';
-
+import { hydroponicSchema } from '@/validators/hydoponicSchema';
 
 
 interface HydroponicsSetupData {
@@ -54,145 +54,68 @@ export default function HydroponicsSetup({ onSetupComplete }: HydroponicsSetupPr
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showBedSizeDropdown, setShowBedSizeDropdown] = useState(false);
   const buttonScale = useRef(new Animated.Value(1)).current;
+  const [errors, setErrors] = useState<Record<string, string>>({});
+
+  const resetErrors = () => {
+    setErrors({});
+  };
 
   const handleInputChange = (field: keyof HydroponicsSetupData, value: string) => {
     setFormData(prev => ({
       ...prev,
       [field]: value
     }));
+    resetErrors();
   };
 
   const handleStepperChange = (field: 'numberOfCrops', delta: number) => {
-    const currentValue = parseInt(formData[field]) || 0;
+    const currentValue = parseInt(formData[field]) || 1;
     const newValue = Math.max(1, currentValue + delta);
     handleInputChange(field, newValue.toString());
   };
 
-  // Validation function
-  const validateSetupData = (data: {
-    crop_name: string;
-    number_of_crops: number;
-    bed_size: string;
-    nutrient_solution: string;
-    target_ph_min: number;
-    target_ph_max: number;
-    target_tds_min: number;
-    target_tds_max: number;
-    water_amount: string;
-    pump_config?: any;
-  }) => {
-    // Check required fields
-    if (!data.crop_name?.trim()) {
-      return { valid: false, error: 'Crop name is required' };
-    }
-    
-    if (!data.number_of_crops) {
-      return { valid: false, error: 'Number of crops is required' };
-    }
-    
-    if (!data.nutrient_solution?.trim()) {
-      return { valid: false, error: 'Nutrient solution is required' };
-    }
-    
-    if (!data.target_ph_min || !data.target_ph_max) {
-      return { valid: false, error: 'Target pH range is required' };
-    }
-    
-    if (!data.target_tds_min || !data.target_tds_max) {
-      return { valid: false, error: 'Target TDS range is required' };
-    }
-    
-    if (!data.water_amount) {
-      return { valid: false, error: 'Water amount is required' };
-    }
-    
-    // Validate numeric fields
-    const numberOfCrops = parseInt(data.number_of_crops as any);
-    if (isNaN(numberOfCrops) || numberOfCrops <= 0) {
-      return { valid: false, error: 'Number of crops must be a positive number' };
-    }
-    
-    const targetPhMin = parseFloat(data.target_ph_min as any);
-    if (isNaN(targetPhMin) || targetPhMin <= 0) {
-      return { valid: false, error: 'Target pH minimum must be a valid positive number' };
-    }
-    
-    const targetPhMax = parseFloat(data.target_ph_max as any);
-    if (isNaN(targetPhMax) || targetPhMax <= 0) {
-      return { valid: false, error: 'Target pH maximum must be a valid positive number' };
-    }
-    
-    if (targetPhMax <= targetPhMin) {
-      return { valid: false, error: 'Target pH maximum must be greater than minimum' };
-    }
-    
-    const targetTdsMin = parseInt(data.target_tds_min as any);
-    if (isNaN(targetTdsMin) || targetTdsMin <= 0) {
-      return { valid: false, error: 'Target TDS minimum must be a valid positive number' };
-    }
-    
-    const targetTdsMax = parseInt(data.target_tds_max as any);
-    if (isNaN(targetTdsMax) || targetTdsMax <= 0) {
-      return { valid: false, error: 'Target TDS maximum must be a valid positive number' };
-    }
-    
-    if (targetTdsMax <= targetTdsMin) {
-      return { valid: false, error: 'Target TDS maximum must be greater than minimum' };
-    }
-    
-    // Extract water amount number
-    const waterAmountNum = parseFloat(data.water_amount.replace(/L/i, '').trim());
-    if (isNaN(waterAmountNum) || waterAmountNum <= 0) {
-      return { valid: false, error: 'Water amount must be a valid positive number' };
-    }
-    
-    return { valid: true };
-  };
+const onSubmit = async () => {
+  setIsSubmitting(true);
+  resetErrors();
 
-  const onSubmit = async () => {
-    setIsSubmitting(true);
-    resetError();
+  try {
+    const setupData = {
+      crop_name: formData.cropName,
+      number_of_crops: parseInt(formData.numberOfCrops, 10),
+      bed_size: formData.bedSize,
+      nutrient_solution: formData.nutrientSolution,
+      target_ph_min: parseFloat(formData.targetPh),
+      target_ph_max: parseFloat(formData.targetPhMax),
+      target_tds_min: parseInt(formData.targetTdsMin, 10),
+      target_tds_max: parseInt(formData.targetTdsMax, 10),
+      water_amount: `${formData.waterAmount}L`,
+      pump_config: null,
+    };
 
-    try {
-      const setupData = {
-        crop_name: formData.cropName,
-        number_of_crops: parseInt(formData.numberOfCrops, 10),
-        bed_size: formData.bedSize,
-        nutrient_solution: formData.nutrientSolution,
-        target_ph_min: parseFloat(formData.targetPh),
-        target_ph_max: parseFloat(formData.targetPhMax),
-        target_tds_min: parseInt(formData.targetTdsMin, 10),
-        target_tds_max: parseInt(formData.targetTdsMax, 10),
-        water_amount: `${formData.waterAmount}L`,
-        pump_config: null,
-      };
+    const validatedData = hydroponicSchema.parse(setupData);
+    await createHydroponicSetup(validatedData);
 
-      // Validate using local validation function
-      const validation = validateSetupData(setupData);
-      if (!validation.valid) {
-        toast.error(validation.error || 'Validation failed');
-        setIsSubmitting(false);
-        return;
-      }
-
-      await createHydroponicSetup(setupData);
-
-      // Get the current error state after the async operation
-      const currentError = useHydroponicSetupStore.getState().error;
-      
-      if (currentError) {
-        toast.error(currentError);
-      } else {
-        toast.success("Hydroponic setup created successfully!");
-        router.push('/(tabs)/hydroponics');
-      }
-    } catch (err) {
-      console.error("Hydroponic setup creation failed:", err);
+    const currentError = useHydroponicSetupStore.getState().error;
+    if (currentError) {
+      toast.error(currentError);
+    } else {
+      toast.success("Hydroponic setup created successfully!");
+      router.push("/(tabs)/hydroponics");
+    }
+  } catch (err) {
+    if (err instanceof z.ZodError) {
+      const fieldErrors: Record<string, string> = {};
+      err.errors.forEach((e) => {
+        if (e.path[0]) fieldErrors[e.path[0]] = e.message;
+      });
+      setErrors(fieldErrors);
+    } else {
       toast.error("Failed to create setup. Please try again.");
-    } finally {
-      setIsSubmitting(false);
     }
-  };
+  } finally {
+    setIsSubmitting(false);
+  }
+};
 
   const bedSizeOptions = [
     { value: 'small', label: 'Small' },
@@ -233,9 +156,14 @@ export default function HydroponicsSetup({ onSetupComplete }: HydroponicsSetupPr
                     placeholder="e.g., Lettuce, Tomatoes, Basil"
                     value={formData.cropName}
                     onChangeText={(value) => handleInputChange('cropName', value)}
-                    className="border border-muted-foreground/50 bg-[#FAFFFA]  focus:border-[#4CAF50] text-base"
+                   className={`border rounded-xl px-3 py-4 bg-[#FAFFFA] focus:border-[#4CAF50] text-base ${ 
+                      errors.crop_name ? "border-red-500" : "border-muted-foreground/50"
+                    }`}
                     placeholderTextColor="#95A5A6"
                   />
+                    {errors.crop_name && (
+                      <Text className="text-red-500 text-sm mt-1">{errors.crop_name}</Text>
+                    )}
                 </View>
 
                 {/* Number of Crops with Stepper */}
@@ -335,25 +263,35 @@ export default function HydroponicsSetup({ onSetupComplete }: HydroponicsSetupPr
                   <View className="flex-row space-x-3 gap-4">
                     <View className="flex-1">
                       <Text className="text-xs text-[#7F8C8D] mb-2">Minimum</Text>
-                      <Input
-                        placeholder="6.5"
-                        value={formData.targetPh}
-                        onChangeText={(value) => handleInputChange('targetPh', value)}
-                        keyboardType="numeric"
-                        className="border border-muted-foreground/50 rounded-xl px-3 py-4 bg-[#FAFFFA] text-[#2C3E50] focus:border-[#4CAF50] text-base text-center"
-                        placeholderTextColor="#95A5A6"
-                      />
+                        <Input
+                          placeholder="6.5"
+                          value={formData.targetPh}
+                          onChangeText={(value) => handleInputChange("targetPh", value)}
+                          keyboardType="numeric"
+                          className={`border rounded-xl px-3 py-4 bg-[#FAFFFA] text-[#2C3E50] focus:border-[#4CAF50] text-base text-center ${
+                            errors.target_ph_min ? "border-red-500" : "border-muted-foreground/50"
+                          }`}
+                          placeholderTextColor="#95A5A6"
+                        />
+                        {errors.target_ph_min && (
+                          <Text className="text-red-500 text-sm mt-1">{errors.target_ph_min}</Text>
+                        )}
                     </View>
                     <View className="flex-1">
                       <Text className="text-xs text-[#7F8C8D] mb-2">Maximum</Text>
-                      <Input
-                        placeholder="7.0"
-                        value={formData.targetPhMax}
-                        onChangeText={(value) => handleInputChange('targetPhMax', value)}
-                        keyboardType="numeric"
-                        className="border border-muted-foreground/50 rounded-xl px-3 py-4 bg-[#FAFFFA] text-[#2C3E50] focus:border-[#4CAF50] text-base text-center"
-                        placeholderTextColor="#95A5A6"
-                      />
+                        <Input
+                          placeholder="6.5"
+                          value={formData.targetPhMax}
+                          onChangeText={(value) => handleInputChange("targetPhMax", value)}
+                          keyboardType="numeric"
+                          className={`border rounded-xl px-3 py-4 bg-[#FAFFFA] text-[#2C3E50] focus:border-[#4CAF50] text-base text-center ${
+                            errors.target_ph_max ? "border-red-500" : "border-muted-foreground/50"
+                          }`}
+                          placeholderTextColor="#95A5A6"
+                        />
+                        {errors.target_ph_max && (
+                          <Text className="text-red-500 text-sm mt-1">{errors.target_ph_max}</Text>
+                        )}
                     </View>
                   </View>
                 </View>
@@ -364,35 +302,40 @@ export default function HydroponicsSetup({ onSetupComplete }: HydroponicsSetupPr
                   <View className="flex-row space-x-3 gap-4">
                     <View className="flex-1">
                       <Text className="text-xs text-[#7F8C8D] mb-2">Minimum</Text>
-                      <Input
-                        placeholder="800"
-                        value={formData.targetTdsMin}
-                        onChangeText={(value) => handleInputChange('targetTdsMin', value)}
-                        keyboardType="numeric"
-                        className="border border-muted-foreground/50 rounded-xl px-3 py-4 bg-[#FAFFFA] text-[#2C3E50] focus:border-[#4CAF50] text-base text-center"
-                        placeholderTextColor="#95A5A6"
-                      />
+                        <Input
+                          placeholder="800"
+                          value={formData.targetTdsMin}
+                          onChangeText={(value) => handleInputChange("targetTdsMin", value)}
+                          keyboardType="numeric"
+                          className={`border rounded-xl px-3 py-4 bg-[#FAFFFA] text-[#2C3E50] text-base text-center 
+                            ${errors.target_tds_min ? "border-red-500" : "border-muted-foreground/50"} 
+                            ${!errors.target_tds_min && "focus:border-[#4CAF50]"}`}
+                          placeholderTextColor="#95A5A6"
+                        />
+                        {errors.target_tds_min && (
+                          <Text className="text-red-500 text-sm mt-1">{errors.target_tds_min}</Text>
+                        )}
                     </View>
                     <View className="flex-1">
                       <Text className="text-xs text-[#7F8C8D] mb-2">Maximum</Text>
-                      <Input
-                        placeholder="1200"
-                        value={formData.targetTdsMax}
-                        onChangeText={(value) => handleInputChange('targetTdsMax', value)}
-                        keyboardType="numeric"
-                        className="border border-muted-foreground/50 rounded-xl px-3 py-4 bg-[#FAFFFA] text-[#2C3E50] focus:border-[#4CAF50] text-base text-center"
-                        placeholderTextColor="#95A5A6"
-                      />
+                        <Input
+                          placeholder="1200"
+                          value={formData.targetTdsMax}
+                          onChangeText={(value) => handleInputChange("targetTdsMax", value)}
+                          keyboardType="numeric"
+                          className={`border rounded-xl px-3 py-4 bg-[#FAFFFA] text-[#2C3E50] text-base text-center 
+                            ${errors.target_tds_max ? "border-red-500" : "border-muted-foreground/50"} 
+                            ${!errors.target_tds_max && "focus:border-[#4CAF50]"}`}
+                          placeholderTextColor="#95A5A6"
+                        />
+                        {errors.target_tds_max && (
+                          <Text className="text-red-500 text-sm mt-1">{errors.target_tds_max}</Text>
+                        )}
                     </View>
                   </View>
                 </View>
-
-               
               </View>
             </Card>
-
-           
-
             {/* Save Button */}
             <Button 
               className="w-full"

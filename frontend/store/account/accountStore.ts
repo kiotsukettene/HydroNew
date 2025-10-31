@@ -78,6 +78,7 @@ export const useAccountStore = create<AccountState>((set, get) => ({
         } catch (error) {
             const { message } = handleAxiosError(error);
             set({ error: message, loading: false });
+            throw new Error(message);
         }
     },
 
