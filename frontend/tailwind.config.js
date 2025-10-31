@@ -2,7 +2,7 @@ const { hairlineWidth } = require('nativewind/theme');
 
 /** @type {import('tailwindcss').Config} */
 module.exports = {
-  darkMode: 'class',
+  // darkMode: 'class',
   content: ['./app/**/*.{ts,tsx}', './components/**/*.{ts,tsx}'],
   presets: [require('nativewind/preset')],
   theme: {
@@ -38,8 +38,8 @@ module.exports = {
           foreground: 'hsl(var(--popover-foreground))',
         },
         card: {
-          DEFAULT: 'hsl(var(--card))',
-          foreground: 'hsl(var(--card-foreground))',
+          DEFAULT: 'hsl(0, 0%, 100%)',
+          foreground: 'hsl(0, 0%, 3.9%)',
         },
       },
       borderRadius: {
@@ -49,6 +49,15 @@ module.exports = {
       },
       borderWidth: {
         hairline: hairlineWidth(),
+      },
+      fontFamily: {
+        'sans': ['Inter', 'system-ui', 'sans-serif'],
+        'inter': ['Inter', 'system-ui', 'sans-serif'],
+        'inter-medium': ['Inter', 'system-ui', 'sans-serif'],
+        'inter-semibold': ['Inter', 'system-ui', 'sans-serif'],
+        'inter-bold': ['Inter', 'system-ui', 'sans-serif'],
+        'inter-light': ['Inter', 'system-ui', 'sans-serif'],
+        'finger-paint': ['FingerPaint-Regular', 'FingerPaint', 'system-ui'],
       },
       keyframes: {
         'accordion-down': {
