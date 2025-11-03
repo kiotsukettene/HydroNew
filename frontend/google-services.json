@@ -1,0 +1,63 @@
+{
+  "project_info": {
+    "project_number": "835032812073",
+    "firebase_url": "https://hydronew-iot-default-rtdb.asia-southeast1.firebasedatabase.app",
+    "project_id": "hydronew-iot",
+    "storage_bucket": "hydronew-iot.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:835032812073:android:915f894d80e6505985aa38",
+        "android_client_info": {
+          "package_name": "com.momorevillame.frontend"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "835032812073-ecu2uas956lqtu2m1riqfmoinr64rsav.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.momorevillame.frontend",
+            "certificate_hash": "a143b98c0ff4ad363b963ae0f691703ebffac5ef"
+          }
+        },
+        {
+          "client_id": "835032812073-ovrhnk8k52orq3c3s89vqn0s66am0rlq.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.momorevillame.frontend",
+            "certificate_hash": "3add31353a8ce464173ee5bfda41a4a9ada31b23"
+          }
+        },
+        {
+          "client_id": "835032812073-av4pmjr94757qiu2ug8ri9ivfdkdp9nd.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDBES-a5NSUtTRb_ZzSz2DGeOG_tQs6pV0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "835032812073-av4pmjr94757qiu2ug8ri9ivfdkdp9nd.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "835032812073-qgj1drvfshcq34n9c94vceincm2ulbpj.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.hydronew.me"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
