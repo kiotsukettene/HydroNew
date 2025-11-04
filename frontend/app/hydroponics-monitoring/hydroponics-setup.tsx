@@ -19,7 +19,7 @@ import { hydroponicSchema } from '@/validators/hydoponicSchema';
 interface HydroponicsSetupData {
   cropName: string;
   numberOfCrops: string;
-  bedSize: 'small' | 'medium' | 'large';
+  bedSize: string;
   nutrientSolution: string;
   targetPh: string;
   targetPhMax: string;
@@ -37,10 +37,11 @@ interface HydroponicsSetupProps {
 export default function HydroponicsSetup({ onSetupComplete }: HydroponicsSetupProps) {
   const router = useRouter();
   const { createHydroponicSetup, error, resetError } = useHydroponicSetupStore();
+  
   const [formData, setFormData] = useState<HydroponicsSetupData>({
     cropName: '',
     numberOfCrops: '1',
-    bedSize: 'medium',
+    bedSize: '',
     nutrientSolution: '',
     targetPh: '6.5',
     targetPhMax: '7.0',
@@ -53,6 +54,7 @@ export default function HydroponicsSetup({ onSetupComplete }: HydroponicsSetupPr
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showBedSizeDropdown, setShowBedSizeDropdown] = useState(false);
+  const [showCropDropdown, setShowCropDropdown] = useState(false);
   const buttonScale = useRef(new Animated.Value(1)).current;
   const [errors, setErrors] = useState<Record<string, string>>({});
 
@@ -123,6 +125,15 @@ const onSubmit = async () => {
     { value: 'large', label: 'Large' },
   ];
 
+  const cropOptions = [
+    { value: 'olmetie', label: 'Olmetie' },
+    { value: 'green-rapid', label: 'Green rapid' },
+    { value: 'romaine', label: 'Romaine' },
+    { value: 'butterhead', label: 'Butterhead' },
+    { value: 'loose-leaf', label: 'Loose-leaf' },
+
+  ];
+
   return (
     <SafeAreaView className="flex-1 bg-background">
       <View className="flex-1">
@@ -149,23 +160,68 @@ const onSubmit = async () => {
               </View>
               
               <View className="gap-6">
-                {/* Crop Name */}
+              
+                {/* Crop Dropdown */}
                 <View>
-                  <Text className="text-base font-medium  mb-2">Crop Name</Text>
-                  <Input
-                    placeholder="e.g., Lettuce, Tomatoes, Basil"
-                    value={formData.cropName}
-                    onChangeText={(value) => handleInputChange('cropName', value)}
-                   className={`border rounded-xl px-3 py-4 bg-[#FAFFFA] focus:border-[#4CAF50] text-base ${ 
-                      errors.crop_name ? "border-red-500" : "border-muted-foreground/50"
-                    }`}
-                    placeholderTextColor="#95A5A6"
-                  />
-                    {errors.crop_name && (
-                      <Text className="text-red-500 text-sm mt-1">{errors.crop_name}</Text>
-                    )}
+                  <Text className="text-base font-medium  mb-2">Crop </Text>
+                  <TouchableOpacity
+                    className="border border-muted-foreground/50 rounded-xl px-3 py-4 bg-[#FAFFFA] flex-row items-center justify-between"
+                    onPress={() => setShowCropDropdown(!showCropDropdown)}
+                  >
+                    <Text className="text-[#2C3E50] capitalize text-base">{formData.cropName}</Text>
+                    <Icon as={ChevronDown} size={20} className="text-[#7F8C8D]" />
+                  </TouchableOpacity>
+                  {showCropDropdown && (
+                    <View className="border border-[#E8F5E8] rounded-xl mt-2 bg-white shadow-lg">
+                      {cropOptions.map((option) => (
+                        <TouchableOpacity
+                          key={option.value}
+                          className="px-3 py-4 border-b border-[#F0F8F0] last:border-b-0"
+                          onPress={() => {
+                            handleInputChange('cropName', option.value as 'olmetie' | 'green-rapid' | 'romaine' | 'butterhead' | 'loose-leaf');
+                            setShowCropDropdown(false);
+                          }}
+                        >
+                          <Text className="text-[#2C3E50] capitalize text-base">{option.label}</Text>
+                        </TouchableOpacity>
+                      ))}
+                    </View>
+                  )}
                 </View>
 
+
+                {/* Bed Size Dropdown */}
+                <View>
+                  <Text className="text-base font-medium  mb-2">Bed Size</Text>
+                  <TouchableOpacity
+                    className="border border-muted-foreground/50 rounded-xl px-3 py-4 bg-[#FAFFFA] flex-row items-center justify-between"
+                    onPress={() => setShowBedSizeDropdown(!showBedSizeDropdown)}
+                  >
+                    <Text className={`text-[#2C3E50] capitalize text-base ${!formData.bedSize ? 'text-muted-foreground' : ''}`}>
+                      {formData.bedSize || 'Select bed size'}
+                    </Text>
+                    <Icon as={ChevronDown} size={20} className="text-[#7F8C8D]" />
+                  </TouchableOpacity>
+                  
+                  {showBedSizeDropdown && (
+                    <View className="border border-[#E8F5E8] rounded-xl mt-2 bg-white shadow-lg">
+                      {bedSizeOptions.map((option) => (
+                        <TouchableOpacity
+                          key={option.value}
+                          className="px-3 py-4 border-b border-[#F0F8F0] last:border-b-0"
+                          onPress={() => {
+                            handleInputChange('bedSize', option.value as 'small' | 'medium' | 'large');
+                            setShowBedSizeDropdown(false);
+                          }}
+                        >
+                          <Text className="text-[#2C3E50] capitalize text-base">{option.label}</Text>
+                        </TouchableOpacity>
+                      ))}
+                    </View>
+                  )}
+                </View>
+
+                
                 {/* Number of Crops with Stepper */}
                 <View>
                   <Text className="text-base font-medium  mb-2">Number of Crops</Text>
@@ -192,35 +248,6 @@ const onSubmit = async () => {
                   </View>
                 </View>
 
-                {/* Bed Size Dropdown */}
-                <View>
-                  <Text className="text-base font-medium  mb-2">Bed Size</Text>
-                  <TouchableOpacity
-                    className="border border-muted-foreground/50 rounded-xl px-3 py-4 bg-[#FAFFFA] flex-row items-center justify-between"
-                    onPress={() => setShowBedSizeDropdown(!showBedSizeDropdown)}
-                  >
-                    <Text className="text-[#2C3E50] capitalize text-base">{formData.bedSize}</Text>
-                    <Icon as={ChevronDown} size={20} className="text-[#7F8C8D]" />
-                  </TouchableOpacity>
-                  
-                  {showBedSizeDropdown && (
-                    <View className="border border-[#E8F5E8] rounded-xl mt-2 bg-white shadow-lg">
-                      {bedSizeOptions.map((option) => (
-                        <TouchableOpacity
-                          key={option.value}
-                          className="px-3 py-4 border-b border-[#F0F8F0] last:border-b-0"
-                          onPress={() => {
-                            handleInputChange('bedSize', option.value as 'small' | 'medium' | 'large');
-                            setShowBedSizeDropdown(false);
-                          }}
-                        >
-                          <Text className="text-[#2C3E50] capitalize text-base">{option.label}</Text>
-                        </TouchableOpacity>
-                      ))}
-                    </View>
-                  )}
-                </View>
-
                  {/* Water Amount */}
                 <View>
                   <Text className="text-base font-medium text-[#34495E] mb-2">Water Amount (Liters)</Text>
@@ -233,7 +260,7 @@ const onSubmit = async () => {
                   />
                 </View>
 
-                {/* Nutrient Solution */}
+                {/* Nutrient Solution  -- OPTIONAL LANG PO */}
                 <View>
                   <Text className="text-base font-medium  mb-2">Nutrient Solution</Text>
                   <Input
