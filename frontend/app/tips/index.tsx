@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useCallback, useEffect } from "react";
 import { ScrollView, View, ActivityIndicator } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Text } from "@/components/ui/text";
@@ -6,13 +6,20 @@ import { PageHeader } from "@/components/ui/page-header";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useTipStore } from "@/store/tips_suggestion/tipStore";
+import { useFocusEffect } from "@react-navigation/native";
 
 export default function TipsSuggestionPage() {
   const { data, loading, error, fetchTips } = useTipStore();
 
-  useEffect(() => {
-    fetchTips();
-  }, []);
+  useFocusEffect(
+    useCallback(() => {
+      // This will run every time the screen comes into focus
+      fetchTips(); 
+    
+      // You can also return a cleanup function if needed
+      return () => {}; 
+    }, [fetchTips]) // Add fetchTips as a dependency
+  );
 
   const colorPairs = [
     { bg: "bg-blue-100", badge: "bg-blue-500" },
