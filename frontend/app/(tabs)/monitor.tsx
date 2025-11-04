@@ -17,10 +17,12 @@ import  PhScale from '@/components/ui/ph-meter';
 
 import { db } from '@/src/firebase';
 import { onValue, ref } from 'firebase/database';
+import TurbidityDetailsModal from '../water-monitor/turbidity-details';
 
 interface SensorData {
   ph: number;
   tds: number;
+  status: string;
   turbidity: number;
   timestamp: number;
 }
@@ -30,6 +32,7 @@ export default function Monitor() {
 
   const router = useRouter();
   const [isTDSDetailsModalVisible, setIsTDSDetailsModalVisible] = useState(false);
+  const [isTurbidityDetailsModalVisible, setIsTurbidityDetailsModalVisible] = useState(false);
   const [isPHLevelDetailsModalVisible, setIsPHLevelDetailsModalVisible] = useState(false);
 
 
@@ -58,6 +61,8 @@ const [latestKey, setLatestKey] = useState<string | null>(null);
     { id: '1', description: 'Water pH adjusted', time: '8:00 AM' },
     { id: '2', description: 'Filtration completed', time: '9:15 AM' },
   ];
+
+
   return (
     <ScrollView>
       <SafeAreaView className='bg-white'>
@@ -91,10 +96,22 @@ const [latestKey, setLatestKey] = useState<string | null>(null);
                     />
                   </View>
 
-                  <View>
+                  <View className='flex-row items-center'>
+                    <View>
                     <Text className="text-gray-600">Turbidity</Text>
-                    <Text className="text-xl font-medium text-gray-800">{sensorData ? sensorData.turbidity.toFixed(2) : '--'}</Text>
+                    <Text className="text-xl font-medium text-gray-800">{sensorData ? `${Math.round(sensorData.turbidity)} ` : '--'}</Text>
                   </View>
+
+                    <Button variant={'ghost'} onPress={() => setIsTurbidityDetailsModalVisible(true)}>
+                    <Icon as={Info} color="#059669" size={18} className="ml-2 mt-1"  />
+                    </Button>
+                    <TurbidityDetailsModal
+                    visible={isTurbidityDetailsModalVisible}
+                    onClose={() => setIsTurbidityDetailsModalVisible(false)}
+                    />
+                  </View>
+
+                  
                 </View>
 
                 {/* Right Column: WATER TANK LEVEL */}
@@ -111,7 +128,7 @@ const [latestKey, setLatestKey] = useState<string | null>(null);
                   {/* "Safe for Plants" Badge */}
                   <Badge variant="secondary" className="bg-blue-500 dark:bg-blue-600">
                     <Icon as={BadgeCheckIcon} className="text-white" />
-                    <Text className="text-white">Safe for plants</Text>
+                    <Text className="text-white">  {sensorData?.status ?? '--'}</Text>
                   </Badge>
                 </View>
               </View>
