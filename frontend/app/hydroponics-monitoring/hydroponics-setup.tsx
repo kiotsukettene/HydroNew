@@ -45,8 +45,8 @@ export default function HydroponicsSetup({ onSetupComplete }: HydroponicsSetupPr
     nutrientSolution: '',
     targetPh: '6.5',
     targetPhMax: '7.0',
-    targetTdsMin: '800',
-    targetTdsMax: '1200',
+    targetTdsMin: '50',
+    targetTdsMax: '150',
     waterAmount: '5',
     setupDate: new Date().toISOString().split('T')[0], 
     status: 'active',
@@ -188,7 +188,9 @@ const onSubmit = async () => {
                     className="border border-muted-foreground/50 rounded-xl px-3 py-4 bg-[#FAFFFA] flex-row items-center justify-between"
                     onPress={() => setShowCropDropdown(!showCropDropdown)}
                   >
-                    <Text className="text-[#2C3E50] capitalize text-base">{formData.cropName}</Text>
+                    <Text className={`text-[#2C3E50] capitalize text-base ${!formData.cropName ? 'text-muted-foreground' : ''}`}>
+                      {formData.cropName || 'Select crop type'}
+                    </Text>
                     <Icon as={ChevronDown} size={20} className="text-[#7F8C8D]" />
                   </TouchableOpacity>
                   {showCropDropdown && (
@@ -298,7 +300,7 @@ const onSubmit = async () => {
 
                 {/* Nutrient Solution  -- OPTIONAL LANG PO */}
                 <View>
-                  <Text className="text-base font-medium  mb-2">Nutrient Solution</Text>
+                  <Text className="text-base font-medium  mb-2">Nutrient Solution (Optional)</Text>
                   <Input
                     placeholder="e.g., General Hydroponics Flora Series"
                     value={formData.nutrientSolution}
@@ -311,7 +313,6 @@ const onSubmit = async () => {
             </Card>
 
             {/* Target Parameters Card */} 
-            {/*  Nutrient and Water Settings */}
 
             <Card className="p-6 mb-6  shadow-sm border-0">
               <View className="mb-6">
@@ -322,78 +323,30 @@ const onSubmit = async () => {
               <View className="space-y-5 gap-6">
                 {/* pH Range */}
                 <View>
-                  <Text className="text-base font-medium  mb-3">Target pH Range</Text>
+                  <Text className="text-base font-medium  mb-3 bg-lime-50">Target pH Range</Text>
                   <View className="flex-row space-x-3 gap-4">
                     <View className="flex-1">
                       <Text className="text-xs text-[#7F8C8D] mb-2">Minimum</Text>
-                        <Input
-                          placeholder="6.5"
-                          value={formData.targetPh}
-                          onChangeText={(value) => handleInputChange("targetPh", value)}
-                          keyboardType="numeric"
-                          className={`border rounded-xl px-3 py-4 bg-[#FAFFFA] text-[#2C3E50] focus:border-[#4CAF50] text-base text-center ${
-                            errors.target_ph_min ? "border-red-500" : "border-muted-foreground/50"
-                          }`}
-                          placeholderTextColor="#95A5A6"
-                        />
-                        {errors.target_ph_min && (
-                          <Text className="text-red-500 text-sm mt-1">{errors.target_ph_min}</Text>
-                        )}
+                      <Text>{formData.targetPh}</Text>
                     </View>
-                    <View className="flex-1">
+                     <View className="flex-1">
                       <Text className="text-xs text-[#7F8C8D] mb-2">Maximum</Text>
-                        <Input
-                          placeholder="6.5"
-                          value={formData.targetPhMax}
-                          onChangeText={(value) => handleInputChange("targetPhMax", value)}
-                          keyboardType="numeric"
-                          className={`border rounded-xl px-3 py-4 bg-[#FAFFFA] text-[#2C3E50] focus:border-[#4CAF50] text-base text-center ${
-                            errors.target_ph_max ? "border-red-500" : "border-muted-foreground/50"
-                          }`}
-                          placeholderTextColor="#95A5A6"
-                        />
-                        {errors.target_ph_max && (
-                          <Text className="text-red-500 text-sm mt-1">{errors.target_ph_max}</Text>
-                        )}
+                      <Text>{formData.targetPhMax}</Text>
                     </View>
                   </View>
                 </View>
 
                 {/* TDS Range */}
                 <View>
-                  <Text className="text-base font-medium text-[#34495E] mb-3">Target TDS Range (ppm)</Text>
+                  <Text className="text-base font-medium bg-lime-50 mb-3">Target TDS Range (ppm)</Text>
                   <View className="flex-row space-x-3 gap-4">
                     <View className="flex-1">
                       <Text className="text-xs text-[#7F8C8D] mb-2">Minimum</Text>
-                        <Input
-                          placeholder="800"
-                          value={formData.targetTdsMin}
-                          onChangeText={(value) => handleInputChange("targetTdsMin", value)}
-                          keyboardType="numeric"
-                          className={`border rounded-xl px-3 py-4 bg-[#FAFFFA] text-[#2C3E50] text-base text-center 
-                            ${errors.target_tds_min ? "border-red-500" : "border-muted-foreground/50"} 
-                            ${!errors.target_tds_min && "focus:border-[#4CAF50]"}`}
-                          placeholderTextColor="#95A5A6"
-                        />
-                        {errors.target_tds_min && (
-                          <Text className="text-red-500 text-sm mt-1">{errors.target_tds_min}</Text>
-                        )}
+                      <Text>{formData.targetTdsMin}</Text>
                     </View>
                     <View className="flex-1">
                       <Text className="text-xs text-[#7F8C8D] mb-2">Maximum</Text>
-                        <Input
-                          placeholder="1200"
-                          value={formData.targetTdsMax}
-                          onChangeText={(value) => handleInputChange("targetTdsMax", value)}
-                          keyboardType="numeric"
-                          className={`border rounded-xl px-3 py-4 bg-[#FAFFFA] text-[#2C3E50] text-base text-center 
-                            ${errors.target_tds_max ? "border-red-500" : "border-muted-foreground/50"} 
-                            ${!errors.target_tds_max && "focus:border-[#4CAF50]"}`}
-                          placeholderTextColor="#95A5A6"
-                        />
-                        {errors.target_tds_max && (
-                          <Text className="text-red-500 text-sm mt-1">{errors.target_tds_max}</Text>
-                        )}
+                      <Text>{formData.targetTdsMax}</Text>
                     </View>
                   </View>
                 </View>
