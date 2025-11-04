@@ -1,118 +1,91 @@
-import { ScrollView, View } from 'react-native';
-import React from 'react';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { Text } from '@/components/ui/text';
-import { PageHeader } from '@/components/ui/page-header';
-import { Card } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
+import React, { useEffect } from "react";
+import { ScrollView, View, ActivityIndicator } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { Text } from "@/components/ui/text";
+import { PageHeader } from "@/components/ui/page-header";
+import { Card } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { useTipStore } from "@/store/tips_suggestion/tipStore";
 
-export default function Index() {
+export default function TipsSuggestionPage() {
+  const { data, loading, error, fetchTips } = useTipStore();
+
+  useEffect(() => {
+    fetchTips();
+  }, []);
+
+  const colorPairs = [
+    { bg: "bg-blue-100", badge: "bg-blue-500" },
+    { bg: "bg-green-100", badge: "bg-green-500" },
+    { bg: "bg-yellow-100", badge: "bg-yellow-500" },
+  ];
+
   return (
-    <ScrollView>
-    <SafeAreaView className='bg-white'>
-      <View>
-        <PageHeader title="Tips and Suggestions"></PageHeader>
-      </View>
-      <View className='p-4'>
-      <View className='p-4 gap-1'>
-      <Text className='font-semibold'>
-        Grow Smart, Grow Strong!
-      </Text>
-      <Text className='text-3xl font-bold'>
-        What we suggest
-      </Text>
-      <Text>
-        A few smart habits to keep your plants healthy. Clean water, timely feeding, and regular checks. Starts here!
-      </Text>
-      </View>
-    </View>
-      <View className="m-4 gap-2 p-2">
-        <Card className="border-transparent bg-blue-100 p-4">
-          <Badge className="w-28 items-center justify-center rounded-full bg-blue-500 p-2">
-            <Text className="text-md">Water Tips </Text>
-          </Badge>
-          <Text className="text-xl font-semibold">"Keep it clean!"</Text>
-          <View className="gap-2 px-6">
-            <Text>
-              • Make sure to use water that has been used to wash fruits and vegetables, and ensure
-              it is free of chemicals.
-            </Text>
-            <Text>
-              • Always check the water tank level to keep everything running safe and smooth.
-            </Text>
-          </View>
-        </Card>
-      </View>
+    <SafeAreaView className="bg-white flex-1">
+      <PageHeader title="Tips and Suggestions" />
 
-      <View className="m-4 gap-2 p-2">
-        <Card className="border-transparent bg-green-100 p-4">
-          <Badge className="w-28 items-center justify-center rounded-full bg-green-500 p-2">
-            <Text className="text-md">Nutrient Tips </Text>
-          </Badge>
-          <Text className="text-xl font-semibold">"Feed Wisely!"</Text>
-          <View className="gap-2 px-6">
-            <Text>
-              • Ensure your plants are getting enough nutrients. 
-            </Text>
-            <Text>
-              • Avoid overfeeding to keep roots healthy and support steady growth.
+      {/* ⏳ Show only loading screen when fetching */}
+      {loading && (
+        <View className="flex-1 items-center justify-center">
+          <ActivityIndicator size="large" color="#3B82F6" />
+          <Text className="mt-2 text-gray-500 text-center px-6">
+            Generating personalized tips for your hydroponic setup...
           </Text>
-          </View>
-        </Card>
-      </View>
+        </View>
+      )}
 
-      <View className="m-4 gap-2 p-2">
-        <Card className="border-transparent bg-red-100 p-4">
-          <Badge className="w-28 items-center justify-center rounded-full bg-red-500 p-2">
-            <Text className="text-md">Trimming Tips </Text>
-          </Badge>
-          <Text className="text-xl font-semibold">"Trim to thrive!"</Text>
-          <View className="gap-2 px-6">
-            <Text>
-              • Remove yellow or damaged leaves regularly to promote healthy growth. 
-            </Text>
-            <Text>
-              • Trimming helps your plants focus energy on new, stronger leaves.
+      {/* ⚠️ Error State */}
+      {!loading && error && (
+        <View className="m-4 bg-red-100 p-4 rounded-2xl">
+          <Text className="text-red-700 font-semibold text-center">
+            ⚠️ {error}
           </Text>
-          </View>
-        </Card>
-      </View>
+          <Text className="text-gray-600 text-center">
+            Showing example tips while we reconnect.
+          </Text>
+        </View>
+      )}
 
-      <View className="m-4 gap-2 p-2">
-        <Card className="border-transparent bg-gray-100 p-4">
-          <Badge className="w-36 items-center justify-center rounded-full bg-gray-500 p-2">
-            <Text className="text-md">Maintenance Tips </Text>
-          </Badge>
-          <Text className="text-xl font-semibold">"Check your setup!"</Text>
-          <View className="gap-2 px-6">
-            <Text>
-              • Make sure the water level stays above the pump and that all parts are working properly.  
+      {/* ✅ Data Loaded */}
+      {!loading && data && (
+        <ScrollView>
+          <View className="p-4 gap-1">
+            <Text className="font-semibold text-blue-600 text-lg">
+              {data.tips.category}
             </Text>
-            <Text>
-              • A quick daily check keeps your system running smoothly.
-          </Text>
+            <Text className="text-3xl font-bold">{data.tips.title}</Text>
+            <Text className="text-gray-700">{data.tips.description}</Text>
           </View>
-        </Card>
-      </View>
 
-      <View className="m-4 gap-2 p-2">
-        <Card className="border-transparent bg-yellow-100 p-4">
-          <Badge className="w-36 items-center justify-center rounded-full bg-yellow-500 p-2">
-            <Text className="text-md">Safety & Hygiene Tips</Text>
-          </Badge>
-          <Text className="text-xl font-semibold">“Safe to grow, safe to eat!”</Text>
-          <View className="gap-2 px-6">
-            <Text>
-              • Wash hands before and after handling hydroponic plants.  
-            </Text>
-            <Text>
-              • Keep tanks covered to prevent insects or dust from entering.
-          </Text>
+          <View className="m-4 gap-3">
+            {data.tips.bullet_points.map((bp, i) => {
+              const color = colorPairs[i % colorPairs.length];
+              return (
+                <Card
+                  key={i}
+                  className={`border-transparent ${color.bg} p-4 rounded-2xl`}
+                >
+                  <Badge
+                    className={`w-36 items-center justify-center rounded-full ${color.badge} p-2 self-start`}
+                  >
+                    <Text className="text-md text-white font-semibold">
+                      {bp.heading}
+                    </Text>
+                  </Badge>
+
+                  <View className="gap-2 px-4 mt-3">
+                    {bp.tips.slice(0, 3).map((tip, idx) => (
+                      <Text key={idx} className="text-gray-700">
+                        • {tip}
+                      </Text>
+                    ))}
+                  </View>
+                </Card>
+              );
+            })}
           </View>
-        </Card>
-      </View>
-      
+        </ScrollView>
+      )}
     </SafeAreaView>
-    </ScrollView>
   );
 }
