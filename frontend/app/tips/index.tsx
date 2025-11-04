@@ -73,14 +73,14 @@ export default function TipsSuggestionPage() {
                   className={`border-transparent ${color.bg} p-4 rounded-2xl`}
                 >
                   <Badge
-                    className={`w-36 items-center justify-center rounded-full ${color.badge} p-2 self-start`}
-                  >
-                    <Text className="text-md text-white font-semibold">
-                      {bp.heading}
-                    </Text>
-                  </Badge>
+  className={`px-4 py-2 items-center justify-center rounded-full ${color.badge} self-start`}
+>
+  <Text className="text-md text-white font-semibold text-center">
+    {bp.heading}
+  </Text>
+</Badge>
 
-                  <View className="gap-2 px-4 mt-3">
+                  <View className="gap-2 px-4 mt-1">
                     {bp.tips.slice(0, 3).map((tip, idx) => (
                       <Text key={idx} className="text-gray-700">
                         • {tip}
