@@ -1,4 +1,4 @@
-import { View, Image, TouchableOpacity, ScrollView, Switch, Animated } from 'react-native';
+import { View, TouchableOpacity, ScrollView, Switch, Animated, Modal } from 'react-native';
 import React, { useState, useRef } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { PageHeader } from '@/components/ui/page-header';
@@ -9,11 +9,14 @@ import { Button } from '@/components/ui/button';
 import { Icon } from '@/components/ui/icon';
 import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
-import { ArrowLeft, Save, Calendar, CheckCircle, ChevronDown, Play, Plus, Minus, Leaf } from 'lucide-react-native';
+import { ArrowLeft, Save, Calendar, CheckCircle, ChevronDown, Play, Plus, Minus, Leaf, Info, X, RotateCcw } from 'lucide-react-native';
 import { useEffect } from 'react';
 import { useHydroponicSetupStore } from "@/store/hydroponics/hydroponicSetupStore";
 import { toast } from 'sonner-native';
 import { hydroponicSchema } from '@/validators/hydoponicSchema';
+import { ConfirmationModal } from '@/components/ui/confirmation-modal';
+import { StatusModal } from '@/components/ui/status-modal';
+import CropInfoModal from './crop-info-modal';
 
 
 interface HydroponicsSetupData {
@@ -55,11 +58,36 @@ export default function HydroponicsSetup({ onSetupComplete }: HydroponicsSetupPr
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showBedSizeDropdown, setShowBedSizeDropdown] = useState(false);
   const [showCropDropdown, setShowCropDropdown] = useState(false);
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [showCropInfoModal, setShowCropInfoModal] = useState(false);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
   const buttonScale = useRef(new Animated.Value(1)).current;
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   const resetErrors = () => {
     setErrors({});
+  };
+
+  const initialFormData: HydroponicsSetupData = {
+    cropName: '',
+    numberOfCrops: '1',
+    bedSize: '',
+    nutrientSolution: '',
+    targetPh: '6.5',
+    targetPhMax: '7.0',
+    targetTdsMin: '50',
+    targetTdsMax: '150',
+    waterAmount: '5',
+    setupDate: new Date().toISOString().split('T')[0], 
+    status: 'active',
+  };
+
+  const handleResetForm = () => {
+    setFormData(initialFormData);
+    resetErrors();
+    setShowBedSizeDropdown(false);
+    setShowCropDropdown(false);
+    toast.success("Form reset successfully");
   };
 
   const handleInputChange = (field: keyof HydroponicsSetupData, value: string) => {
@@ -93,7 +121,12 @@ export default function HydroponicsSetup({ onSetupComplete }: HydroponicsSetupPr
     
   };
 
+const handleSaveClick = () => {
+  setShowConfirmModal(true);
+};
+
 const onSubmit = async () => {
+  setShowConfirmModal(false);
   setIsSubmitting(true);
   resetErrors();
 
@@ -118,8 +151,7 @@ const onSubmit = async () => {
     if (currentError) {
       toast.error(currentError);
     } else {
-      toast.success("Hydroponic setup created successfully!");
-      router.push("/(tabs)/hydroponics");
+      setShowSuccessModal(true);
     }
   } catch (err) {
     if (err instanceof z.ZodError) {
@@ -146,12 +178,11 @@ const onSubmit = async () => {
   ];
 
   const cropOptions = [
-    { value: 'olmetie', label: 'Olmetie' },
-    { value: 'green-rapid', label: 'Green rapid' },
-    { value: 'romaine', label: 'Romaine' },
-    { value: 'butterhead', label: 'Butterhead' },
-    { value: 'loose-leaf', label: 'Loose-leaf' },
-
+    { value: 'olmetie', label: 'Olmetie', description: 'Fast-growing lettuce variety' },
+    { value: 'green-rapid', label: 'Green rapid', description: 'Quick harvest lettuce type' },
+    { value: 'romaine', label: 'Romaine', description: 'Crisp leaves, popular for salads' },
+    { value: 'butterhead', label: 'Butterhead', description: 'Tender, buttery-textured leaves' },
+    { value: 'loose-leaf', label: 'Loose-leaf', description: 'Easy to harvest, grows in loose heads' },
   ];
 
   return (
@@ -183,7 +214,12 @@ const onSubmit = async () => {
               
                 {/* Crop Dropdown */}
                 <View>
-                  <Text className="text-base font-medium  mb-2">Crop </Text>
+                  <View className="flex-row items-center gap-2 mb-2">
+                    <Text className="text-base font-medium">Crop</Text>
+                    <TouchableOpacity onPress={() => setShowCropInfoModal(true)}>
+                      <Icon as={Info} size={16} className="text-[#7F8C8D]" />
+                    </TouchableOpacity>
+                  </View>
                   <TouchableOpacity
                     className="border border-muted-foreground/50 rounded-xl px-3 py-4 bg-[#FAFFFA] flex-row items-center justify-between"
                     onPress={() => setShowCropDropdown(!showCropDropdown)}
@@ -298,9 +334,12 @@ const onSubmit = async () => {
                   />
                 </View>
 
-                {/* Nutrient Solution  -- OPTIONAL LANG PO */}
+                {/* Nutrient Solution */}
                 <View>
-                  <Text className="text-base font-medium  mb-2">Nutrient Solution (Optional)</Text>
+                  <View className="flex-row items-center gap-2 mb-2">
+                    <Text className="text-base font-medium">Nutrient Solution</Text>
+                    <Text className="text-sm text-muted-foreground">(Optional)</Text>
+                  </View>
                   <Input
                     placeholder="e.g., General Hydroponics Flora Series"
                     value={formData.nutrientSolution}
@@ -355,7 +394,7 @@ const onSubmit = async () => {
             {/* Save Button */}
             <Button 
               className="w-full"
-              onPress={onSubmit}
+              onPress={handleSaveClick}
               disabled={isSubmitting}
             >
               <Icon as={Save} size={18} className="text-muted mr-2" />
@@ -364,9 +403,58 @@ const onSubmit = async () => {
               </Text>
             </Button>
 
+            {/* Reset Form Button */}
+            <Button 
+              variant="ghost"
+              className="w-full mt-3 border border-muted-foreground/30"
+              onPress={handleResetForm}
+            >
+              <Icon as={RotateCcw} size={18} className="text-muted-foreground mr-2" />
+              <Text className="text-muted-foreground">
+                Reset Form
+              </Text>
+            </Button>
+
           </View>
         </ScrollView>
       </View>
+
+      {/* Confirmation Modal */}
+      <ConfirmationModal
+        visible={showConfirmModal}
+        icon={<Icon as={Save} size={32} className="text-white" />}
+        modalTitle="Confirm Setup"
+        modalDescription="Are you sure you want to save this crop?"
+        confirmText="Save"
+        iconBgColor="bg-[#4CAF50]"
+        confirmButtonColor="bg-[#4CAF50]"
+        onConfirm={onSubmit}
+        onCancel={() => setShowConfirmModal(false)}
+      />
+
+      {/* Crop Info Modal */}
+      <CropInfoModal
+        visible={showCropInfoModal}
+        onClose={() => setShowCropInfoModal(false)}
+        cropOptions={cropOptions}
+      />
+
+      {/* Setup Complete Success Modal */}
+      <StatusModal
+        visible={showSuccessModal}
+        type="success"
+        title="Setup Complete!"
+        message="Your crop setup has been saved successfully."
+        buttonText="View Hydroponics"
+        onClose={() => {
+          setShowSuccessModal(false);
+          router.push("/(tabs)/hydroponics");
+        }}
+        onButtonPress={() => {
+          setShowSuccessModal(false);
+          router.push("/(tabs)/hydroponics");
+        }}
+      />
     </SafeAreaView>
   );
 }

@@ -28,36 +28,34 @@ import { Badge } from '@/components/ui/badge';
 
 type HarvestItem = {
   id: string;
-  cropName: string;
   cropType: string;
   harvestedAt: string;
   durationDays: number;
-};
+};7
 
 const MOCK_DATA: HarvestItem[] = [
   {
     id: 'BATCH-1024',
-    cropName: 'Lettuce',
-    cropType: 'Lettuce',
+    cropType: 'Olmetie',
     harvestedAt: '2025-10-29',
     durationDays: 45,
   },
   {
     id: 'BATCH-1037',
-    cropName: 'Lettuce',
-    cropType: 'Lettuce',
+    cropType: 'Green rapid',
     harvestedAt: '2025-10-22',
     durationDays: 38,
   },
   {
     id: 'BATCH-1041',
-    cropName: 'Lettuce',
-    cropType: 'Lettuce',
+    cropType: 'Romaine',
     harvestedAt: '2025-09-30',
     durationDays: 42,
     
   },
 ];
+
+
 
 const monthName = (isoDate: string) => {
   const d = new Date(isoDate);
@@ -68,6 +66,11 @@ const formatDate = (isoDate: string) => {
   const d = new Date(isoDate);
   return d.toLocaleDateString(undefined, { month: 'short', day: '2-digit', year: 'numeric' });
 };
+
+
+
+
+
 
 const HarvestedList = () => {
   const router = useRouter();
@@ -84,11 +87,12 @@ const HarvestedList = () => {
   const filtered = useMemo(() => {
     let items = data.slice();
     const q = query.trim().toLowerCase();
-    if (q) {
+     if (q) {
       items = items.filter(
-        (it) => it.cropName.toLowerCase().includes(q) || it.id.toLowerCase().includes(q)
+        (it) => it.cropType.toLowerCase().includes(q) || it.id.toLowerCase().includes(q)
       );
     }
+   
     if (filterMonth) {
       items = items.filter((it) => monthName(it.harvestedAt) === filterMonth);
     }
@@ -216,7 +220,7 @@ const HarvestedList = () => {
 
                         <View className="flex-1">
                           <Text className="text-base font-medium text-foreground" numberOfLines={1}>
-                            {item.cropName} 
+                            {item.cropType} 
                           </Text>
                           <View className="mt-1 flex-row items-center gap-2">
                             <Text className="text-xs text-muted-foreground">
@@ -225,10 +229,6 @@ const HarvestedList = () => {
                           </View>
                         </View>
 
-                        {/* Ellipsis Button */}
-                        <TouchableOpacity className="p-1">
-                          <MoreVertical size={20} color="#6B7280" />
-                        </TouchableOpacity>
                       </View>
                    
                   </Card>
@@ -321,7 +321,7 @@ const HarvestedList = () => {
         <View className="flex-1 justify-end bg-foreground/50">
           <View className="rounded-t-3xl bg-white p-8">
             <View className="mb-2 flex-row items-center justify-between">
-              <Text className="text-base font-semibold">Batch Details</Text>
+              <Text className="text-lg font-semibold">Batch Details</Text>
              
             </View>
             {showDetails && (
@@ -329,8 +329,8 @@ const HarvestedList = () => {
                 {/* Crop Info Section */}
                 <View className="gap-3">
                   <View>
-                    <Text className="text-sm font-medium text-muted-foreground mb-1">Crop Name</Text>
-                    <Text className="text-base font-semibold text-foreground">{showDetails.cropName}</Text>
+                    <Text className="text-sm font-medium text-muted-foreground mb-1">Crop Type</Text>
+                    <Text className="text-base font-semibold text-foreground">{showDetails.cropType}</Text>
                   </View>
                   
                   <View className="flex-row gap-4">
@@ -348,17 +348,15 @@ const HarvestedList = () => {
                 
                 {/* Nutrient Summary Section */}
                 <View className="border-t border-muted pt-4">
-                  <View className="flex-row flex-wrap gap-2">
-                    <Badge className="bg-blue-50 ">
-                      <Text className="text-blue-700 text-sm font-medium">pH 6.5</Text>
-                    </Badge>
-                    
-                  </View>
+                    <Button variant={'outline'} size={'sm'} className=" w-24 rounded-full " onPress={() => router.push('/hydroponics-monitoring/archive-harvested')}>
+                      <Text className=" font-medium">Archive</Text>
+                    </Button>
+
                 </View>
                 
                 {/* Action Button Section */}
                 <View className="border-t border-muted pt-4">
-                  <Button variant={'ghost'} className="w-full" onPress={() => setShowDetails(null)}>
+                  <Button  className="w-full" onPress={() => setShowDetails(null)}>
                     <Text className="font-medium">Done</Text>
                   </Button>
                 </View>
