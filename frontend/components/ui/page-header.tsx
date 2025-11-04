@@ -68,7 +68,7 @@ export function PageHeader({
           <Button
             variant="ghost"
             onPress={handleBackPress}
-            className="w-10 h-10 p-0"
+            className="w-10 h-10 p-0 bg-transparent"
           >
             <ArrowLeft size={24} color="#000000" strokeWidth={2} />
           </Button>
@@ -88,9 +88,8 @@ export function PageHeader({
       <View className="flex-1 flex-row items-center justify-end gap-2">
         {showNotificationButton && (
           <Button
-            variant="ghost"
             onPress={handleNotificationPress}
-            className="w-10 h-10 p-0"
+            className="w-10 h-10 p-0 bg-transparent"
           >
             <BellIcon size={24} color="#445104" strokeWidth={3} />
           </Button>

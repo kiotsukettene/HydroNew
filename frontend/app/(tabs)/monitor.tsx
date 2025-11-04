@@ -87,7 +87,7 @@ const [latestKey, setLatestKey] = useState<string | null>(null);
                       <Text className="text-xl font-medium text-gray-800">{sensorData ? `${Math.round(sensorData.tds)} ppm` : '--'}</Text>
                     </View>
 
-                    <Button variant={'ghost'} onPress={() => setIsTDSDetailsModalVisible(true)}>
+                    <Button className='bg-transparent' onPress={() => setIsTDSDetailsModalVisible(true)}>
                     <Icon as={Info} color="#059669" size={18} className="ml-2 mt-1"  />
                     </Button>
                     <TDSDetailsModal
@@ -102,7 +102,7 @@ const [latestKey, setLatestKey] = useState<string | null>(null);
                     <Text className="text-xl font-medium text-gray-800">{sensorData ? `${Math.round(sensorData.turbidity)} ` : '--'}</Text>
                   </View>
 
-                    <Button variant={'ghost'} onPress={() => setIsTurbidityDetailsModalVisible(true)}>
+                    <Button className='bg-transparent' onPress={() => setIsTurbidityDetailsModalVisible(true)}>
                     <Icon as={Info} color="#059669" size={18} className="ml-2 mt-1"  />
                     </Button>
                     <TurbidityDetailsModal
