@@ -159,6 +159,34 @@ login: async (email, password) => {
     }
   },
 
+  googleLogin: async (firebaseIdToken: string) => {
+  set({ loading: true, error: null, fieldErrors: {} });
+
+  try {
+    const response = await axiosInstance.post("/google-login", { token: firebaseIdToken });
+    const { access_token, user } = response.data;
+
+    if (!access_token) throw new Error("Invalid token response from backend");
+
+    await storage.setItem("token", access_token);
+
+    set({
+      loading: false,
+      user: user || null,
+      token: access_token,
+      needsVerification: false,
+    });
+
+    await useAccountStore.getState().fetchAccount();
+
+    return response.data;
+  } catch (err: any) {
+    const { message, fieldErrors } = handleAxiosError(err);
+    set({ loading: false, error: message, fieldErrors });
+    return null;
+  }
+},
+
   logout: async () => {
     await storage.removeItem("token");
     set({
