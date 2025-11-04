@@ -12,5 +12,14 @@ export interface TipsSuggestion {
 
 export interface TipsResponse {
   quality: string;
-  tips: TipsSuggestion;
+  tips: {
+    category: string;
+    title: string;
+    description: string;
+    bullet_points: {
+      heading: string;
+      tips: string[];
+    }[];
+  };
 }
+
