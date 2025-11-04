@@ -71,9 +71,26 @@ export default function HydroponicsSetup({ onSetupComplete }: HydroponicsSetupPr
   };
 
   const handleStepperChange = (field: 'numberOfCrops', delta: number) => {
+    // gagana lang yung stepper kung custom bed size
+    if(formData.bedSize !== 'custom') return
+    
     const currentValue = parseInt(formData[field]) || 1;
     const newValue = Math.max(1, currentValue + delta);
     handleInputChange(field, newValue.toString());
+  };
+
+  const handleBedSizeChange = (value: string) => {
+    handleInputChange('bedSize', value);
+    
+    //set number of crops based on bed size
+    if (value === 'small') {
+      handleInputChange('numberOfCrops', '3');
+    } else if (value === 'medium') {
+      handleInputChange('numberOfCrops', '9');
+    } else if (value === 'large') {
+      handleInputChange('numberOfCrops', '12');
+    }
+    
   };
 
 const onSubmit = async () => {
@@ -123,6 +140,9 @@ const onSubmit = async () => {
     { value: 'small', label: 'Small' },
     { value: 'medium', label: 'Medium' },
     { value: 'large', label: 'Large' },
+    { value: 'custom', label: 'Custom' },
+
+
   ];
 
   const cropOptions = [
@@ -210,7 +230,7 @@ const onSubmit = async () => {
                           key={option.value}
                           className="px-3 py-4 border-b border-[#F0F8F0] last:border-b-0"
                           onPress={() => {
-                            handleInputChange('bedSize', option.value as 'small' | 'medium' | 'large');
+                            handleBedSizeChange(option.value);
                             setShowBedSizeDropdown(false);
                           }}
                         >
@@ -228,20 +248,36 @@ const onSubmit = async () => {
                   <View className="flex-row items-center bg-[#FAFFFA] border border-[#E8F5E8] rounded-xl px-3 py-4">
                     <TouchableOpacity
                       onPress={() => handleStepperChange('numberOfCrops', -1)}
-                      className="w-8 h-8 rounded-full bg-[#E8F5E8] items-center justify-center"
+                      disabled={formData.bedSize !== 'custom'}
+                      className={`w-8 h-8 rounded-full items-center justify-center ${
+                        formData.bedSize !== 'custom' ? 'bg-gray-300 opacity-50' : 'bg-[#E8F5E8]'
+                      }`}
                     >
-                      <Icon as={Minus} size={16} className="text-primary" />
+                      <Icon as={Minus} size={16} className={formData.bedSize !== 'custom' ? 'text-gray-500' : 'text-primary'} />
                     </TouchableOpacity>
                     
                     <View className="flex-1 items-center">
-                      <Text className="text-lg font-semibold ">
-                        {formData.numberOfCrops }
-                      </Text>
+                      {formData.bedSize === 'custom' ? (
+                        <Input
+                          value={formData.numberOfCrops}
+                          onChangeText={(value) => handleInputChange('numberOfCrops', value)}
+                          keyboardType="numeric"
+                          className="text-center text-lg font-semibold border-0 bg-transparent"
+                          placeholderTextColor="#95A5A6"
+                        />
+                      ) : (
+                        <Text className="text-lg font-semibold">
+                          {formData.numberOfCrops}
+                        </Text>
+                      )}
                     </View>
                     
                     <Button
                       onPress={() => handleStepperChange('numberOfCrops', 1)}
-                      className="w-8 h-8 rounded-full items-center justify-center"
+                      disabled={formData.bedSize !== 'custom'}
+                      className={`w-8 h-8 rounded-full items-center justify-center ${
+                        formData.bedSize !== 'custom' ? 'opacity-50' : ''
+                      }`}
                     >
                       <Icon as={Plus} size={16} className="text-white" />
                     </Button>
