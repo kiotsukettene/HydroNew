@@ -30,7 +30,6 @@ export interface HelpCenterState {
   filters: any[];
   searchQuery: string;
   error: string | null;
-  cache: Record<string, any>;
   fetchHelpCenter: (page?: number, search?: string) => Promise<void>;
   searchHelpCenter: (search: string) => Promise<void>;
   nextPage: () => Promise<void>;
