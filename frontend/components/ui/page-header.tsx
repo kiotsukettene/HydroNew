@@ -6,6 +6,7 @@ import { Text } from '@/components/ui/text';
 import { useRouter } from 'expo-router';
 import { useAuthStore } from '@/store/auth/authStore';
 import { ConfirmationModal } from '@/components/ui/confirmation-modal';
+import { useNotificationStore } from '@/store/notifications/notificationStore';
 
 interface PageHeaderProps {
   title: string;
@@ -29,6 +30,7 @@ export function PageHeader({
   const router = useRouter();
   const logout = useAuthStore((s) => s.logout);
   const [showLogoutModal, setShowLogoutModal] = useState(false);
+  const unreadCount = useNotificationStore((s) => s.unreadCount);
 
   const handleNotificationPress = () => {
     if (onNotificationPress) {
@@ -87,13 +89,22 @@ export function PageHeader({
       {/* Right Side - Notification and Ellipsis Buttons */}
       <View className="flex-1 flex-row items-center justify-end gap-2">
         {showNotificationButton && (
-          <Button
-            variant="ghost"
-            onPress={handleNotificationPress}
-            className="w-10 h-10 p-0"
-          >
-            <BellIcon size={24} color="#445104" strokeWidth={3} />
-          </Button>
+          <View className="relative">
+            <Button
+              variant="ghost"
+              onPress={handleNotificationPress}
+              className="w-10 h-10 p-0"
+            >
+              <BellIcon size={24} color="#445104" strokeWidth={3} />
+            </Button>
+            {unreadCount > 0 && (
+              <View className="absolute -top-0.5 right-0.5 bg-red-500 rounded-full min-w-5 h-5 items-center justify-center px-1 border-2 border-white">
+                <Text className="text-white text-xs font-bold">
+                  {unreadCount > 99 ? '99+' : unreadCount}
+                </Text>
+              </View>
+            )}
+          </View>
         )}
         {showEllipsisButton && (
           <Button

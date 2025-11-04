@@ -33,6 +33,7 @@ export default function NotificationItem({
   return (
     <TouchableOpacity 
       onPress={onPress}
+      activeOpacity={1}
       className={`flex-row p-4 rounded-xl border-b border-gray-200 ${!isRead ? 'bg-green-50' : 'bg-background'}`}
     >
       {/* Icon */}

@@ -1,117 +1,35 @@
 import { View, ScrollView, TouchableOpacity } from 'react-native'
-import React, { useState, useEffect } from 'react'
+import React, { useEffect } from 'react'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { PageHeader } from '@/components/ui/page-header'
 import { Text } from '@/components/ui/text'
 import { BellOff } from 'lucide-react-native'
-import AsyncStorage from '@react-native-async-storage/async-storage'
 import NotificationItem from './notification-item'
-
-const notificationsData = [
-  {
-    id: 1,
-    type: 'success' as const,
-    title: 'Plant ready for harvest!',
-    message: 'Your lettuce plant has reached the optimal growth stage and is ready for harvest.',
-    time: 'Nov 12 8:00pm',
-    isRead: false,
-  },
-  {
-    id: 2,
-    type: 'warning' as const,
-    title: 'Filter cleaning!',
-    message: 'Filter requires cleaning in the next 3 days. Clean immediately to maintain water quality.',
-    time: 'Nov 12 8:00pm',
-    isRead: false,
-  },
-  {
-    id: 3,
-    type: 'info' as const,
-    title: 'Water is potable',
-    message: 'Your recent water test has met the appropriate potability safe for hydroponics.',
-    time: 'Nov 12 8:00pm',
-    isRead: false,
-  },
-  {
-    id: 4,
-    type: 'warning' as const,
-    title: 'Filter cleaning!',
-    message: 'Filter requires cleaning in the next 3 days. Clean immediately to maintain water quality.',
-    time: 'Nov 12 8:00pm',
-    isRead: true,
-  },
-  {
-    id: 5,
-    type: 'info' as const,
-    title: 'Water is potable',
-    message: 'Your recent water test has met the appropriate potability safe for hydroponics.',
-    time: 'Nov 12 8:00pm',
-    isRead: true,
-  },
-  {
-    id: 6,
-    type: 'warning' as const,
-    title: 'Filter cleaning!',
-    message: 'Filter requires cleaning in the next 3 days. Clean immediately to maintain water quality.',
-    time: 'Nov 12 8:00pm',
-    isRead: true,
-  },
-  {
-    id: 7,
-    type: 'info' as const,
-    title: 'Water is potable',
-    message: 'Your recent water test has met the appropriate potability safe for hydroponics.',
-    time: 'Nov 12 8:00pm',
-    isRead: true,
-  },
-]
-
-const STORAGE_KEY = '@notifications_data'
+import { useNotificationStore } from '@/store/notifications/notificationStore'
 
 export default function Notifications() {
-  const [notifications, setNotifications] = useState(notificationsData)
+  const notifications = useNotificationStore((s) => s.notifications)
+  const unreadCount = useNotificationStore((s) => s.unreadCount)
+  const loadNotifications = useNotificationStore((s) => s.loadNotifications)
+  const markAsRead = useNotificationStore((s) => s.markAsRead)
+  const clearAll = useNotificationStore((s) => s.clearAll)
+  const restoreDefault = useNotificationStore((s) => s.restoreDefault)
 
   // Load notifications from storage on mount
   useEffect(() => {
     loadNotifications()
-  }, [])
-
-  // Save notifications to storage whenever they change
-  useEffect(() => {
-    saveNotifications()
-  }, [notifications])
-
-  const loadNotifications = async () => {
-    try {
-      const stored = await AsyncStorage.getItem(STORAGE_KEY)
-      if (stored !== null) {
-        setNotifications(JSON.parse(stored))
-      }
-    } catch (error) {
-      console.error('Error loading notifications:', error)
-    }
-  }
-
-  const saveNotifications = async () => {
-    try {
-      await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(notifications))
-    } catch (error) {
-      console.error('Error saving notifications:', error)
-    }
-  }
+  }, [loadNotifications])
 
   const handleClearAll = () => {
-    setNotifications([])
+    clearAll()
   }
 
   const handleRestoreNotifications = () => {
-    setNotifications(notificationsData)
+    restoreDefault()
   }
 
   const handleNotificationPress = (id: number) => {
-    setNotifications(notifications.map(n => 
-      n.id === id ? { ...n, isRead: true } : n
-    ))
+    markAsRead(id)
   }
 
   return (
@@ -128,7 +46,9 @@ export default function Notifications() {
           {/* ===== Clear All Button ===== */}
         {notifications.length > 0 && (
           <View className="flex-row justify-between mb-2">
-            <Text className='font-semibold'>All</Text>
+            <Text className='font-semibold'>
+              All {unreadCount > 0 && `(${unreadCount} unread)`}
+            </Text>
             <TouchableOpacity onPress={handleClearAll}>
               <Text className="text-primary">Clear all</Text>
             </TouchableOpacity>

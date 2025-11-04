@@ -16,6 +16,7 @@ import { Text } from '@/components/ui/text';
 import type { HomeProps } from '@/types/home';
 import { useRouter } from 'expo-router';
 import { useDashboardStore } from '@/store/auth/dashboardStore';
+import { useNotificationStore } from '@/store/notifications/notificationStore';
 
 export default function Home() {
 
@@ -33,9 +34,12 @@ export default function Home() {
   // };
 
   const { data, loading, error, fetchDashboard } = useDashboardStore();
+  const unreadCount = useNotificationStore((s) => s.unreadCount);
+  const loadNotifications = useNotificationStore((s) => s.loadNotifications);
   
   useEffect(() => {
     fetchDashboard();
+    loadNotifications();
   }, []);
 
   if (loading) {
@@ -75,9 +79,18 @@ export default function Home() {
               <Text className="text-base ">Hello,</Text>
               <Text className="text-2xl font-semibold ">{userName}!</Text>
             </View>
-            <Button variant={'ghost'} onPress={() => router.push('/notifications')}>
-              <BellIcon size={22} strokeWidth={3} color={'#445104'} />
-            </Button>
+            <View className="relative">
+              <Button variant={'ghost'} onPress={() => router.push('/notifications')} className="w-10 h-10 p-0">
+                <BellIcon size={24} strokeWidth={3} color={'#445104'} />
+              </Button>
+              {unreadCount > 0 && (
+                <View className="absolute -top-0.5 right-0.5 bg-red-500 rounded-full min-w-5 h-5 items-center justify-center px-1 border-2 border-white">
+                  <Text className="text-white text-xs font-bold">
+                    {unreadCount > 99 ? '99+' : unreadCount}
+                  </Text>
+                </View>
+              )}
+            </View>
           </View>
 
           {/* ===== Main Content ===== */}
