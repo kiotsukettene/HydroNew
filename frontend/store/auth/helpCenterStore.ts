@@ -12,18 +12,7 @@ export const useHelpCenterStore = create<HelpCenterState>((set, get) => ({
   filters: [],
   searchQuery: "",
 
-  // ✅ Cache object (key: "page|search")
-  cache: {} as Record<string, any>,
-
-  fetchHelpCenter: async (page = 1, search = "") => {
-    const cacheKey = `${page}|${search}`;
-    const { cache } = get();
-
-    // ✅ If cached — return cached data instantly
-    if (cache[cacheKey]) {
-      set(cache[cacheKey]);
-      return;
-    }
+  
 
     try {
       set({ loading: true, error: null });
