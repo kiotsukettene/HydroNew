@@ -76,9 +76,19 @@ const [latestKey, setLatestKey] = useState<string | null>(null);
               <View className="flex-row justify-between">
                 {/* Left Column: Details */}
                 <View className="justify-between">
-                  <View>
-                    <Text className="text-gray-600">pH Level</Text>
-                    <Text className="text-xl font-medium text-gray-800">{sensorData ? sensorData.ph : '--'}</Text>
+                  <View className="flex-row items-center">
+                    <View>
+                      <Text className="text-gray-600">pH Level</Text>
+                      <Text className="text-xl font-medium text-gray-800">{sensorData ? sensorData.ph : '--'}</Text>
+                    </View>
+
+                    <Button variant={'ghost'} onPress={() => setIsPHLevelDetailsModalVisible(true)}>
+                      <Icon as={Info} color="#059669" size={18} className="ml-2 mt-1" />
+                    </Button>
+                    <PHLevelDetailsModal
+                      visible={isPHLevelDetailsModalVisible}
+                      onClose={() => setIsPHLevelDetailsModalVisible(false)}
+                    />
                   </View>
 
                   <View className="flex-row items-center">
