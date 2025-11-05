@@ -2,7 +2,7 @@ import React from 'react';
 import { View, Image, Dimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Button } from '@/components/ui/button';
-import { Link } from 'expo-router';
+import { Link, router } from 'expo-router';
 import { Text } from '@/components/ui/text';
 
 const { height } = Dimensions.get('window');
@@ -37,11 +37,13 @@ const WelcomeScreen = () => {
             </Button>
           </Link>
 
-          <Link href="/login" asChild>
-            <Button variant="outline">
-              <Text className="text-base">Sign in</Text>
-            </Button>
-          </Link>
+          <Button
+            variant="outline"
+            onPress={() => router.replace("/login")}
+          >
+            <Text className="text-base">Sign in</Text>
+          </Button>
+
         </View>
       </SafeAreaView>
     </View>

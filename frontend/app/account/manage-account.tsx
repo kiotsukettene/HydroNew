@@ -17,7 +17,7 @@ import { InputWithIcon } from '@/components/ui/input-with-icon';
 import { Text } from '@/components/ui/text';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import * as ImagePicker from 'expo-image-picker';
 import React from 'react'
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -29,7 +29,7 @@ import { toast } from 'sonner-native';
 
 export default function ManageAccount() {
 
-  const { account, updateAccount, updateProfilePicture, error } = useAccountStore();
+  const { account, updateAccount, updateProfilePicture, fetchAccount } = useAccountStore();
 
   const [editable, isEditable] = useState(false);
   const [firstName, setFirstName] = useState(account?.first_name || "Juan");
@@ -49,6 +49,12 @@ export default function ManageAccount() {
       setProfileImage(result.assets[0].uri);
     }
   };
+
+    useEffect(() => {
+    if (!account) {
+      fetchAccount();
+    }
+  }, []);
 
 //handle button function
 const handleUpdateAccount = async () => {

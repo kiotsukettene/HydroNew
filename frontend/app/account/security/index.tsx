@@ -26,7 +26,7 @@ import { PageHeader } from '@/components/ui/page-header';
 import { useAccountStore } from '@/store/account/accountStore';
  
 export default function Index() {
-  const { account, error } = useAccountStore();
+  const { account, error, fetchAccount } = useAccountStore();
 
 const settings = [
   { icon: UserRoundPen, title: 'My Account', link: '/account/manage-account' },
@@ -35,6 +35,12 @@ const settings = [
   { icon: Lock, title: 'Privacy Policy', link: '/account/privacy-policy' },
   { icon: MessageSquareMore, title: 'FAQs', link: '/account/faq' },
 ];
+
+  useEffect(() => {
+    if (!account) {
+      fetchAccount();
+    }
+  }, []);
 
   return (
     <SafeAreaView className='flex-1 bg-background'>
