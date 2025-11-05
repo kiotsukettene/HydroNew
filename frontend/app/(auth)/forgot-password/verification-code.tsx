@@ -8,6 +8,8 @@ import { Label } from '@/components/ui/label';
 import { router } from 'expo-router';
 import { Text } from '@/components/ui/text';
 import { useResetPasswordStore } from '@/store/auth/resetPasswordStore';
+import { ZodError } from 'zod';
+import { verifyResetCodeSchema } from '@/validators/forgotPassword';
 
 interface VerificationCodeProps {
   code: string;
@@ -15,22 +17,46 @@ interface VerificationCodeProps {
 }
 
 export default function VerificationCode() {
-  const { verifyResetCode, email } = useResetPasswordStore();
+  const { verifyResetCode, email, error, loading, resendResetCode } = useResetPasswordStore();
   const [code, setCode] = useState<string>('');
+  const [errorMessages, setErrorMessages] = useState<string | null>(null);
+
 
   const onChangeCode = (text: string) => {
     const digitsOnly = text.replace(/\D/g, '').slice(0, 6);
     setCode(digitsOnly);
+    setErrorMessages(null);
   };
 
   async function onSubmit() {
-    if (!email) {
-    console.warn('Email not found — please go back and enter it again.');
-    return;
-    }
 
-    await verifyResetCode(email, code);
-    router.push('/(auth)/forgot-password/create-new-password');
+    try {
+      const validatedData = verifyResetCodeSchema.parse({ code });
+
+      if (!email) {
+      console.warn('Email not found — please go back and enter it again.');
+      return;
+      }
+      
+      await verifyResetCode(email, validatedData.code);
+      router.push('/(auth)/forgot-password/create-new-password');
+    } catch (err:any) {
+      if (err instanceof ZodError) {
+        setErrorMessages(err.errors[0].message);
+      } else if (err.response?.data?.message) {
+        setErrorMessages(err.response.data.message);
+      } else {
+        console.error('Verification failed:', err);
+      }
+    }
+  };
+
+  const handleResendCode = async () => {
+    if (!email) {
+      console.warn('Email not found — please go back and enter it again.');
+      return;
+    }
+    await resendResetCode(email);
   };
 
   return (
@@ -55,28 +81,36 @@ export default function VerificationCode() {
                 Check your email
               </CardTitle>
               <CardDescription className="text-center text-base sm:text-left">
-                Enter the 5-digit code that was mentioned in the email.
+                Enter the 6-digit code that was mentioned in the email.
               </CardDescription>
             </CardHeader>
 
             <CardContent className="gap-6">
               <View className="gap-6">
-                <View className="w-full flex-row items-center justify-center gap-1.5">
-                  <Input
-                    id={code}
-                    value={code}
-                    keyboardType="numeric"
-                    maxLength={6}
-                    onChangeText={onChangeCode}
-                    autoCapitalize="none"
-                    returnKeyType="next"
-                    className="h-12 items-center text-center text-2xl font-semibold tracking-widest text-primary"
-                  />
+                <View>
+                  <View className="w-full flex-row items-center justify-center gap-1.5">
+                    <Input
+                      id={code}
+                      value={code}
+                      keyboardType="numeric"
+                      maxLength={6}
+                      onChangeText={onChangeCode}
+                      autoCapitalize="none"
+                      returnKeyType="next"
+                      className={`h-12 items-center text-center text-2xl font-semibold tracking-widest ${
+                        errorMessages ? 'border-red-500' : 'border-gray-200'
+                      } text-primary`}
+                    />
+                  </View>
+                    {(errorMessages) && (
+                      <Text className="text-red-700 justify-end">{error || errorMessages}</Text>
+                    )}
                 </View>
-
                 <View className="gap-2 pt-1">
-                  <Button onPress={onSubmit}>
-                    <Text>Verify Code</Text>
+                  <Button 
+                    onPress={onSubmit} 
+                    disabled={loading}>
+                    {loading ? <Text>Verifying...</Text> : <Text>Verify Code</Text>}
                   </Button>
 
                   <Button
@@ -87,7 +121,7 @@ export default function VerificationCode() {
                   </Button>
 
                   <Text className="text-center text-base font-normal mt-2 text-muted-foreground">
-                    Didn&apos;t receive the code? <Text className="underline text-primary font-semibold">Resend </Text>
+                    Didn&apos;t receive the code? <Text onPress={handleResendCode} className="underline text-primary font-semibold">Resend </Text>
                   </Text>
                 </View>
               </View>
