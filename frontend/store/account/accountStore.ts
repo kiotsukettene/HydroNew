@@ -74,7 +74,7 @@ export const useAccountStore = create<AccountState>((set, get) => ({
         set({ loading: true, error: null });
         try {
             const response = await axiosInstance.put("/manage-account/update-password", data);
-            set({ account: response.data.data, loading: false });
+            set({ loading: false });
         } catch (error) {
             const { message } = handleAxiosError(error);
             set({ error: message, loading: false });
