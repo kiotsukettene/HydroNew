@@ -1,4 +1,4 @@
-import { View, Image, TouchableOpacity, ScrollView, Switch, Animated } from 'react-native';
+import { View, TouchableOpacity, ScrollView, Switch, Animated, Modal } from 'react-native';
 import React, { useState, useRef } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { PageHeader } from '@/components/ui/page-header';
@@ -9,17 +9,20 @@ import { Button } from '@/components/ui/button';
 import { Icon } from '@/components/ui/icon';
 import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
-import { ArrowLeft, Save, Calendar, CheckCircle, ChevronDown, Play, Plus, Minus, Leaf } from 'lucide-react-native';
+import { ArrowLeft, Save, Calendar, CheckCircle, ChevronDown, Play, Plus, Minus, Leaf, Info, X, RotateCcw } from 'lucide-react-native';
 import { useEffect } from 'react';
 import { useHydroponicSetupStore } from "@/store/hydroponics/hydroponicSetupStore";
 import { toast } from 'sonner-native';
 import { hydroponicSchema } from '@/validators/hydoponicSchema';
+import { ConfirmationModal } from '@/components/ui/confirmation-modal';
+import { StatusModal } from '@/components/ui/status-modal';
+import CropInfoModal from './crop-info-modal';
 
 
 interface HydroponicsSetupData {
   cropName: string;
   numberOfCrops: string;
-  bedSize: 'small' | 'medium' | 'large';
+  bedSize: string;
   nutrientSolution: string;
   targetPh: string;
   targetPhMax: string;
@@ -37,15 +40,16 @@ interface HydroponicsSetupProps {
 export default function HydroponicsSetup({ onSetupComplete }: HydroponicsSetupProps) {
   const router = useRouter();
   const { createHydroponicSetup, error, resetError } = useHydroponicSetupStore();
+  
   const [formData, setFormData] = useState<HydroponicsSetupData>({
     cropName: '',
     numberOfCrops: '1',
-    bedSize: 'medium',
+    bedSize: '',
     nutrientSolution: '',
     targetPh: '6.5',
     targetPhMax: '7.0',
-    targetTdsMin: '800',
-    targetTdsMax: '1200',
+    targetTdsMin: '50',
+    targetTdsMax: '150',
     waterAmount: '5',
     setupDate: new Date().toISOString().split('T')[0], 
     status: 'active',
@@ -53,11 +57,37 @@ export default function HydroponicsSetup({ onSetupComplete }: HydroponicsSetupPr
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showBedSizeDropdown, setShowBedSizeDropdown] = useState(false);
+  const [showCropDropdown, setShowCropDropdown] = useState(false);
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [showCropInfoModal, setShowCropInfoModal] = useState(false);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
   const buttonScale = useRef(new Animated.Value(1)).current;
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   const resetErrors = () => {
     setErrors({});
+  };
+
+  const initialFormData: HydroponicsSetupData = {
+    cropName: '',
+    numberOfCrops: '1',
+    bedSize: '',
+    nutrientSolution: '',
+    targetPh: '6.5',
+    targetPhMax: '7.0',
+    targetTdsMin: '50',
+    targetTdsMax: '150',
+    waterAmount: '5',
+    setupDate: new Date().toISOString().split('T')[0], 
+    status: 'active',
+  };
+
+  const handleResetForm = () => {
+    setFormData(initialFormData);
+    resetErrors();
+    setShowBedSizeDropdown(false);
+    setShowCropDropdown(false);
+    toast.success("Form reset successfully");
   };
 
   const handleInputChange = (field: keyof HydroponicsSetupData, value: string) => {
@@ -69,12 +99,34 @@ export default function HydroponicsSetup({ onSetupComplete }: HydroponicsSetupPr
   };
 
   const handleStepperChange = (field: 'numberOfCrops', delta: number) => {
+    // gagana lang yung stepper kung custom bed size
+    if(formData.bedSize !== 'custom') return
+    
     const currentValue = parseInt(formData[field]) || 1;
     const newValue = Math.max(1, currentValue + delta);
     handleInputChange(field, newValue.toString());
   };
 
+  const handleBedSizeChange = (value: string) => {
+    handleInputChange('bedSize', value);
+    
+    //set number of crops based on bed size
+    if (value === 'small') {
+      handleInputChange('numberOfCrops', '3');
+    } else if (value === 'medium') {
+      handleInputChange('numberOfCrops', '9');
+    } else if (value === 'large') {
+      handleInputChange('numberOfCrops', '12');
+    }
+    
+  };
+
+const handleSaveClick = () => {
+  setShowConfirmModal(true);
+};
+
 const onSubmit = async () => {
+  setShowConfirmModal(false);
   setIsSubmitting(true);
   resetErrors();
 
@@ -99,8 +151,7 @@ const onSubmit = async () => {
     if (currentError) {
       toast.error(currentError);
     } else {
-      toast.success("Hydroponic setup created successfully!");
-      router.push("/(tabs)/hydroponics");
+      setShowSuccessModal(true);
     }
   } catch (err) {
     if (err instanceof z.ZodError) {
@@ -121,6 +172,17 @@ const onSubmit = async () => {
     { value: 'small', label: 'Small' },
     { value: 'medium', label: 'Medium' },
     { value: 'large', label: 'Large' },
+    { value: 'custom', label: 'Custom' },
+
+
+  ];
+
+  const cropOptions = [
+    { value: 'olmetie', label: 'Olmetie', description: 'Fast-growing lettuce variety' },
+    { value: 'green-rapid', label: 'Green rapid', description: 'Quick harvest lettuce type' },
+    { value: 'romaine', label: 'Romaine', description: 'Crisp leaves, popular for salads' },
+    { value: 'butterhead', label: 'Butterhead', description: 'Tender, buttery-textured leaves' },
+    { value: 'loose-leaf', label: 'Loose-leaf', description: 'Easy to harvest, grows in loose heads' },
   ];
 
   return (
@@ -149,48 +211,42 @@ const onSubmit = async () => {
               </View>
               
               <View className="gap-6">
-                {/* Crop Name */}
+              
+                {/* Crop Dropdown */}
                 <View>
-                  <Text className="text-base font-medium  mb-2">Crop Name</Text>
-                  <Input
-                    placeholder="e.g., Lettuce, Tomatoes, Basil"
-                    value={formData.cropName}
-                    onChangeText={(value) => handleInputChange('cropName', value)}
-                   className={`border rounded-xl px-3 py-4 bg-[#FAFFFA] focus:border-[#4CAF50] text-base ${ 
-                      errors.crop_name ? "border-red-500" : "border-muted-foreground/50"
-                    }`}
-                    placeholderTextColor="#95A5A6"
-                  />
-                    {errors.crop_name && (
-                      <Text className="text-red-500 text-sm mt-1">{errors.crop_name}</Text>
-                    )}
+                  <View className="flex-row items-center gap-2 mb-2">
+                    <Text className="text-base font-medium">Crop</Text>
+                    <TouchableOpacity onPress={() => setShowCropInfoModal(true)}>
+                      <Icon as={Info} size={16} className="text-[#7F8C8D]" />
+                    </TouchableOpacity>
+                  </View>
+                  <TouchableOpacity
+                    className="border border-muted-foreground/50 rounded-xl px-3 py-4 bg-[#FAFFFA] flex-row items-center justify-between"
+                    onPress={() => setShowCropDropdown(!showCropDropdown)}
+                  >
+                    <Text className={`text-[#2C3E50] capitalize text-base ${!formData.cropName ? 'text-muted-foreground' : ''}`}>
+                      {formData.cropName || 'Select crop type'}
+                    </Text>
+                    <Icon as={ChevronDown} size={20} className="text-[#7F8C8D]" />
+                  </TouchableOpacity>
+                  {showCropDropdown && (
+                    <View className="border border-[#E8F5E8] rounded-xl mt-2 bg-white shadow-lg">
+                      {cropOptions.map((option) => (
+                        <TouchableOpacity
+                          key={option.value}
+                          className="px-3 py-4 border-b border-[#F0F8F0] last:border-b-0"
+                          onPress={() => {
+                            handleInputChange('cropName', option.value as 'olmetie' | 'green-rapid' | 'romaine' | 'butterhead' | 'loose-leaf');
+                            setShowCropDropdown(false);
+                          }}
+                        >
+                          <Text className="text-[#2C3E50] capitalize text-base">{option.label}</Text>
+                        </TouchableOpacity>
+                      ))}
+                    </View>
+                  )}
                 </View>
 
-                {/* Number of Crops with Stepper */}
-                <View>
-                  <Text className="text-base font-medium  mb-2">Number of Crops</Text>
-                  <View className="flex-row items-center bg-[#FAFFFA] border border-[#E8F5E8] rounded-xl px-3 py-4">
-                    <TouchableOpacity
-                      onPress={() => handleStepperChange('numberOfCrops', -1)}
-                      className="w-8 h-8 rounded-full bg-[#E8F5E8] items-center justify-center"
-                    >
-                      <Icon as={Minus} size={16} className="text-primary" />
-                    </TouchableOpacity>
-                    
-                    <View className="flex-1 items-center">
-                      <Text className="text-lg font-semibold ">
-                        {formData.numberOfCrops }
-                      </Text>
-                    </View>
-                    
-                    <Button
-                      onPress={() => handleStepperChange('numberOfCrops', 1)}
-                      className="w-8 h-8 rounded-full items-center justify-center"
-                    >
-                      <Icon as={Plus} size={16} className="text-white" />
-                    </Button>
-                  </View>
-                </View>
 
                 {/* Bed Size Dropdown */}
                 <View>
@@ -199,7 +255,9 @@ const onSubmit = async () => {
                     className="border border-muted-foreground/50 rounded-xl px-3 py-4 bg-[#FAFFFA] flex-row items-center justify-between"
                     onPress={() => setShowBedSizeDropdown(!showBedSizeDropdown)}
                   >
-                    <Text className="text-[#2C3E50] capitalize text-base">{formData.bedSize}</Text>
+                    <Text className={`text-[#2C3E50] capitalize text-base ${!formData.bedSize ? 'text-muted-foreground' : ''}`}>
+                      {formData.bedSize || 'Select bed size'}
+                    </Text>
                     <Icon as={ChevronDown} size={20} className="text-[#7F8C8D]" />
                   </TouchableOpacity>
                   
@@ -210,7 +268,7 @@ const onSubmit = async () => {
                           key={option.value}
                           className="px-3 py-4 border-b border-[#F0F8F0] last:border-b-0"
                           onPress={() => {
-                            handleInputChange('bedSize', option.value as 'small' | 'medium' | 'large');
+                            handleBedSizeChange(option.value);
                             setShowBedSizeDropdown(false);
                           }}
                         >
@@ -219,6 +277,49 @@ const onSubmit = async () => {
                       ))}
                     </View>
                   )}
+                </View>
+
+                
+                {/* Number of Crops with Stepper */}
+                <View>
+                  <Text className="text-base font-medium  mb-2">Number of Crops</Text>
+                  <View className="flex-row items-center bg-[#FAFFFA] border border-[#E8F5E8] rounded-xl px-3 py-4">
+                    <TouchableOpacity
+                      onPress={() => handleStepperChange('numberOfCrops', -1)}
+                      disabled={formData.bedSize !== 'custom'}
+                      className={`w-8 h-8 rounded-full items-center justify-center ${
+                        formData.bedSize !== 'custom' ? 'bg-gray-300 opacity-50' : 'bg-[#E8F5E8]'
+                      }`}
+                    >
+                      <Icon as={Minus} size={16} className={formData.bedSize !== 'custom' ? 'text-gray-500' : 'text-primary'} />
+                    </TouchableOpacity>
+                    
+                    <View className="flex-1 items-center">
+                      {formData.bedSize === 'custom' ? (
+                        <Input
+                          value={formData.numberOfCrops}
+                          onChangeText={(value) => handleInputChange('numberOfCrops', value)}
+                          keyboardType="numeric"
+                          className="text-center text-lg font-semibold border-0 bg-transparent"
+                          placeholderTextColor="#95A5A6"
+                        />
+                      ) : (
+                        <Text className="text-lg font-semibold">
+                          {formData.numberOfCrops}
+                        </Text>
+                      )}
+                    </View>
+                    
+                    <Button
+                      onPress={() => handleStepperChange('numberOfCrops', 1)}
+                      disabled={formData.bedSize !== 'custom'}
+                      className={`w-8 h-8 rounded-full items-center justify-center ${
+                        formData.bedSize !== 'custom' ? 'opacity-50' : ''
+                      }`}
+                    >
+                      <Icon as={Plus} size={16} className="text-white" />
+                    </Button>
+                  </View>
                 </View>
 
                  {/* Water Amount */}
@@ -235,7 +336,10 @@ const onSubmit = async () => {
 
                 {/* Nutrient Solution */}
                 <View>
-                  <Text className="text-base font-medium  mb-2">Nutrient Solution</Text>
+                  <View className="flex-row items-center gap-2 mb-2">
+                    <Text className="text-base font-medium">Nutrient Solution</Text>
+                    <Text className="text-sm text-muted-foreground">(Optional)</Text>
+                  </View>
                   <Input
                     placeholder="e.g., General Hydroponics Flora Series"
                     value={formData.nutrientSolution}
@@ -248,7 +352,6 @@ const onSubmit = async () => {
             </Card>
 
             {/* Target Parameters Card */} 
-            {/*  Nutrient and Water Settings */}
 
             <Card className="p-6 mb-6  shadow-sm border-0">
               <View className="mb-6">
@@ -259,78 +362,30 @@ const onSubmit = async () => {
               <View className="space-y-5 gap-6">
                 {/* pH Range */}
                 <View>
-                  <Text className="text-base font-medium  mb-3">Target pH Range</Text>
+                  <Text className="text-base font-medium  mb-3 bg-lime-50">Target pH Range</Text>
                   <View className="flex-row space-x-3 gap-4">
                     <View className="flex-1">
                       <Text className="text-xs text-[#7F8C8D] mb-2">Minimum</Text>
-                        <Input
-                          placeholder="6.5"
-                          value={formData.targetPh}
-                          onChangeText={(value) => handleInputChange("targetPh", value)}
-                          keyboardType="numeric"
-                          className={`border rounded-xl px-3 py-4 bg-[#FAFFFA] text-[#2C3E50] focus:border-[#4CAF50] text-base text-center ${
-                            errors.target_ph_min ? "border-red-500" : "border-muted-foreground/50"
-                          }`}
-                          placeholderTextColor="#95A5A6"
-                        />
-                        {errors.target_ph_min && (
-                          <Text className="text-red-500 text-sm mt-1">{errors.target_ph_min}</Text>
-                        )}
+                      <Text>{formData.targetPh}</Text>
                     </View>
-                    <View className="flex-1">
+                     <View className="flex-1">
                       <Text className="text-xs text-[#7F8C8D] mb-2">Maximum</Text>
-                        <Input
-                          placeholder="6.5"
-                          value={formData.targetPhMax}
-                          onChangeText={(value) => handleInputChange("targetPhMax", value)}
-                          keyboardType="numeric"
-                          className={`border rounded-xl px-3 py-4 bg-[#FAFFFA] text-[#2C3E50] focus:border-[#4CAF50] text-base text-center ${
-                            errors.target_ph_max ? "border-red-500" : "border-muted-foreground/50"
-                          }`}
-                          placeholderTextColor="#95A5A6"
-                        />
-                        {errors.target_ph_max && (
-                          <Text className="text-red-500 text-sm mt-1">{errors.target_ph_max}</Text>
-                        )}
+                      <Text>{formData.targetPhMax}</Text>
                     </View>
                   </View>
                 </View>
 
                 {/* TDS Range */}
                 <View>
-                  <Text className="text-base font-medium text-[#34495E] mb-3">Target TDS Range (ppm)</Text>
+                  <Text className="text-base font-medium bg-lime-50 mb-3">Target TDS Range (ppm)</Text>
                   <View className="flex-row space-x-3 gap-4">
                     <View className="flex-1">
                       <Text className="text-xs text-[#7F8C8D] mb-2">Minimum</Text>
-                        <Input
-                          placeholder="800"
-                          value={formData.targetTdsMin}
-                          onChangeText={(value) => handleInputChange("targetTdsMin", value)}
-                          keyboardType="numeric"
-                          className={`border rounded-xl px-3 py-4 bg-[#FAFFFA] text-[#2C3E50] text-base text-center 
-                            ${errors.target_tds_min ? "border-red-500" : "border-muted-foreground/50"} 
-                            ${!errors.target_tds_min && "focus:border-[#4CAF50]"}`}
-                          placeholderTextColor="#95A5A6"
-                        />
-                        {errors.target_tds_min && (
-                          <Text className="text-red-500 text-sm mt-1">{errors.target_tds_min}</Text>
-                        )}
+                      <Text>{formData.targetTdsMin}</Text>
                     </View>
                     <View className="flex-1">
                       <Text className="text-xs text-[#7F8C8D] mb-2">Maximum</Text>
-                        <Input
-                          placeholder="1200"
-                          value={formData.targetTdsMax}
-                          onChangeText={(value) => handleInputChange("targetTdsMax", value)}
-                          keyboardType="numeric"
-                          className={`border rounded-xl px-3 py-4 bg-[#FAFFFA] text-[#2C3E50] text-base text-center 
-                            ${errors.target_tds_max ? "border-red-500" : "border-muted-foreground/50"} 
-                            ${!errors.target_tds_max && "focus:border-[#4CAF50]"}`}
-                          placeholderTextColor="#95A5A6"
-                        />
-                        {errors.target_tds_max && (
-                          <Text className="text-red-500 text-sm mt-1">{errors.target_tds_max}</Text>
-                        )}
+                      <Text>{formData.targetTdsMax}</Text>
                     </View>
                   </View>
                 </View>
@@ -339,7 +394,7 @@ const onSubmit = async () => {
             {/* Save Button */}
             <Button 
               className="w-full"
-              onPress={onSubmit}
+              onPress={handleSaveClick}
               disabled={isSubmitting}
             >
               <Icon as={Save} size={18} className="text-muted mr-2" />
@@ -348,9 +403,58 @@ const onSubmit = async () => {
               </Text>
             </Button>
 
+            {/* Reset Form Button */}
+            <Button 
+              variant="ghost"
+              className="w-full mt-3 border border-muted-foreground/30"
+              onPress={handleResetForm}
+            >
+              <Icon as={RotateCcw} size={18} className="text-muted-foreground mr-2" />
+              <Text className="text-muted-foreground">
+                Reset Form
+              </Text>
+            </Button>
+
           </View>
         </ScrollView>
       </View>
+
+      {/* Confirmation Modal */}
+      <ConfirmationModal
+        visible={showConfirmModal}
+        icon={<Icon as={Save} size={32} className="text-white" />}
+        modalTitle="Confirm Setup"
+        modalDescription="Are you sure you want to save this crop?"
+        confirmText="Save"
+        iconBgColor="bg-[#4CAF50]"
+        confirmButtonColor="bg-[#4CAF50]"
+        onConfirm={onSubmit}
+        onCancel={() => setShowConfirmModal(false)}
+      />
+
+      {/* Crop Info Modal */}
+      <CropInfoModal
+        visible={showCropInfoModal}
+        onClose={() => setShowCropInfoModal(false)}
+        cropOptions={cropOptions}
+      />
+
+      {/* Setup Complete Success Modal */}
+      <StatusModal
+        visible={showSuccessModal}
+        type="success"
+        title="Setup Complete!"
+        message="Your crop setup has been saved successfully."
+        buttonText="View Hydroponics"
+        onClose={() => {
+          setShowSuccessModal(false);
+          router.push("/(tabs)/hydroponics");
+        }}
+        onButtonPress={() => {
+          setShowSuccessModal(false);
+          router.push("/(tabs)/hydroponics");
+        }}
+      />
     </SafeAreaView>
   );
 }
