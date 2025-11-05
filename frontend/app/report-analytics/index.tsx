@@ -29,8 +29,8 @@ export default function ReportAnalytics() {
         const getStatusColor = (status: string) => {
           switch (status) {
             case 'Neutral': return 'bg-primary';
-            case 'Acidic': return 'bg-secondary';
-            case 'Alkaline': return 'bg-red-500';
+            case 'Acidic': return 'bg-red-500';
+            case 'Alkaline': return 'bg-purple-500';
             default: return 'bg-muted';
           }
         };
@@ -145,14 +145,11 @@ export default function ReportAnalytics() {
                   
                   {/* Status Badge */}
                   <View className="flex-row items-center">
-                    <View className={`${getStatusColor(item.status)} px-3 py-1.5 rounded-full mr-2`}>
-                      <Text className="text-white text-xs font-semibold">
+                    <View className={`${getStatusColor(item.status)} w-[72px] h-7 rounded-full items-center justify-center`}>
+                      <Text className="text-white text-[11px] font-semibold">
                         {item.status}
                       </Text>
                     </View>
-                    
-                    {/* Arrow Icon */}
-                    <Text className="text-gray-400 text-lg">›</Text>
                   </View>
                 </View>
                 
