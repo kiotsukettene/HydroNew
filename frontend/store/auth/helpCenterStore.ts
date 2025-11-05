@@ -9,11 +9,22 @@ export const useHelpCenterStore = create<HelpCenterState>((set, get) => ({
   lastPage: 1,
   loading: false,
   error: null,
-  filters: [], // ✅ Add filters to state
-  searchQuery: "", // ✅ Track search term
+  filters: [],
+  searchQuery: "",
 
-  // Fetch help center data (supports pagination + search)
+ 
+  cache: {} as Record<string, any>,
+
   fetchHelpCenter: async (page = 1, search = "") => {
+    const cacheKey = `${page}|${search}`;
+    const { cache } = get();
+
+  
+    if (cache[cacheKey]) {
+      set(cache[cacheKey]);
+      return;
+    }
+
     try {
       set({ loading: true, error: null });
 
@@ -23,14 +34,24 @@ export const useHelpCenterStore = create<HelpCenterState>((set, get) => ({
 
       const data = response.data.data;
 
-      set({
+      const result = {
         items: data.data,
         currentPage: data.current_page,
         lastPage: data.last_page,
         filters: response.data.filters || [],
         searchQuery: search,
         loading: false,
+      };
+
+      set(result);
+
+      set({
+        cache: {
+          ...cache,
+          [cacheKey]: result,
+        },
       });
+
     } catch (error: any) {
       set({
         loading: false,
@@ -41,9 +62,8 @@ export const useHelpCenterStore = create<HelpCenterState>((set, get) => ({
     }
   },
 
-  // Dedicated search function
   searchHelpCenter: async (search: string) => {
-    await get().fetchHelpCenter(1, search); // Always start at page 1 when searching
+    await get().fetchHelpCenter(1, search);
   },
 
   nextPage: async () => {
@@ -60,3 +80,4 @@ export const useHelpCenterStore = create<HelpCenterState>((set, get) => ({
     }
   },
 }));
+

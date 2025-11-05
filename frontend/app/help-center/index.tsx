@@ -9,7 +9,7 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Minus, Plus } from 'lucide-react-native'
 
 export default function Index() {
-  const [expandedItems, setExpandedItems] = useState<number[]>([0]) // First item expanded by default
+  const [expandedItems, setExpandedItems] = useState<number[]>([0]) 
 
   const faqData = [
     {
