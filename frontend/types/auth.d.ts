@@ -37,4 +37,6 @@ type AuthState = {
   userEmail: string;
   setUserEmail: (userEmail: string) => void;
   setNeedsVerification: (value: boolean) => void;
+  setUser: (user: User | null) => void;
+  setToken: (token: string | null) => void;
 };

@@ -4,9 +4,16 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Text } from '@/components/ui/text';
-import { Link } from 'expo-router';
+import { Link, router } from 'expo-router';
+import { toast } from 'sonner-native';
 
 export default function SuccessScreen() {
+
+  const goToDashboard = () => {
+    toast.success('Login Successful!');
+    router.replace('/(tabs)/home');
+  }
+
   return (
     <SafeAreaView className="flex-1 justify-between">
       {/* MAIN CONTENT */}
@@ -24,11 +31,9 @@ export default function SuccessScreen() {
           </Label>
         </View>
 
-        <Link href="/(tabs)/home" className="mt-4" asChild>
-          <Button className="w-full">
+          <Button className="w-full mt-4" onPress={goToDashboard}>
             <Text className="mx-auto items-center "> Go to Dashboard</Text>
           </Button>
-        </Link>
       </View>
 
       {/* HILLS IMAGE AT BOTTOM */}

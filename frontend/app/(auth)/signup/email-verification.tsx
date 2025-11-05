@@ -39,7 +39,7 @@ const onSubmit = async () => {
     const res: any = await verifyOtp(code);
 
     if (res && !error) {
-      router.push("/(auth)/signup/verification-success");
+      router.replace("/(auth)/signup/verification-success");
     }
   }
 };

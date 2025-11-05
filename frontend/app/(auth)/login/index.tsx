@@ -59,59 +59,62 @@ export default function Login() {
   const toastShown = useRef (false);
 
   useFocusEffect(
-  useCallback(() => {
-    resetErrors();  
-    setZodErrors({});
-    setEmail("");
-    setPassword("");
-  }, [])
-);
+    useCallback(() => {
+      resetErrors();  
+      setZodErrors({});
+      setEmail("");
+      setPassword("");
+    }, [])
+  );
 
   useEffect(() => {
-    if (error) resetErrors();
-    setZodErrors({});
+      if (error) resetErrors();
+      setZodErrors({});
   }, [email, password]);
 
 
   function getInputBorderStyle(field: "email" | "password") {
-  if (zodErrors[field]) return "border-red-500"; 
-  if (error) return "border-red-500";   
-  return "border-muted-foreground/50";   
-}
+    if (zodErrors[field]) return "border-red-500"; 
+    if (error) return "border-red-500";   
+    return "border-muted-foreground/50";   
+  }
 
- async function onSubmit() {
-  try {
-    resetErrors();
-    setZodErrors({});
-    const validated = loginSchema.parse({ email, password });
+  async function onSubmit() {
+    try {
+      resetErrors();
+      setZodErrors({});
+      const validated = loginSchema.parse({ email, password });
+      const emailRegex = /^\S+@\S+\.\S+$/;
+      if (!emailRegex.test(validated.email)) {
+        setZodErrors({ email: "Please enter a valid email address" });
+        return;
+      }
+      const response = await login(validated.email, validated.password);
 
-    const emailRegex = /^\S+@\S+\.\S+$/;
-    if (!emailRegex.test(validated.email)) {
-      setZodErrors({ email: "Please enter a valid email address" });
-      return;
-    }
+      if (!response) {
+        return;
+      }
+      if (response?.needs_verification) {
+        toast.error("Please verify your email to continue.");
+        router.push("/(auth)/signup/email-verification");
+        return;
+      }
+      toast.success("Logged in successfully!");
+      router.replace("/(tabs)/home");
 
-    const response = await login(validated.email, validated.password);
-
-    if (response?.needs_verification) {
-      toast.error("Please verify your email to continue.");
-      router.push("/(auth)/signup/email-verification");
-    } else {
-      toast.success("Login successful!");
-      router.push("/(tabs)/home");
-    }
-  } catch (err) {
-    if (err instanceof ZodError) {
-      const fieldErrors: any = {};
-      err.errors.forEach((e) => {
-        if (e.path.length > 0) {
-          fieldErrors[e.path[0]] = e.message;
-        }
-      });
-      setZodErrors(fieldErrors);
+    } catch (err) {
+      if (err instanceof ZodError) {
+        const fieldErrors: any = {};
+        err.errors.forEach((e) => {
+          if (e.path.length > 0) {
+            fieldErrors[e.path[0]] = e.message;
+          }
+        });
+        setZodErrors(fieldErrors);
+      }
     }
   }
-}
+
 
 
   const showToast = () => {
