@@ -24,9 +24,9 @@ export default function SuccessScreen() {
           </Label>
         </View>
 
-        <Link href="/(auth)/login" className="mt-4" asChild>
+        <Link href="/(tabs)/home" className="mt-4" asChild>
           <Button className="w-full">
-            <Text className="mx-auto items-center "> Go to login</Text>
+            <Text className="mx-auto items-center "> Go to Dashboard</Text>
           </Button>
         </Link>
       </View>

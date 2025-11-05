@@ -26,7 +26,7 @@ const { height } = Dimensions.get('window');
 export default function EmailVerification() {
   const { countdown, restartCountdown } = useCountdown(30);
   const [code, setCode] = React.useState('');
-  const { verifyOtp, resendOtp, error, resetErrors } = useAuthStore();
+  const { verifyOtp, resendOtp, error, resetErrors, loading, userEmail, setNeedsVerification } = useAuthStore();
 
   const onChangeCode = (value: string) => {
     resetErrors();
@@ -40,9 +40,13 @@ const onSubmit = async () => {
 
     if (res && !error) {
       router.push("/(auth)/signup/verification-success");
-      toast.success("Account Created!");
     }
   }
+};
+
+const handleCancel = () => {
+  setNeedsVerification(false);
+  router.back(); 
 };
 
   const onResendOtp = async() => {
@@ -95,7 +99,7 @@ const onSubmit = async () => {
                 Email Verification
               </CardTitle>
               <CardDescription className="text-center text-base sm:text-left">
-                Enter the verification code sent to m@example.com
+                Enter the verification code sent to {userEmail}
               </CardDescription>
             </CardHeader>
 
@@ -142,14 +146,14 @@ const onSubmit = async () => {
                   <Button
                     className="w-full"
                     onPress={onSubmit}
-                    disabled={!/^\d{6}$/.test(code)}
+                    disabled={!/^\d{6}$/.test(code) || loading}
                   >
-                    <Text className=''>Continue</Text>
+                    {loading? <Text className=''>Verifying...</Text> :<Text className=''>Continue</Text>}
                   </Button>
                   <Button
                     variant="outline"
                     className="mx-auto w-full"
-                    onPress={() => router.back()}
+                    onPress={handleCancel}
                   >
                     <Text className=''>Cancel</Text>
                   </Button>

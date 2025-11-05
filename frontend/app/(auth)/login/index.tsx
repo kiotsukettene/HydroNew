@@ -30,6 +30,8 @@ import { loginSchema } from "@/validators/authSchema";
 import { ZodError } from "zod";
 import { toast } from "sonner-native"
 import { GestureHandlerRootView } from "react-native-gesture-handler";
+import { useCallback } from "react";
+import { useFocusEffect } from "expo-router";
 
 const { height } = Dimensions.get("window");
 
@@ -38,6 +40,7 @@ export default function Login() {
   const user = useAuthStore((state) => state.user);
   const error = useAuthStore((state) => state.error);
   const resetErrors = useAuthStore((state) => state.resetErrors);
+  const loading = useAuthStore((state) => state.loading);
   const needsVerification = useAuthStore((state) => state.needsVerification);
   const [zodErrors, setZodErrors] = useState<{ email?: string; password?: string }>({});
 
@@ -53,20 +56,22 @@ export default function Login() {
     passwordInputRef.current?.focus();
   }
 
+  const toastShown = useRef (false);
+
+  useFocusEffect(
+  useCallback(() => {
+    resetErrors();  
+    setZodErrors({});
+    setEmail("");
+    setPassword("");
+  }, [])
+);
+
   useEffect(() => {
     if (error) resetErrors();
     setZodErrors({});
   }, [email, password]);
 
-  useEffect(() => {
-    if (!user) return;
-    if (needsVerification) {
-      router.push("/(auth)/signup/email-verification");
-    } else {
-      toast.success("Login successful!");
-      router.push("/(tabs)/home");
-    }
-  }, [user, needsVerification]);
 
   function getInputBorderStyle(field: "email" | "password") {
   if (zodErrors[field]) return "border-red-500"; 
@@ -74,24 +79,40 @@ export default function Login() {
   return "border-muted-foreground/50";   
 }
 
-  async function onSubmit() {
-    try {
-      resetErrors();
-      setZodErrors({});
-      const validated = loginSchema.parse({ email, password });
-      await login(validated.email, validated.password);
-    } catch (err) {
-      if (err instanceof ZodError) {
-        const fieldErrors: any = {};
-        err.errors.forEach((e) => {
-          if (e.path.length > 0) {
-            fieldErrors[e.path[0]] = e.message;
-          }
-        });
-        setZodErrors(fieldErrors);
-      }
+ async function onSubmit() {
+  try {
+    resetErrors();
+    setZodErrors({});
+    const validated = loginSchema.parse({ email, password });
+
+    const emailRegex = /^\S+@\S+\.\S+$/;
+    if (!emailRegex.test(validated.email)) {
+      setZodErrors({ email: "Please enter a valid email address" });
+      return;
+    }
+
+    const response = await login(validated.email, validated.password);
+
+    if (response?.needs_verification) {
+      toast.error("Please verify your email to continue.");
+      router.push("/(auth)/signup/email-verification");
+    } else {
+      toast.success("Login successful!");
+      router.push("/(tabs)/home");
+    }
+  } catch (err) {
+    if (err instanceof ZodError) {
+      const fieldErrors: any = {};
+      err.errors.forEach((e) => {
+        if (e.path.length > 0) {
+          fieldErrors[e.path[0]] = e.message;
+        }
+      });
+      setZodErrors(fieldErrors);
     }
   }
+}
+
 
   const showToast = () => {
     toast.error("Google login is not implemented yet.");
@@ -144,7 +165,7 @@ export default function Login() {
                   )}
 
                   {/* Email */}
-                  <View className="gap-1">
+                  <View>
                     <Label className="font-normal text-muted-foreground">
                       Email
                     </Label>
@@ -184,7 +205,7 @@ export default function Login() {
                       />
                     </View>
                     {zodErrors.password && (
-                      <Text className="text-destructive text-sm">{zodErrors.password}</Text>
+                      <Text className="text-destructive text-sm mt-1">{zodErrors.password}</Text>
                     )}
                     <View className="mb-2 mt-3 flex-row items-center justify-between">
                       {/* Remember Me */}
@@ -207,8 +228,12 @@ export default function Login() {
                   </View>
 
                   {/* LOGIN Button */}
-                  <Button className="w-full" onPress={onSubmit}>
-                    <Text>Login</Text>
+                  <Button 
+                    className="w-full" 
+                    onPress={onSubmit}
+                    disabled={loading}
+                  >
+                    {loading ? <Text>Logging in...</Text> : <Text>Login</Text>}
                   </Button>
 
                   {/* Separator */}
