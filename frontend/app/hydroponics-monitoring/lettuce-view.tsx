@@ -8,13 +8,13 @@ import FolderBg from '@/components/ui/folder-bg'
 import { Droplet } from 'lucide-react-native'
 import { Text } from '@/components/ui/text'
 import { Card } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
-import { useLocalSearchParams } from 'expo-router'
+import { useLocalSearchParams, useRouter } from 'expo-router'
 import { useHydroponicSetupStore } from '@/store/hydroponics/hydroponicSetupStore'
 import { useYieldStore } from '@/store/hydroponics/hydroponicYieldStore'
 
 
 export default function LettuceView() {
+  const router = useRouter()
   const params = useLocalSearchParams();
   const setupId = params.id;
   const { hydroponicSetups } = useHydroponicSetupStore();
@@ -80,7 +80,7 @@ export default function LettuceView() {
     </View>
  
     <View className="items-center mt-7">
-      <Button className="w-full rounded-xl bg-emerald-50 ">
+      <Button className="w-full rounded-xl bg-emerald-50 " onPress={() => {router.push('/hydroponics-monitoring/pump-screen')}}>
         <Icon as={Droplet} className="text-primary" />
         <Text className="ml-2  text-primary">Start Pump</Text>
       </Button>
