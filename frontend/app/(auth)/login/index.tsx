@@ -247,7 +247,7 @@ export default function Login() {
                   </View>
 
                   {/* Google Button */}
-                  <Button
+                  {/* <Button
                     onPress={() => {showToast()}}
                     variant="outline"
                     className="w-full flex-row items-center justify-center gap-2 mt-2"
@@ -273,7 +273,7 @@ export default function Login() {
                     <Text className="font-normal text-secondary">
                       Login with Google
                     </Text>
-                  </Button>
+                  </Button> */}
 
                   {/* Footer */}
                   <Text className="mt-2 text-center text-muted-foreground">

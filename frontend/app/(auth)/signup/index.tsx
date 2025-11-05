@@ -273,7 +273,7 @@ async function onSubmit() {
                 </View>
 
                 {/* Google Button */}
-                <Button
+                {/* <Button
                   variant="outline"
                   className="w-full flex-row items-center justify-center gap-2"
                   onPress={onSubmit}
@@ -299,7 +299,7 @@ async function onSubmit() {
                   <Text className="text-base text-secondary font-normal">
                     Register with Google
                   </Text>
-                </Button>
+                </Button> */}
 
                 {/* Footer */}
                 <Text className="text-center text-muted-foreground">
