@@ -82,7 +82,7 @@ const [latestKey, setLatestKey] = useState<string | null>(null);
                       <Text className="text-xl font-medium text-gray-800">{sensorData ? sensorData.ph : '--'}</Text>
                     </View>
 
-                    <Button variant={'ghost'} onPress={() => setIsPHLevelDetailsModalVisible(true)}>
+                    <Button variant={'ghost'} className='bg-transparent' onPress={() => setIsPHLevelDetailsModalVisible(true)}>
                       <Icon as={Info} color="#059669" size={18} className="ml-2 mt-1" />
                     </Button>
                     <PHLevelDetailsModal
