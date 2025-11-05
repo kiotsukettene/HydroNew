@@ -72,7 +72,7 @@ export default function CreateNewPassword() {
   };
 
   return (
-    <SafeAreaView className="flex-1">
+    <SafeAreaView className="flex-1 bg-background">
       <KeyboardAvoidingView
         style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}

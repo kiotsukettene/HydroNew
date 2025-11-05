@@ -13,7 +13,7 @@ const { height } = Dimensions.get('window');
 
 export default function Terms() {
   return (
-    <SafeAreaView className="flex-1">
+    <SafeAreaView className="flex-1 bg-background">
       <ScrollView contentContainerStyle={{ flexGrow: 1 }} showsVerticalScrollIndicator={false}>
         {/* --- TOP IMAGE --- */}
         <Image

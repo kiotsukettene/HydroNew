@@ -60,7 +60,7 @@ export default function VerificationCode() {
   };
 
   return (
-    <SafeAreaView className="flex-1">
+    <SafeAreaView className="flex-1 bg-background">
       {/* Hills image as background */}
 
       {/* Card overlay that moves up with keyboard */}

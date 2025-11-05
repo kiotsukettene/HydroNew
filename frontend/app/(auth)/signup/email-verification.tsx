@@ -58,7 +58,7 @@ const handleCancel = () => {
     }
   };
   return (
-    <SafeAreaView className="flex-1">
+    <SafeAreaView className="flex-1 bg-background">
       {/* Hills image as background */}
       <Image
         source={require('@/assets/images/email-verify-bg.png')}
