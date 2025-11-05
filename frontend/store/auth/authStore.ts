@@ -42,6 +42,8 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   userEmail: "",
   setNeedsVerification: (value: boolean) => set({ needsVerification: value }),
   setUserEmail: (email: string) => set({ userEmail: email }),
+  setUser: (user) => set({ user }),
+  setToken: (token) => set({ token }),
 
   resetErrors: () =>
     set({
@@ -83,6 +85,11 @@ login: async (email, password) => {
     }
 
     await storage.setItem("token", token);
+    if (user) {
+      await AsyncStorage.setItem("user", JSON.stringify(user));
+    } else {
+      await AsyncStorage.removeItem("user");
+    }
 
     set({
       loading: false,
@@ -160,6 +167,7 @@ login: async (email, password) => {
 
   logout: async () => {
     await storage.removeItem("token");
+    await storage.removeItem("user");
     set({
       user: null,
       token: null,

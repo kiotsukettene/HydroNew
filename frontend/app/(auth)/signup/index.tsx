@@ -52,7 +52,7 @@ export default function SignUp() {
 
   useEffect(() => {
     if (needsVerification) {
-      router.push("/(auth)/signup/email-verification");
+      router.replace("/(auth)/signup/email-verification");
     }
   }, [needsVerification]);
 
