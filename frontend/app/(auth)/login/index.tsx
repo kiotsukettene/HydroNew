@@ -210,9 +210,9 @@ export default function Login() {
                     {zodErrors.password && (
                       <Text className="text-destructive text-sm mt-1">{zodErrors.password}</Text>
                     )}
-                    <View className="mb-2 mt-3 flex-row items-center justify-between">
+                    <View className="mb-2 mt-3 flex items-end justify-end">
                       {/* Remember Me */}
-                      <View className="flex-row items-center justify-center gap-2">
+                      {/* <View className="flex-row items-center justify-center gap-2">
                         <Checkbox
                           checked={checked}
                           onCheckedChange={setChecked}
@@ -221,7 +221,7 @@ export default function Login() {
                         <Text className="self-end text-muted-foreground">
                           Remember me?
                         </Text>
-                      </View>
+                      </View> */}
                       <Link href="/forgot-password">
                         <Text className="self-end text-primary/70">
                           Forgot Password
