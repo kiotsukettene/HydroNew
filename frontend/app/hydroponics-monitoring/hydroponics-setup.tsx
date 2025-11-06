@@ -98,6 +98,8 @@ export default function HydroponicsSetup({ onSetupComplete }: HydroponicsSetupPr
     resetErrors();
   };
 
+  const isSaveDisabled = !formData.cropName || !formData.bedSize || isSubmitting;
+
   const handleStepperChange = (field: 'numberOfCrops', delta: number) => {
     // gagana lang yung stepper kung custom bed size
     if(formData.bedSize !== 'custom') return
@@ -395,7 +397,7 @@ const onSubmit = async () => {
             <Button 
               className="w-full"
               onPress={handleSaveClick}
-              disabled={isSubmitting}
+              disabled={isSaveDisabled}
             >
               <Icon as={Save} size={18} className="text-muted mr-2" />
               <Text>
