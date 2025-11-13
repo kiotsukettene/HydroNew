@@ -6,74 +6,16 @@ import { Text } from '@/components/ui/text'
 import { BellOff } from 'lucide-react-native'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import NotificationItem from './notification-item'
-
-const notificationsData = [
-  {
-    id: 1,
-    type: 'success' as const,
-    title: 'Plant ready for harvest!',
-    message: 'Your lettuce plant has reached the optimal growth stage and is ready for harvest.',
-    time: 'Nov 12 8:00pm',
-    isRead: false,
-  },
-  {
-    id: 2,
-    type: 'warning' as const,
-    title: 'Filter cleaning!',
-    message: 'Filter requires cleaning in the next 3 days. Clean immediately to maintain water quality.',
-    time: 'Nov 12 8:00pm',
-    isRead: false,
-  },
-  {
-    id: 3,
-    type: 'info' as const,
-    title: 'Water is potable',
-    message: 'Your recent water test has met the appropriate potability safe for hydroponics.',
-    time: 'Nov 12 8:00pm',
-    isRead: false,
-  },
-  {
-    id: 4,
-    type: 'warning' as const,
-    title: 'Filter cleaning!',
-    message: 'Filter requires cleaning in the next 3 days. Clean immediately to maintain water quality.',
-    time: 'Nov 12 8:00pm',
-    isRead: true,
-  },
-  {
-    id: 5,
-    type: 'info' as const,
-    title: 'Water is potable',
-    message: 'Your recent water test has met the appropriate potability safe for hydroponics.',
-    time: 'Nov 12 8:00pm',
-    isRead: true,
-  },
-  {
-    id: 6,
-    type: 'warning' as const,
-    title: 'Filter cleaning!',
-    message: 'Filter requires cleaning in the next 3 days. Clean immediately to maintain water quality.',
-    time: 'Nov 12 8:00pm',
-    isRead: true,
-  },
-  {
-    id: 7,
-    type: 'info' as const,
-    title: 'Water is potable',
-    message: 'Your recent water test has met the appropriate potability safe for hydroponics.',
-    time: 'Nov 12 8:00pm',
-    isRead: true,
-  },
-]
+import { useNotificationStore } from '@/store/notification/notificationStore'
 
 const STORAGE_KEY = '@notifications_data'
 
 export default function Notifications() {
-  const [notifications, setNotifications] = useState(notificationsData)
+  const { notifications, fetchNotifications, loading } = useNotificationStore();
 
   // Load notifications from storage on mount
   useEffect(() => {
-    loadNotifications()
+    fetchNotifications()
   }, [])
 
   // Save notifications to storage whenever they change
@@ -81,16 +23,6 @@ export default function Notifications() {
     saveNotifications()
   }, [notifications])
 
-  const loadNotifications = async () => {
-    try {
-      const stored = await AsyncStorage.getItem(STORAGE_KEY)
-      if (stored !== null) {
-        setNotifications(JSON.parse(stored))
-      }
-    } catch (error) {
-      console.error('Error loading notifications:', error)
-    }
-  }
 
   const saveNotifications = async () => {
     try {
@@ -100,19 +32,7 @@ export default function Notifications() {
     }
   }
 
-  const handleClearAll = () => {
-    setNotifications([])
-  }
 
-  const handleRestoreNotifications = () => {
-    setNotifications(notificationsData)
-  }
-
-  const handleNotificationPress = (id: number) => {
-    setNotifications(notifications.map(n => 
-      n.id === id ? { ...n, isRead: true } : n
-    ))
-  }
 
   return (
     <ScrollView className="flex-1 bg-white">
@@ -129,7 +49,7 @@ export default function Notifications() {
         {notifications.length > 0 && (
           <View className="flex-row justify-between mb-2">
             <Text className='font-semibold'>All</Text>
-            <TouchableOpacity onPress={handleClearAll}>
+            <TouchableOpacity onPress={() => {}}>
               <Text className="text-primary">Clear all</Text>
             </TouchableOpacity>
           </View>
@@ -149,7 +69,7 @@ export default function Notifications() {
               There is no notification to show right now
             </Text>
             <TouchableOpacity 
-              onPress={handleRestoreNotifications}
+              onPress={() => {}}
               className="mt-4 px-6 py-2 bg-primary rounded-full"
             >
               <Text className="text-white font-medium">Restore Notifications</Text>
@@ -165,8 +85,8 @@ export default function Notifications() {
                 title={notification.title}
                 message={notification.message}
                 time={notification.time}
-                isRead={notification.isRead}
-                onPress={() => handleNotificationPress(notification.id)}
+                isRead={notification.is_read}
+                onPress={() => {}}
               />
             ))}
             
