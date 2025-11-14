@@ -11,7 +11,7 @@ import { useNotificationStore } from '@/store/notification/notificationStore'
 const STORAGE_KEY = '@notifications_data'
 
 export default function Notifications() {
-  const { notifications, fetchNotifications, loading } = useNotificationStore();
+  const { notifications, fetchNotifications, loading, markAsRead } = useNotificationStore();
 
   // Load notifications from storage on mount
   useEffect(() => {
@@ -32,7 +32,10 @@ export default function Notifications() {
     }
   }
 
-
+  const handleNotificationPress = async (id: number) => {
+    await markAsRead(id);
+    
+  }
 
   return (
     <ScrollView className="flex-1 bg-white">
@@ -86,7 +89,7 @@ export default function Notifications() {
                 message={notification.message}
                 time={notification.time}
                 isRead={notification.is_read}
-                onPress={() => {}}
+                onPress={() => {handleNotificationPress(notification.id)}}
               />
             ))}
             
