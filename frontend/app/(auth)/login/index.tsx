@@ -31,6 +31,13 @@ import { ZodError } from "zod";
 import { toast } from "sonner-native"
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 
+
+import { GoogleSignin } from '@react-native-google-signin/google-signin';
+import auth from '@react-native-firebase/auth';
+
+
+
+
 const { height } = Dimensions.get("window");
 
 export default function Login() {
@@ -93,9 +100,38 @@ export default function Login() {
     }
   }
 
-  const showToast = () => {
-    toast.error("Google login is not implemented yet.");
+
+  GoogleSignin.configure({
+  webClientId: '835032812073-av4pmjr94757qiu2ug8ri9ivfdkdp9nd.apps.googleusercontent.com',
+  offlineAccess: true,
+});
+
+async function signInWithGoogle() {
+  try {
+
+    const userInfo = await GoogleSignin.signIn();
+    console.log('Google user info:', userInfo);
+
+    const idToken = (userInfo as any).data?.idToken; 
+    if (!idToken) {
+      console.warn('No idToken returned!');
+      return;
+    }
+
+    const googleCredential = auth.GoogleAuthProvider.credential(idToken);
+
+    const userCredential = await auth().signInWithCredential(googleCredential);
+    console.log('Google user:', userCredential.user);
+
+    const firebaseIdToken = await auth().currentUser?.getIdToken();
+    console.log('Firebase ID token:', firebaseIdToken);
+
+    return userCredential.user;
+  } catch (error) {
+    console.error('Google sign-in error:', error);
   }
+}
+
 
   return (
     <SafeAreaView className="flex-1 bg-background">
@@ -220,7 +256,7 @@ export default function Login() {
 
                   {/* Google Button */}
                   <Button
-                    onPress={() => {showToast()}}
+                    onPress={signInWithGoogle}
                     variant="outline"
                     className="w-full flex-row items-center justify-center gap-2 mt-2"
                   >
