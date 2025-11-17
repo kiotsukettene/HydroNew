@@ -156,7 +156,7 @@ async function signInWithGoogle() {
     }
     const result = await googleSSO(firebaseIdToken!, first_name, last_name);
 
-    if(user){
+    if(result?.user){
       toast.success("Login successful!");
       router.push("/(tabs)/home");
     }

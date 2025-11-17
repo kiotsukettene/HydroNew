@@ -12,6 +12,13 @@ type LoginResponse = {
   message?: string;
 };
 
+type GoogleSSOResponse = {
+  token: string;
+  user: User | null;
+  needs_verification: boolean;
+  message?: string;
+};
+
 type RegisterPayload = {
   first_name: string;
   last_name: string;
@@ -29,8 +36,8 @@ type AuthState = {
   message: string | null;
   needsVerification: boolean;
   register: (data: RegisterPayload) => Promise<void>;
-  login: (email: string, password: string) => Promise<void>;
-  signInWithGoogle: (token: string, first_name: string, last_name: string) => Promise<void>;
+  login: (email: string, password: string) => Promise<LoginResponse | null>;
+  signInWithGoogle: (token: string, first_name: string, last_name: string) => Promise<GoogleSSOResponse | null>;
   resetErrors: () => void;
   verifyOtp: (otp: string) => Promise<void>;
   resendOtp: () => Promise<void>;
