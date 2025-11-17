@@ -109,6 +109,7 @@ GoogleSignin.configure({
 
 async function signInWithGoogle() {
   try {
+    
 
     const userInfo = await GoogleSignin.signIn();
     console.log('Google user info:', userInfo);

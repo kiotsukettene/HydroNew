@@ -5,6 +5,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useAccountStore } from "../account/accountStore";
 import { Platform } from "react-native";
 import { firebase } from "@react-native-firebase/auth";
+import { GoogleSignin } from "@react-native-google-signin/google-signin";
 
 const isWeb = Platform.OS === "web";
 
@@ -186,6 +187,7 @@ signInWithGoogle: async (firebaseIdToken, first_name, last_name) => {
 
   logout: async () => {
     await storage.removeItem("token");
+    await GoogleSignin.signOut();
     set({
       user: null,
       token: null,
