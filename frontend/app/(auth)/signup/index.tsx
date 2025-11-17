@@ -28,7 +28,7 @@ import { handleAxiosError } from "@/api/handleAxiosError";
 const { height } = Dimensions.get("window");
 
 export default function SignUp() {
-  const { register , fieldErrors, error, resetErrors, needsVerification} = useAuthStore();
+  const { register , fieldErrors, error, resetErrors, needsVerification, loading, setUserEmail} = useAuthStore();
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [checked, setChecked] = useState(false);
@@ -52,7 +52,7 @@ export default function SignUp() {
 
   useEffect(() => {
     if (needsVerification) {
-      router.push("/(auth)/signup/email-verification");
+      router.replace("/(auth)/signup/email-verification");
     }
   }, [needsVerification]);
 
@@ -87,7 +87,6 @@ async function onSubmit() {
     }
   }
 }
-
 
 
   return (
@@ -170,7 +169,9 @@ async function onSubmit() {
                   </Label>
                   <Input
                     value={email}
-                    onChangeText={setEmail}
+                    onChangeText={(text) => 
+                      { setEmail(text); 
+                        setUserEmail(text); }}
                     placeholder="m@example.com"
                     keyboardType="email-address"
                     autoCapitalize="none"
@@ -204,6 +205,9 @@ async function onSubmit() {
                     />
                       <PasswordToggle onToggle={setShowPassword} initialState={showPassword} />
                   </View>
+                  {fieldErrors.password && (
+                    <Text className="text-destructive text-sm">{fieldErrors.password[0]}</Text>
+                  )}
                 </View>
 
                 {/* Confirm Password */}
@@ -255,10 +259,10 @@ async function onSubmit() {
                 {/* Sign Up Button */}
                 <Button
                   className="w-full"
-                  disabled={!checked}
+                  disabled={!checked || loading}
                   onPress={onSubmit}
                 >
-                  <Text className="text-base">Sign Up</Text>
+                  {loading? <Text className="text-base">Signing Up...</Text> : <Text className="text-base">Sign Up</Text>}
                 </Button>
 
                 {/* Separator */}
@@ -269,7 +273,7 @@ async function onSubmit() {
                 </View>
 
                 {/* Google Button */}
-                <Button
+                {/* <Button
                   variant="outline"
                   className="w-full flex-row items-center justify-center gap-2"
                   onPress={onSubmit}
@@ -295,7 +299,7 @@ async function onSubmit() {
                   <Text className="text-base text-secondary font-normal">
                     Register with Google
                   </Text>
-                </Button>
+                </Button> */}
 
                 {/* Footer */}
                 <Text className="text-center text-muted-foreground">

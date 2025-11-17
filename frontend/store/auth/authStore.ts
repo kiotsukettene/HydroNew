@@ -41,6 +41,11 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   fieldErrors: {},
   message: null,
   needsVerification: false,
+  userEmail: "",
+  setNeedsVerification: (value: boolean) => set({ needsVerification: value }),
+  setUserEmail: (email: string) => set({ userEmail: email }),
+  setUser: (user) => set({ user }),
+  setToken: (token) => set({ token }),
 
   resetErrors: () =>
     set({
@@ -82,6 +87,11 @@ login: async (email, password) => {
     }
 
     await storage.setItem("token", token);
+    if (user) {
+      await AsyncStorage.setItem("user", JSON.stringify(user));
+    } else {
+      await AsyncStorage.removeItem("user");
+    }
 
     set({
       loading: false,
@@ -94,7 +104,6 @@ login: async (email, password) => {
     return response.data;
   } catch (err: any) {
     const { message, fieldErrors } = handleAxiosError(err);
-    console.error("Login error:", message);
     set({ loading: false, error: message, fieldErrors });
     return null;
   }
@@ -174,7 +183,6 @@ signInWithGoogle: async (firebaseIdToken, first_name, last_name) => {
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
-      console.log("OTP resent:", response.data);
       set({
         loading: false,
         message: response.data.message,

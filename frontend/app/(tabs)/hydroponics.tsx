@@ -56,6 +56,10 @@ export default function Hydroponics() {
                   <Text>Add New Plant</Text>
                 </Button>
 
+                <Button variant={'outline'} className="mt-4" onPress={() => router.push('/hydroponics-monitoring/harvested-list')}>
+                  <Text>View Harvested Crops</Text>
+                </Button>
+
                   <View className="gap-3 sm:p-6">
                     {hydroponicSetups.map((item) => (
                       <View key={item.id}>

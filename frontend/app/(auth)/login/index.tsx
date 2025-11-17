@@ -30,6 +30,8 @@ import { loginSchema } from "@/validators/authSchema";
 import { ZodError } from "zod";
 import { toast } from "sonner-native"
 import { GestureHandlerRootView } from "react-native-gesture-handler";
+import { useCallback } from "react";
+import { useFocusEffect } from "expo-router";
 
 
 import { GoogleSignin } from '@react-native-google-signin/google-signin';
@@ -46,6 +48,7 @@ export default function Login() {
   const error = useAuthStore((state) => state.error);
   const googleSSO = useAuthStore((state) => state.signInWithGoogle);
   const resetErrors = useAuthStore((state) => state.resetErrors);
+  const loading = useAuthStore((state) => state.loading);
   const needsVerification = useAuthStore((state) => state.needsVerification);
   const [zodErrors, setZodErrors] = useState<{ email?: string; password?: string }>({});
 
@@ -61,33 +64,52 @@ export default function Login() {
     passwordInputRef.current?.focus();
   }
 
+  const toastShown = useRef (false);
+
+  useFocusEffect(
+    useCallback(() => {
+      resetErrors();  
+      setZodErrors({});
+      setEmail("");
+      setPassword("");
+    }, [])
+  );
+
   useEffect(() => {
       if (error) resetErrors();
         setZodErrors({});
       }, [email, password]);
 
-  useEffect(() => {
-    if (!user) return;
-    if (needsVerification) {
-      router.push("/(auth)/signup/email-verification");
-    } else {
-      toast.success("Login successful!");
-      router.push("/(tabs)/home");
-    }
-  }, [user, needsVerification]);
 
   function getInputBorderStyle(field: "email" | "password") {
-  if (zodErrors[field]) return "border-red-500"; 
-  if (error) return "border-red-500";   
-  return "border-muted-foreground/50";   
-}
+    if (zodErrors[field]) return "border-red-500"; 
+    if (error) return "border-red-500";   
+    return "border-muted-foreground/50";   
+  }
 
   async function onSubmit() {
     try {
       resetErrors();
       setZodErrors({});
       const validated = loginSchema.parse({ email, password });
-      await login(validated.email, validated.password);
+      const emailRegex = /^\S+@\S+\.\S+$/;
+      if (!emailRegex.test(validated.email)) {
+        setZodErrors({ email: "Please enter a valid email address" });
+        return;
+      }
+      const response = await login(validated.email, validated.password);
+
+      if (!response) {
+        return;
+      }
+      if (response?.needs_verification) {
+        toast.error("Please verify your email to continue.");
+        router.push("/(auth)/signup/email-verification");
+        return;
+      }
+      toast.success("Logged in successfully!");
+      router.replace("/(tabs)/home");
+
     } catch (err) {
       if (err instanceof ZodError) {
         const fieldErrors: any = {};
@@ -193,7 +215,7 @@ async function signInWithGoogle() {
                   )}
 
                   {/* Email */}
-                  <View className="gap-1">
+                  <View>
                     <Label className="font-normal text-muted-foreground">
                       Email
                     </Label>
@@ -233,11 +255,11 @@ async function signInWithGoogle() {
                       />
                     </View>
                     {zodErrors.password && (
-                      <Text className="text-destructive text-sm">{zodErrors.password}</Text>
+                      <Text className="text-destructive text-sm mt-1">{zodErrors.password}</Text>
                     )}
-                    <View className="mb-2 mt-3 flex-row items-center justify-between">
+                    <View className="mb-2 mt-3 flex items-end justify-end">
                       {/* Remember Me */}
-                      <View className="flex-row items-center justify-center gap-2">
+                      {/* <View className="flex-row items-center justify-center gap-2">
                         <Checkbox
                           checked={checked}
                           onCheckedChange={setChecked}
@@ -246,7 +268,7 @@ async function signInWithGoogle() {
                         <Text className="self-end text-muted-foreground">
                           Remember me?
                         </Text>
-                      </View>
+                      </View> */}
                       <Link href="/forgot-password">
                         <Text className="self-end text-primary/70">
                           Forgot Password
@@ -256,8 +278,12 @@ async function signInWithGoogle() {
                   </View>
 
                   {/* LOGIN Button */}
-                  <Button className="w-full" onPress={onSubmit}>
-                    <Text>Login</Text>
+                  <Button 
+                    className="w-full" 
+                    onPress={onSubmit}
+                    disabled={loading}
+                  >
+                    {loading ? <Text>Logging in...</Text> : <Text>Login</Text>}
                   </Button>
 
                   {/* Separator */}

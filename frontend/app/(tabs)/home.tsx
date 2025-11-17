@@ -1,5 +1,5 @@
 import { View, Image, TouchableOpacity, ScrollView, Pressable, ActivityIndicator } from 'react-native';
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Button } from '@/components/ui/button';
 import {
@@ -17,6 +17,14 @@ import type { HomeProps } from '@/types/home';
 import { useRouter } from 'expo-router';
 import { useDashboardStore } from '@/store/auth/dashboardStore';
 
+import { db } from '@/src/firebase';
+import { onValue, ref } from 'firebase/database';
+
+interface SensorData {
+  ph: number;
+  
+}
+
 export default function Home() {
 
   const router = useRouter()
@@ -33,7 +41,27 @@ export default function Home() {
   // };
 
   const { data, loading, error, fetchDashboard } = useDashboardStore();
+  //firebase data fetching
+   const [sensorData, setSensorData] = useState<SensorData | null>(null);
+  const [latestKey, setLatestKey] = useState<string | null>(null);
+    useEffect(() => {
+      const sensorRef = ref(db, 'sensorData/');
+      const unsubscribe = onValue(sensorRef, (snapshot) => {
+        const data = snapshot.val();
+        if (!data) return;
   
+        // Get the latest entry (Firebase push key)
+        const keys = Object.keys(data);
+        const newKey = keys[keys.length - 1];
+        const latestData = data[newKey];
+  
+         setLatestKey(newKey);
+        setSensorData(latestData);
+      });
+
+      return () => unsubscribe();
+    }, [latestKey]);
+
   useEffect(() => {
     fetchDashboard();
   }, []);
@@ -93,7 +121,7 @@ export default function Home() {
               {/* pH Level */}
               <View className="absolute left-6 top-9 z-10">
                 <Text className="text-5xl font-bold text-[#2D7D7D]">
-                  {waterQuality.pHLevel}
+                  {sensorData ? sensorData.ph : '--'}
                 </Text>
                 <Text className="text-lg font-semibold text-foreground/70">pH Level</Text>
               </View>
