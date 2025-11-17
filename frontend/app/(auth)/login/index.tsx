@@ -44,6 +44,7 @@ export default function Login() {
   const login = useAuthStore((state) => state.login);
   const user = useAuthStore((state) => state.user);
   const error = useAuthStore((state) => state.error);
+  const googleSSO = useAuthStore((state) => state.signInWithGoogle);
   const resetErrors = useAuthStore((state) => state.resetErrors);
   const needsVerification = useAuthStore((state) => state.needsVerification);
   const [zodErrors, setZodErrors] = useState<{ email?: string; password?: string }>({});
@@ -61,9 +62,9 @@ export default function Login() {
   }
 
   useEffect(() => {
-    if (error) resetErrors();
-    setZodErrors({});
-  }, [email, password]);
+      if (error) resetErrors();
+        setZodErrors({});
+      }, [email, password]);
 
   useEffect(() => {
     if (!user) return;
@@ -101,7 +102,7 @@ export default function Login() {
   }
 
 
-  GoogleSignin.configure({
+GoogleSignin.configure({
   webClientId: '835032812073-av4pmjr94757qiu2ug8ri9ivfdkdp9nd.apps.googleusercontent.com',
   offlineAccess: true,
 });
@@ -117,16 +118,27 @@ async function signInWithGoogle() {
       console.warn('No idToken returned!');
       return;
     }
-
     const googleCredential = auth.GoogleAuthProvider.credential(idToken);
-
     const userCredential = await auth().signInWithCredential(googleCredential);
     console.log('Google user:', userCredential.user);
 
     const firebaseIdToken = await auth().currentUser?.getIdToken();
     console.log('Firebase ID token:', firebaseIdToken);
 
-    return userCredential.user;
+    const first_name = userInfo.data?.user?.givenName ?? "";
+    const last_name = userInfo.data?.user?.familyName ?? "";
+    if (!firebaseIdToken) {
+      console.warn('Firebase ID token is null, aborting backend call');
+      return;
+    }
+    const result = await googleSSO(firebaseIdToken!, first_name, last_name);
+
+    if(user){
+      toast.success("Login successful!");
+      router.push("/(tabs)/home");
+    }
+    
+    console.log('Backend SSO result:', result);
   } catch (error) {
     console.error('Google sign-in error:', error);
   }

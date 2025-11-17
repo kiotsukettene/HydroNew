@@ -4,6 +4,7 @@ import { handleAxiosError } from "@/api/handleAxiosError";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useAccountStore } from "../account/accountStore";
 import { Platform } from "react-native";
+import { firebase } from "@react-native-firebase/auth";
 
 const isWeb = Platform.OS === "web";
 
@@ -98,7 +99,31 @@ login: async (email, password) => {
   }
 },
 
+signInWithGoogle: async (firebaseIdToken, first_name, last_name) => {
+    set({ loading: true, error: null});
+    try {
+      const response = await axiosInstance.post("/google-login", {token: firebaseIdToken, first_name, last_name });
+      const { token, user, needs_verification } = response.data;
 
+      await storage.setItem("token", token);
+
+      set({
+        loading: false,
+        user: user || null,
+        token,
+        needsVerification: needs_verification ?? false,
+      });
+      await useAccountStore.getState().fetchAccount();
+      console.log("Google sign-in successful:", user);
+      return response.data;
+
+    } catch (err: any) {
+      const {message} = handleAxiosError(err);
+      set({ loading: false, error: message });
+      console.log("Google sign-in error:", message);
+      return null;
+    }
+},
 
   verifyOtp: async (otp: string) => {
     set({ loading: true, error: null, fieldErrors: {} });

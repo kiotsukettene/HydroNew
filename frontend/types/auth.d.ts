@@ -23,6 +23,7 @@ type AuthState = {
   needsVerification: boolean;
   register: (data: RegisterPayload) => Promise<void>;
   login: (email: string, password: string) => Promise<void>;
+  signInWithGoogle: (token: string, first_name: string, last_name: string) => Promise<void>;
   resetErrors: () => void;
   verifyOtp: (otp: string) => Promise<void>;
   resendOtp: () => Promise<void>;
