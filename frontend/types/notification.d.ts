@@ -21,7 +21,11 @@ export type NotificationState = {
     notifications: NotificationType[];
     error: string | null;
     loading: boolean;
+    isListening: boolean;
     fetchNotifications: () => Promise<void>;
     createNotification: (data: NotificationPayload) => Promise<void>;
     markAsRead: (id: number) => Promise<void>;
+    startListening: (userId: number) => void;
+    stopListening: (userId: number) => void;
+    addNotification: (notification: Notification) => void;
 }
