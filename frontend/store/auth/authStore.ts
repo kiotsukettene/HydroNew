@@ -116,6 +116,7 @@ signInWithGoogle: async (firebaseIdToken, first_name, last_name) => {
       const { token, user, needs_verification } = response.data;
 
       await storage.setItem("token", token);
+      await storage.setItem("user", JSON.stringify(user));
 
       set({
         loading: false,
