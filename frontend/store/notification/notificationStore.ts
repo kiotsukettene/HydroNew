@@ -6,6 +6,7 @@ import { getEcho, waitForConnection } from '@/lib/echo';
 
 export const useNotificationStore = create<NotificationState>((set, get) => ({
     notifications: [],
+    unreadCount: 0,
     error: null,
     loading: false,
     isListening: false,
@@ -14,8 +15,11 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
         set({ loading: true, error: null });
         try {
             const response = await axiosInstance.get('/notifications');
+            const notifications = response.data.data;
+            const unreadCount = notifications.filter((n: any) => !n.is_read).length;
             set({
-                notifications: response.data.data,
+                notifications,
+                unreadCount,
                 loading: false,
             });
         } catch (error: any) {
@@ -24,6 +28,16 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
                 loading: false,
                 error: err.message,
             });
+        }
+    },
+
+    fetchUnreadCount: async () => {
+        try {
+            const response = await axiosInstance.get('/notifications/unread-count');
+            set({ unreadCount: response.data.unread_count });
+        } catch (error: any) {
+            const err = handleAxiosError(error);
+            console.error('Error fetching unread count:', err.message);
         }
     },
 
@@ -47,11 +61,34 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
     markAsRead: async (id: number) => {
         set({ loading: true, error: null });
         try {
-            await axiosInstance.put(`/notifications/${id}/mark-as-read`);
-            set((state) => ({
-                notifications: state.notifications.map((n) =>
+            await axiosInstance.patch(`/notifications/${id}/mark-as-read`);
+            set((state) => {
+                const updatedNotifications = state.notifications.map((n) =>
                     n.id === id ? { ...n, is_read: true } : n
-                ),
+                );
+                const unreadCount = updatedNotifications.filter((n) => !n.is_read).length;
+                return {
+                    notifications: updatedNotifications,
+                    unreadCount,
+                    loading: false,
+                };
+            });
+        } catch (error: any) {
+            const err = handleAxiosError(error);
+            set({
+                loading: false,
+                error: err.message,
+            });
+        }
+    },
+
+    markAllAsRead: async () => {
+        set({ loading: true, error: null });
+        try {
+            await axiosInstance.post('/notifications/mark-all-read');
+            set((state) => ({
+                notifications: state.notifications.map((n) => ({ ...n, is_read: true })),
+                unreadCount: 0,
                 loading: false,
             }));
         } catch (error: any) {
@@ -133,6 +170,7 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
     addNotification: (notification: any) => {
         set((state) => ({
             notifications: [notification, ...state.notifications],
+            unreadCount: state.unreadCount + 1,
         }));
     },
 }));

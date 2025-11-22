@@ -4,7 +4,7 @@ import { useNotificationStore } from '@/store/notification/notificationStore';
 import { useAuthStore } from '@/store/auth/authStore';
 
 export const useEchoSetup = (userId?: number) => {
-  const { startListening, stopListening } = useNotificationStore();
+  const { startListening, stopListening, fetchNotifications } = useNotificationStore();
 
   useEffect(() => {
     console.log('useEchoSetup effect running, userId:', userId);
@@ -25,6 +25,10 @@ export const useEchoSetup = (userId?: number) => {
           
           // Initialize Echo
           initializeEcho(token);
+          
+          // Fetch notifications to get the unread count
+          console.log('Fetching notifications...');
+          await fetchNotifications();
           
           console.log('Starting to listen for notifications...');
           // Start listening to notifications
@@ -47,5 +51,5 @@ export const useEchoSetup = (userId?: number) => {
       }
       disconnectEcho();
     };
-  }, [userId, startListening, stopListening]);
+  }, [userId, startListening, stopListening, fetchNotifications]);
 };
