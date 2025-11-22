@@ -11,6 +11,8 @@ import * as SplashScreen from 'expo-splash-screen';
 import { useEffect } from 'react';
 import { Toaster } from "sonner-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
+import { useAuthStore } from '@/store/auth/authStore';
+import { useEchoSetup } from './hooks/useEchoSetup';
 
 
 export {
@@ -21,6 +23,13 @@ SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
   const { colorScheme } = useColorScheme();
+   // Get authenticated user
+  const user = useAuthStore(state => state.user);
+  const token = useAuthStore(state => state.token);
+
+  // Setup Echo globally - will only initialize when user is authenticated
+  useEchoSetup(user?.id);
+
 
   const [fontsLoaded] = useFonts({
     'FingerPaint-Regular': require('@/assets/fonts/Finger_Paint/FingerPaint-Regular.ttf'),

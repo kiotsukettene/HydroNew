@@ -4,6 +4,8 @@ import { handleAxiosError } from "@/api/handleAxiosError";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useAccountStore } from "../account/accountStore";
 import { Platform } from "react-native";
+import { disconnectEcho } from "@/lib/echo";
+import { useNotificationStore } from "../notification/notificationStore";
 
 const isWeb = Platform.OS === "web";
 
@@ -160,6 +162,16 @@ login: async (email, password) => {
   },
 
   logout: async () => {
+     // Get user ID before clearing state
+    const user = get().user;
+    
+    // Stop listening to notifications
+    if (user?.id) {
+      useNotificationStore.getState().stopListening(user.id);
+    }
+    
+    // Disconnect Echo
+    disconnectEcho();
     await storage.removeItem("token");
     set({
       user: null,

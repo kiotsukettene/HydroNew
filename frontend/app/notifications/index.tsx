@@ -8,8 +8,7 @@ import { BellOff } from 'lucide-react-native'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import NotificationItem from './notification-item'
 import { useNotificationStore } from '@/store/notification/notificationStore'
-import { useEchoSetup } from '../hooks/useEchoSetup'
-import { useAuthStore } from '@/store/auth/authStore'
+
 
 const STORAGE_KEY = '@notifications_data'
 
@@ -17,11 +16,6 @@ export default function Notifications() {
   const { notifications, fetchNotifications, loading, markAsRead } = useNotificationStore();
   const [refreshing, setRefreshing] = useState(false);
   
-  // Get user ID from your auth store/context
-  const user = useAuthStore(state => state.user);
-  
-  // Setup Echo real-time listener
-  useEchoSetup(user?.id);
 
   // Fetch notifications when screen comes into focus
   useFocusEffect(
