@@ -13,7 +13,7 @@ import { useNotificationStore } from '@/store/notification/notificationStore'
 const STORAGE_KEY = '@notifications_data'
 
 export default function Notifications() {
-  const { notifications, fetchNotifications, loading, markAsRead } = useNotificationStore();
+  const { notifications, fetchNotifications, loading, markAsRead, markAllAsRead } = useNotificationStore();
   const [refreshing, setRefreshing] = useState(false);
   
 
@@ -39,6 +39,10 @@ export default function Notifications() {
 
   const handleNotificationPress = async (id: number) => {
     await markAsRead(id);
+  }
+
+  const handleClearAll = async () => {
+    await markAllAsRead();
   }
 
   // Pull to refresh
@@ -68,8 +72,8 @@ export default function Notifications() {
           {notifications.length > 0 && (
             <View className="flex-row justify-between mb-2">
               <Text className='font-semibold'>All</Text>
-              <TouchableOpacity onPress={() => {}}>
-                <Text className="text-primary">Clear all</Text>
+              <TouchableOpacity onPress={handleClearAll}>
+                <Text className="text-primary">Mark all as read</Text>
               </TouchableOpacity>
             </View>
           )}

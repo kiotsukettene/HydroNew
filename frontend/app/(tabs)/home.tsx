@@ -12,10 +12,12 @@ import {
 } from 'lucide-react-native';
 import { Card, CardContent } from '@/components/ui/card';
 import { Text } from '@/components/ui/text';
+import { NotificationBadge } from '@/components/ui/notification-badge';
 
 import type { HomeProps } from '@/types/home';
 import { useRouter } from 'expo-router';
 import { useDashboardStore } from '@/store/auth/dashboardStore';
+import { useNotificationStore } from '@/store/notification/notificationStore';
 
 export default function Home() {
 
@@ -33,6 +35,7 @@ export default function Home() {
   // };
 
   const { data, loading, error, fetchDashboard } = useDashboardStore();
+  const unreadCount = useNotificationStore((s) => s.unreadCount);
   
   useEffect(() => {
     fetchDashboard();
@@ -76,7 +79,7 @@ export default function Home() {
               <Text className="text-2xl font-semibold ">{userName}!</Text>
             </View>
             <Button variant={'ghost'} onPress={() => router.push('/notifications')}>
-              <BellIcon size={22} strokeWidth={3} color={'#445104'} />
+              <NotificationBadge count={unreadCount} size={22} color={'#445104'} strokeWidth={3} />
             </Button>
           </View>
 
