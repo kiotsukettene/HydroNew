@@ -33,12 +33,20 @@ import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { useCallback } from "react";
 import { useFocusEffect } from "expo-router";
 
+
+import { GoogleSignin } from '@react-native-google-signin/google-signin';
+import auth from '@react-native-firebase/auth';
+
+
+
+
 const { height } = Dimensions.get("window");
 
 export default function Login() {
   const login = useAuthStore((state) => state.login);
   const user = useAuthStore((state) => state.user);
   const error = useAuthStore((state) => state.error);
+  const googleSSO = useAuthStore((state) => state.signInWithGoogle);
   const resetErrors = useAuthStore((state) => state.resetErrors);
   const loading = useAuthStore((state) => state.loading);
   const needsVerification = useAuthStore((state) => state.needsVerification);
@@ -69,8 +77,8 @@ export default function Login() {
 
   useEffect(() => {
       if (error) resetErrors();
-      setZodErrors({});
-  }, [email, password]);
+        setZodErrors({});
+      }, [email, password]);
 
 
   function getInputBorderStyle(field: "email" | "password") {
@@ -116,10 +124,49 @@ export default function Login() {
   }
 
 
+GoogleSignin.configure({
+  webClientId: '835032812073-av4pmjr94757qiu2ug8ri9ivfdkdp9nd.apps.googleusercontent.com',
+  offlineAccess: true,
+});
 
-  const showToast = () => {
-    toast.error("Google login is not implemented yet.");
+async function signInWithGoogle() {
+  try {
+    
+
+    const userInfo = await GoogleSignin.signIn();
+    console.log('Google user info:', userInfo);
+
+    const idToken = (userInfo as any).data?.idToken; 
+    if (!idToken) {
+      console.warn('No idToken returned!');
+      return;
+    }
+    const googleCredential = auth.GoogleAuthProvider.credential(idToken);
+    const userCredential = await auth().signInWithCredential(googleCredential);
+    console.log('Google user:', userCredential.user);
+
+    const firebaseIdToken = await auth().currentUser?.getIdToken();
+    console.log('Firebase ID token:', firebaseIdToken);
+
+    const first_name = userInfo.data?.user?.givenName ?? "";
+    const last_name = userInfo.data?.user?.familyName ?? "";
+    if (!firebaseIdToken) {
+      console.warn('Firebase ID token is null, aborting backend call');
+      return;
+    }
+    const result = await googleSSO(firebaseIdToken!, first_name, last_name);
+
+    if(result?.user){
+      toast.success("Login successful!");
+      router.push("/(tabs)/home");
+    }
+    
+    console.log('Backend SSO result:', result);
+  } catch (error) {
+    console.error('Google sign-in error:', error);
   }
+}
+
 
   return (
     <SafeAreaView className="flex-1 bg-background">
@@ -247,8 +294,8 @@ export default function Login() {
                   </View>
 
                   {/* Google Button */}
-                  {/* <Button
-                    onPress={() => {showToast()}}
+                  <Button
+                    onPress={signInWithGoogle}
                     variant="outline"
                     className="w-full flex-row items-center justify-center gap-2 mt-2"
                   >
@@ -273,7 +320,7 @@ export default function Login() {
                     <Text className="font-normal text-secondary">
                       Login with Google
                     </Text>
-                  </Button> */}
+                  </Button>
 
                   {/* Footer */}
                   <Text className="mt-2 text-center text-muted-foreground">
