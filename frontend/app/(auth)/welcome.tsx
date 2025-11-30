@@ -31,7 +31,7 @@ const WelcomeScreen = () => {
 
         {/* Buttons */}
         <View className="w-full px-6 gap-3 mt-3 mb-6">
-          <Link href="/signup" asChild>
+          <Link href="/device" asChild>
             <Button className="bg-primary">
               <Text className=" text-base">Get Started</Text>
             </Button>
