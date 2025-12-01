@@ -7,7 +7,7 @@ interface TipState {
   data: TipsResponse | null;
   loading: boolean;
   error: string | null;
-  timeLeft: string | null; // ✅ Add this
+  timeLeft: string | null; 
   fetchTips: (userId: string | number) => Promise<void>;
 }
 
@@ -19,7 +19,6 @@ export const useTipStore = create<TipState>((set) => ({
 
   fetchTips: async (userId: string | number) => {
     try {
-      // ✅ Prevent duplicate requests if already loading
       const currentState = useTipStore.getState();
       if (currentState.loading) {
         console.log("CACHE: Already loading, skipping duplicate request.");
