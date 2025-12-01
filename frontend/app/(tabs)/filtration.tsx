@@ -17,6 +17,7 @@ import {
 } from 'lucide-react-native';
 import FailedDetailsModal from '../hydroponics-monitoring/failed-details';
 import { router } from 'expo-router';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 // Types 
 interface FiltrationStage {
@@ -103,7 +104,16 @@ export default function Filtration() {
     }
   ]);
 
+  // Simple helper to save/clear filtration status
+  const saveStatus = (stage: number, progress: number, failed = false) => {
+    AsyncStorage.setItem('filtration_status', JSON.stringify({
+      currentStage: `Stage ${stage}`,
+      progress: `${progress}% Complete`,
+      hasFailed: failed,
+    }));
+  };
 
+  const clearStatus = () => AsyncStorage.removeItem('filtration_status');
 
   {/* ========================== FUNCTIONALITY TESTING ========================== */}
 
@@ -113,17 +123,18 @@ export default function Filtration() {
     setIsProcessFailed(false);
     setButtonText("On process...");
     setCurrentStage(1);
+    saveStatus(1, 0);
     
-    // Start Stage 1
     setTimeout(() => {
       updateStageStatus(1, "completed", "Completed", "bg-green-300", "bg-green-50", "border-green-100", "bg-green-500");
       setCurrentStage(2);
+      saveStatus(2, 25);
       
-      // Start Stage 2 (will fail for testing)
       setTimeout(() => {
         updateStageStatus(2, "failed", "Failed", "bg-red-500", "bg-red-50", "border-red-200", "bg-red-400");
         setIsProcessFailed(true);
         setButtonText("Re-start Process");
+        saveStatus(2, 50, true);
       }, 2000);
     }, 2000);
   };
@@ -132,25 +143,23 @@ export default function Filtration() {
   const restartProcess = () => {
     setIsProcessFailed(false);
     setButtonText("On process...");
+    saveStatus(2, 25);
     
-    // Fix Stage 2 and continue
     setTimeout(() => {
       updateStageStatus(2, "completed", "Completed", "bg-green-300", "bg-green-50", "border-green-100", "bg-green-500");
       setCurrentStage(3);
+      saveStatus(3, 50);
       
-      // Continue to Stage 3
       setTimeout(() => {
         updateStageStatus(3, "completed", "Completed", "bg-green-300", "bg-green-50", "border-green-100", "bg-green-500");
         setCurrentStage(4);
+        saveStatus(4, 75);
         
-        // Complete Stage 4
         setTimeout(() => {
           updateStageStatus(4, "completed", "Completed", "bg-green-300", "bg-green-50", "border-green-100", "bg-green-500");
           setButtonText("Process Complete");
-          // Show success modal after completion
-          setTimeout(() => {
-            setShowSuccessModal(true);
-          }, 500);
+          saveStatus(4, 100);
+          setTimeout(() => setShowSuccessModal(true), 500);
         }, 2000);
       }, 2000);
     }, 2000);
@@ -199,6 +208,7 @@ export default function Filtration() {
     setCurrentStage(0);
     setButtonText("Start Process");
     setShowSuccessModal(false);
+    clearStatus();
     
     // Reset all stages back to pending
     setFiltrationStages([
