@@ -2,11 +2,19 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Icon } from '@/components/ui/icon';
+import { Loader } from '@/components/ui/loader';
 import { PageHeader } from '@/components/ui/page-header';
-import { Separator } from '@/components/ui/separator';
 import { Text } from '@/components/ui/text';
 import { useRouter } from 'expo-router';
-import { BadgeCheckIcon, CircleArrowRight, Info } from 'lucide-react-native'; // Added Info icon
+import {
+  BadgeCheckIcon,
+  CircleArrowRight,
+  Info,
+  Sparkles,
+  AlertTriangle,
+  Beaker,
+  TrendingUp,
+} from 'lucide-react-native';
 import React, { use, useEffect, useState } from 'react';
 import { Image, Pressable, ScrollView, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -30,6 +38,8 @@ export default function Monitor() {
   const [isTDSDetailsModalVisible, setIsTDSDetailsModalVisible] = useState(false);
   const [isPHLevelDetailsModalVisible, setIsPHLevelDetailsModalVisible] = useState(false);
   const [tabValue, setTabValue] = useState('clean');
+  const [showRecommendations, setShowRecommendations] = useState(false);
+  const [isGeneratingInsights, setIsGeneratingInsights] = useState(false);
 
   //firebase data fetching
   const [sensorData, setSensorData] = useState<SensorData | null>(null);
@@ -52,10 +62,24 @@ export default function Monitor() {
     return () => unsubscribe();
   }, [latestKey]);
 
-  const recentActivities = [
-    { id: '1', description: 'Water pH adjusted', time: '8:00 AM' },
-    { id: '2', description: 'Filtration completed', time: '9:15 AM' },
-  ];
+  const handleGenerateInsights = async () => {
+    // If already showing recommendations, just toggle them off
+    if (showRecommendations) {
+      setShowRecommendations(false);
+      return;
+    }
+
+    // Start loading
+    setIsGeneratingInsights(true);
+
+    // Simulate API call / AI processing (replace with actual API call later)
+    await new Promise((resolve) => setTimeout(resolve, 2000));
+
+    // Loading complete, show recommendations
+    setIsGeneratingInsights(false);
+    setShowRecommendations(true);
+  };
+
   return (
     <ScrollView>
       <SafeAreaView className="bg-white">
@@ -212,39 +236,63 @@ export default function Monitor() {
             </Tabs>
           </Card>
 
-          {/* ===== Recent Activity Card ===== */}
+          {/* ===== Generate AI Insights Button ===== */}
+          <Button
+            className="mt-4 "
+            style={{ borderColor: '#d4d4d4' }}
+            variant={'outline'}
+            disabled={isGeneratingInsights}
+            onPress={handleGenerateInsights}>
+            <Icon as={Sparkles} color="#6366f1" size={20} className="mr-2" />
+            <Text className="font-semibold text-indigo-600">
+              {isGeneratingInsights ? 'Generating...' : 'Generate AI Insights'}
+            </Text>
+          </Button>
 
-          <Card className="mt-4 rounded-2xl border border-gray-300 p-5 shadow-sm">
-            <CardContent className="p-0">
-              <View className="flex-row items-center justify-between">
-                <Text className="text-lg font-semibold text-gray-900">Recent Activity</Text>
-                <Button
-                  variant="link"
-                  className="onPress p-0"
-                  onPress={() => {
-                    router.push('/water-monitor/recent-activity');
-                  }}>
-                  <Text className="text-sm font-medium text-secondary">See All</Text>
-                </Button>
-              </View>
+          {/* ===== Loading State ===== */}
+          {isGeneratingInsights && (
+            <Card className="mt-4 border border-gray-300 p-5 shadow-sm">
+              <CardContent className="p-0">
+                <Loader
+                  message="Generating AI insights..."
+                  color="#6366f1"
+                  size="lg"
+                  className="py-8"
+                />
+              </CardContent>
+            </Card>
+          )}
 
-              {/* List of Activities */}
-              <View>
-                {recentActivities.map((activity, index) => (
-                  <View key={activity.id}>
-                    {/* Activity Item */}
-                    <View className="py-3">
-                      <Text className="text-base text-gray-900">{activity.description}</Text>
-                      <Text className="mt-1 text-sm text-gray-400">{activity.time}</Text>
-                    </View>
+          {/* ===== Smart Recommendations Card ===== */}
+          {showRecommendations && !isGeneratingInsights && (
+            <Card className="mt-4 border border-gray-300 p-5 shadow-sm">
+              <CardContent className="p-0">
+                <Text className="mb-4 text-lg font-light ">
+                  Smart Recommendations
+                </Text>
 
-                    {/* Separator */}
-                    {index < recentActivities.length - 1 && <Separator className="bg-gray-200" />}
+                <View className="gap-3">
+                  {/* Card 1: The Diagnosis */}
+                  <View className="flex-row items-center rounded-lg p-4">
+                    <Icon as={AlertTriangle} color="#f59e0b" size={24} className="mr-3" />
+                    <Text className="flex-1 text-base font-medium text-gray-900">
+                      pH is too low.
+                    </Text>
                   </View>
-                ))}
-              </View>
-            </CardContent>
-          </Card>
+
+                  {/* Card 2: The Fix */}
+                  <View className="flex-row items-center   p-4">
+                    <Icon as={Beaker} color="#3b82f6" size={24} className="mr-3" />
+                    <Text className="flex-1 text-base font-medium text-gray-900">
+                      Add 5ml of pH Up solution.
+                    </Text>
+                  </View>
+
+                 
+                </View>
+              </CardContent>
+            </Card>
+          )}
 
           {/* ===== Need Help Card ===== */}
           <Pressable
