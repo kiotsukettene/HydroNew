@@ -69,12 +69,12 @@ export default function Monitor() {
           {/* ========================== Water Quality Card ============================ */}
           <Card className="mt-1 overflow-hidden rounded-2xl border-transparent bg-[#BCE7F0] p-4">
 
-            <Tabs value={tabValue} onValueChange={setTabValue}>
-              <TabsList>
-                <TabsTrigger value="clean">
+            <Tabs value={tabValue} onValueChange={setTabValue} >
+              <TabsList className="w-full">
+                <TabsTrigger value="clean" className="flex-1">
                   <Text>Clean</Text>
                 </TabsTrigger>
-                <TabsTrigger value="dirty">
+                <TabsTrigger value="dirty" className="flex-1">
                   <Text>Dirty</Text>
                 </TabsTrigger>
               </TabsList>
@@ -126,10 +126,10 @@ export default function Monitor() {
                         <Text className="text-sm text-gray-600">Water Tank Level</Text>
                       </View>
 
-                      {/* "Safe for Plants" Badge */}
+                      {/* Badge */}
                       <Badge variant="secondary" className="bg-blue-500 dark:bg-blue-600">
                         <Icon as={BadgeCheckIcon} className="text-white" />
-                        <Text className="text-white">Safe for plants</Text>
+                        <Text className="text-white">Good</Text>
                       </Badge>
                     </View>
                   </View>
@@ -187,14 +187,14 @@ export default function Monitor() {
                     {/* Right Column: WATER TANK LEVEL */}
                     <View className="items-center">
                       <View className="size-36 items-center justify-center rounded-full bg-white">
-                        <Text className="text-4xl font-bold text-gray-800">75%</Text>
+                        <Text className="text-4xl font-bold text-gray-800">20%</Text>
                         <Text className="text-sm text-gray-600">Water Tank Level</Text>
                       </View>
 
-                      {/* "Safe for Plants" Badge */}
+                      {/* Badge */}
                       <Badge variant="secondary" className="bg-blue-500 dark:bg-blue-600">
                         <Icon as={BadgeCheckIcon} className="text-white" />
-                        <Text className="text-white">Safe for plants</Text>
+                        <Text className="text-white">Low</Text>
                       </Badge>
                     </View>
                   </View>
