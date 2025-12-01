@@ -12,6 +12,7 @@ import { Toaster } from "sonner-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useAuthStore } from "@/store/auth/authStore";
+import { getMQTTClient } from "@/service/mqtt-client";
 
 SplashScreen.preventAutoHideAsync();
 
@@ -50,8 +51,14 @@ export default function RootLayout() {
     prepareApp();
   }, [fontsLoaded]);
 
-  if (!appReady) return null;
+  useEffect(() => {
+    const client = getMQTTClient();
+    return () => {};
+  }, []);
 
+
+  if (!appReady) return null;
+ 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <Stack screenOptions={{ headerShown: false }} />

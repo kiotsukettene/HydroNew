@@ -40,6 +40,7 @@
     "firebase": "^12.4.0",
     "lottie-react-native": "^7.3.4",
     "lucide-react-native": "^0.511.0",
+    "mqtt": "^5.14.1",
     "nativewind": "4.1.23",
     "react": "19.1.0",
     "react-dom": "19.1.0",
