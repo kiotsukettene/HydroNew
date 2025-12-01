@@ -99,11 +99,8 @@ const [latestKey, setLatestKey] = useState<string | null>(null);
 
                 {/* Right Column: WATER TANK LEVEL */}
                 <View className="items-center">
-                  <View className="h-48 w-48 items-center justify-center">
-                    <Image
-                      source={require('@/assets/images/water-level-bg.png')}
-                      className="absolute h-full w-full"
-                    />
+                  <View className="size-36 bg-white rounded-full items-center justify-center">
+                  
                     <Text className="text-4xl font-bold text-gray-800">75%</Text>
                     <Text className="text-sm text-gray-600">Water Tank Level</Text>
                   </View>
