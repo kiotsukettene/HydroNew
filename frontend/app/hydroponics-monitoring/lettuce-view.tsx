@@ -1,23 +1,23 @@
-import { View, Image } from 'react-native'
-import React, { useEffect} from 'react'
-import { Button } from '@/components/ui/button'
-import { Icon } from '@/components/ui/icon'
-import { SafeAreaView } from 'react-native-safe-area-context'
-import { PageHeader } from '@/components/ui/page-header'
-import FolderBg from '@/components/ui/folder-bg'
-import { Droplet } from 'lucide-react-native'
-import { Text } from '@/components/ui/text'
-import { Card } from '@/components/ui/card'
-import { useLocalSearchParams, useRouter } from 'expo-router'
-import { useHydroponicSetupStore } from '@/store/hydroponics/hydroponicSetupStore'
+import { View, Image } from 'react-native';
+import React, { useEffect } from 'react';
+import { Button } from '@/components/ui/button';
+import { Icon } from '@/components/ui/icon';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { PageHeader } from '@/components/ui/page-header';
+import FolderBg from '@/components/ui/folder-bg';
+import { Droplet } from 'lucide-react-native';
+import { Text } from '@/components/ui/text';
+import { Card } from '@/components/ui/card';
+import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useHydroponicSetupStore } from '@/store/hydroponics/hydroponicSetupStore';
 
 export default function LettuceView() {
-  const router = useRouter()
+  const router = useRouter();
   const params = useLocalSearchParams();
   const setupId = params.id;
   const { currentSetup, fetchSetupById, loading, error } = useHydroponicSetupStore();
 
-  useEffect(() => { 
+  useEffect(() => {
     if (setupId) {
       fetchSetupById(Number(setupId));
     }
@@ -27,7 +27,7 @@ export default function LettuceView() {
     <SafeAreaView className="flex-1 bg-background">
       <View className="flex-1">
         {/* =========== Page Header =========== */}
-        <View className="relative z-10 ">
+        <View className="relative z-10">
           <PageHeader title="Hydroponics Monitoring" />
         </View>
 
@@ -39,8 +39,8 @@ export default function LettuceView() {
             borderBottomRightRadius: 30,
           }}>
           <View className="items-center justify-center py-4">
-            <Image 
-              source={require('@/assets/images/lettuce.png')} 
+            <Image
+              source={require('@/assets/images/lettuce.png')}
               style={{ width: 160, height: 160 }}
               resizeMode="contain"
             />
@@ -53,7 +53,10 @@ export default function LettuceView() {
             <View className="flex-1 justify-between p-4">
               <View>
                 <Text className="mb-4 text-xl font-bold text-white">
-                  {currentSetup?.crop_name || 'Loading...'}
+                  {currentSetup?.crop_name
+                    ? currentSetup.crop_name.charAt(0).toUpperCase() +
+                      currentSetup.crop_name.slice(1)
+                    : 'Loading...'}
                 </Text>
 
                 <View className="flex-row justify-between">
@@ -80,15 +83,14 @@ export default function LettuceView() {
                   </View>
                 </View>
               </View>
- 
-              <View className="items-center mt-7">
-                <Button 
-                  className="w-full rounded-xl bg-emerald-50" 
+
+              <View className="mt-7 items-center">
+                <Button
+                  className="w-full rounded-xl bg-emerald-50"
                   onPress={() => {
-                    router.push('/hydroponics-monitoring/pump-screen')
+                    router.push('/hydroponics-monitoring/pump-screen');
                   }}
-                  disabled={loading}
-                >
+                  disabled={loading}>
                   <Icon as={Droplet} className="text-primary" />
                   <Text className="ml-2 text-primary">Start Pump</Text>
                 </Button>
@@ -99,10 +101,10 @@ export default function LettuceView() {
 
         {/* =========== Setup Information Section =========== */}
         <View className="px-4 pb-5">
-          <Card className="p-6 rounded-2xl">
-            <Text className="text-lg font-semibold mb-4 bg-lime-50">Crop Details</Text>
-            
-            <View className="flex-row justify-between mb-4">
+          <Card className="rounded-2xl p-6">
+            <Text className="mb-4 bg-lime-50 text-lg font-semibold">Crop Details</Text>
+
+            <View className="mb-4 flex-row justify-between">
               <View className="flex-1">
                 <Text className="text-base font-bold">
                   {currentSetup?.number_of_crops || 'N/A'}
@@ -120,7 +122,7 @@ export default function LettuceView() {
             <View className="flex-row justify-between">
               <View className="flex-1">
                 <Text className="text-base font-bold">
-                  {currentSetup?.target_ph_min && currentSetup?.target_ph_max 
+                  {currentSetup?.target_ph_min && currentSetup?.target_ph_max
                     ? `${currentSetup.target_ph_min} - ${currentSetup.target_ph_max}`
                     : 'N/A'}
                 </Text>
@@ -128,7 +130,7 @@ export default function LettuceView() {
               </View>
               <View className="flex-1">
                 <Text className="text-base font-bold">
-                  {currentSetup?.target_tds_min && currentSetup?.target_tds_max 
+                  {currentSetup?.target_tds_min && currentSetup?.target_tds_max
                     ? `${currentSetup.target_tds_min} - ${currentSetup.target_tds_max} ppm`
                     : 'N/A'}
                 </Text>
@@ -139,5 +141,5 @@ export default function LettuceView() {
         </View>
       </View>
     </SafeAreaView>
-  )
+  );
 }

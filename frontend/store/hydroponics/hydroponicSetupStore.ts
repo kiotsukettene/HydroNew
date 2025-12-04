@@ -16,19 +16,22 @@ export interface HydroponicSetupPayload {
   pump_config?: PumpConfig | null;
 }
 
-export const useHydroponicSetupStore = create<HydroponicSetupStore>((set) => ({
+export const useHydroponicSetupStore = create<HydroponicSetupStore>((set, get) => ({
   loading: false,
   error: null,
   hydroponicSetups: [],
   currentSetup: null,
+  currentPage: 1,
+  lastPage: 1,
+  total: 0,
+  cache: {} as Record<string, any>,
 
   createHydroponicSetup: async (data) => {
     set({ loading: true, error: null });
     try {
       const response = await axiosInstance.post("/hydroponic-setups", data);
-      set((state) => ({
-        hydroponicSetups: [...state.hydroponicSetups, response.data.data],
-      }));
+      // Clear cache after creating new setup
+      set({ cache: {} });
       console.log("Hydroponic setup created:", response.data);
     } catch (err: any) {
       const { message } = handleAxiosError(err);
@@ -40,15 +43,40 @@ export const useHydroponicSetupStore = create<HydroponicSetupStore>((set) => ({
   },
 
   fetchHydroponicSetups: async (page = 1) => {
+    const cacheKey = `${page}`;
+    const { cache } = get();
+
+    // Return cached data if available
+    if (cache[cacheKey]) {
+      set(cache[cacheKey]);
+      return;
+    }
+
     set({ loading: true, error: null });
     try {
       const response = await axiosInstance.get(`/hydroponic-setups?page=${page}`);
-      set({ hydroponicSetups: response.data.data.data });
+      const data = response.data.data;
+
+      const result = {
+        hydroponicSetups: data.data,
+        currentPage: data.current_page,
+        lastPage: data.last_page,
+        total: data.total,
+        loading: false,
+      };
+
+      set(result);
+
+      // Cache the result
+      set({
+        cache: {
+          ...cache,
+          [cacheKey]: result,
+        },
+      });
     } catch (err: any) {
       const { message } = handleAxiosError(err);
-      set({ error: message });
-    } finally {
-      set({ loading: false });
+      set({ error: message, loading: false });
     }
   },
 
@@ -63,6 +91,20 @@ export const useHydroponicSetupStore = create<HydroponicSetupStore>((set) => ({
     } catch (err: any) {
       const { message } = handleAxiosError(err);
       set({ error: message, loading: false });
+    }
+  },
+
+  nextPage: async () => {
+    const { currentPage, lastPage, fetchHydroponicSetups } = get();
+    if (currentPage < lastPage) {
+      await fetchHydroponicSetups(currentPage + 1);
+    }
+  },
+
+  prevPage: async () => {
+    const { currentPage, fetchHydroponicSetups } = get();
+    if (currentPage > 1) {
+      await fetchHydroponicSetups(currentPage - 1);
     }
   },
 

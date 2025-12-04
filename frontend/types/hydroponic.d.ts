@@ -22,7 +22,7 @@ interface HydroponicSetup extends HydroponicSetupPayload {
   id: number;
   user_id: number;
   harvest_status: string;
-  harvest_date: string | null;
+  harvest_date: string;
   setup_date: string;
   status: string;
   is_archived: boolean;
@@ -30,6 +30,25 @@ interface HydroponicSetup extends HydroponicSetupPayload {
   updated_at: string | null;
   plant_age: number;
   days_left: number;
+  growth_percentage?: number;
+}
+
+interface PaginationLinks {
+  url: string | null;
+  label: string;
+  page: number | null;
+  active: boolean;
+}
+
+interface HydroponicSetupsResponse {
+  data: HydroponicSetup[];
+  current_page: number;
+  last_page: number;
+  next_page_url: string | null;
+  prev_page_url: string | null;
+  total: number;
+  per_page: number;
+  links: PaginationLinks[];
 }
 
 interface HydroponicSetupStore {
@@ -37,8 +56,14 @@ interface HydroponicSetupStore {
   error: string | null;
   hydroponicSetups: HydroponicSetup[]; 
   currentSetup: HydroponicSetup | null; // For detailed view
+  currentPage: number;
+  lastPage: number;
+  total: number;
+  cache: Record<string, any>;
   createHydroponicSetup: (data: HydroponicSetupPayload) => Promise<void>;
   fetchHydroponicSetups: (page?: number) => Promise<void>; 
-  fetchSetupById: (setupId: number) => Promise<void>; // New function
+  fetchSetupById: (setupId: number) => Promise<void>;
+  nextPage: () => Promise<void>;
+  prevPage: () => Promise<void>;
   resetError: () => void;
 }
