@@ -5,7 +5,7 @@ import { Icon } from '@/components/ui/icon';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { PageHeader } from '@/components/ui/page-header';
 import FolderBg from '@/components/ui/folder-bg';
-import { Droplet } from 'lucide-react-native';
+import { Droplet, Leaf } from 'lucide-react-native';
 import { Text } from '@/components/ui/text';
 import { Card } from '@/components/ui/card';
 import { useLocalSearchParams, useRouter } from 'expo-router';
@@ -84,7 +84,7 @@ export default function LettuceView() {
                 </View>
               </View>
 
-              <View className="mt-7 items-center">
+              <View className="mt-7 gap-3">
                 <Button
                   className="w-full rounded-xl bg-emerald-50"
                   onPress={() => {
@@ -95,6 +95,19 @@ export default function LettuceView() {
                   <Text className="ml-2 text-primary">Start Pump</Text>
                 </Button>
               </View>
+                              <Button
+                  variant="outline"
+                  className="w-full rounded-xl border-primary mt-7"
+                  onPress={() => {
+                    router.push({
+                      pathname: '/hydroponics-monitoring/harvest-form',
+                      params: { id: setupId }
+                    });
+                  }}
+                  disabled={loading}>
+                  <Icon as={Leaf} className="text-primary" />
+                  <Text className="ml-2 text-primary">Mark as Harvested</Text>
+                </Button>
             </View>
           </FolderBg>
         </View>

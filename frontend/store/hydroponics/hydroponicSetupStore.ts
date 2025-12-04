@@ -29,8 +29,8 @@ export const useHydroponicSetupStore = create<HydroponicSetupStore>((set, get) =
   createHydroponicSetup: async (data) => {
     set({ loading: true, error: null });
     try {
-      const response = await axiosInstance.post("/hydroponic-setups", data);
-      // Clear cache after creating new setup
+      const response = await axiosInstance.post("/hydroponic-setups/store", data);
+      // Clear cache after creating new setup to force fresh data fetch
       set({ cache: {} });
       console.log("Hydroponic setup created:", response.data);
     } catch (err: any) {
@@ -42,12 +42,12 @@ export const useHydroponicSetupStore = create<HydroponicSetupStore>((set, get) =
     }
   },
 
-  fetchHydroponicSetups: async (page = 1) => {
+  fetchHydroponicSetups: async (page = 1, forceRefresh = false) => {
     const cacheKey = `${page}`;
     const { cache } = get();
 
-    // Return cached data if available
-    if (cache[cacheKey]) {
+    // Return cached data if available and not forcing refresh
+    if (!forceRefresh && cache[cacheKey]) {
       set(cache[cacheKey]);
       return;
     }
@@ -107,6 +107,8 @@ export const useHydroponicSetupStore = create<HydroponicSetupStore>((set, get) =
       await fetchHydroponicSetups(currentPage - 1);
     }
   },
+
+  clearCache: () => set({ cache: {} }),
 
   resetError: () => set({ error: null }),
 }));

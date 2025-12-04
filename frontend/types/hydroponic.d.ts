@@ -61,9 +61,10 @@ interface HydroponicSetupStore {
   total: number;
   cache: Record<string, any>;
   createHydroponicSetup: (data: HydroponicSetupPayload) => Promise<void>;
-  fetchHydroponicSetups: (page?: number) => Promise<void>; 
+  fetchHydroponicSetups: (page?: number, forceRefresh?: boolean) => Promise<void>; 
   fetchSetupById: (setupId: number) => Promise<void>;
   nextPage: () => Promise<void>;
   prevPage: () => Promise<void>;
+  clearCache: () => void;
   resetError: () => void;
 }

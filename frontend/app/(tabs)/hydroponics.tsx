@@ -1,5 +1,5 @@
 import { View, Image, Pressable, ScrollView } from 'react-native';
-import React, { useEffect } from 'react';
+import React, { useCallback } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { PageHeader } from '@/components/ui/page-header';
 import { Dimensions } from 'react-native';
@@ -9,6 +9,7 @@ import { Label } from '@/components/ui/label';
 import { useRouter } from 'expo-router';
 import { Button } from '@/components/ui/button';
 import NoSetup from '@/app/hydroponics-monitoring/no-setup';
+import { useFocusEffect } from '@react-navigation/native';
 
 import { useHydroponicSetupStore } from '@/store/hydroponics/hydroponicSetupStore';
 
@@ -26,9 +27,12 @@ export default function Hydroponics() {
     prevPage 
   } = useHydroponicSetupStore();
 
-  useEffect(() => {
-    fetchHydroponicSetups(1); 
-  }, []);
+  useFocusEffect(
+    useCallback(() => {
+      // Fetch data (uses cache if available)
+      fetchHydroponicSetups(1);
+    }, [fetchHydroponicSetups])
+  );
 
 
   if (loading && hydroponicSetups.length === 0) return (
