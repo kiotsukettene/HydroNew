@@ -12,6 +12,8 @@ interface DatePickerProps {
   placeholder?: string;
   minDate?: string;
   maxDate?: string;
+  recommendedMinDate?: string;
+  recommendedMaxDate?: string;
   className?: string;
   disabled?: boolean;
 }
@@ -22,6 +24,8 @@ export function DatePicker({
   placeholder = 'Select date',
   minDate,
   maxDate,
+  recommendedMinDate,
+  recommendedMaxDate,
   className,
   disabled = false,
 }: DatePickerProps) {
@@ -40,6 +44,53 @@ export function DatePicker({
       day: 'numeric',
       year: 'numeric',
     });
+  };
+
+  // Generate marked dates for recommended range
+  const getMarkedDates = () => {
+    const marked: any = {};
+
+    // Mark recommended date range with light green background
+    if (recommendedMinDate && recommendedMaxDate) {
+      const startDate = new Date(recommendedMinDate);
+      const endDate = new Date(recommendedMaxDate);
+      const currentDate = new Date(startDate);
+
+      while (currentDate <= endDate) {
+        const dateString = currentDate.toISOString().split('T')[0];
+        
+        // Check if this date is the selected date
+        if (value === dateString) {
+          // Selected date within range: keep light green background, change text color only
+          marked[dateString] = {
+            color: '#E8F5E9', // Keep recommended range background
+            textColor: '#4CAF50', // Dark green text to stand out
+            startingDay: dateString === recommendedMinDate,
+            endingDay: dateString === recommendedMaxDate,
+          };
+        } else {
+          // Recommended range gets light green background with dark text
+          marked[dateString] = {
+            color: '#E8F5E9',
+            textColor: '#2C3E50',
+            startingDay: dateString === recommendedMinDate,
+            endingDay: dateString === recommendedMaxDate,
+          };
+        }
+        currentDate.setDate(currentDate.getDate() + 1);
+      }
+    }
+
+    // If selected date is outside recommended range: just text color + dot
+    if (value && !marked[value]) {
+      marked[value] = {
+        textColor: '#4CAF50', // Dark green text
+        marked: true, // Add dot indicator
+        dotColor: '#4CAF50', // Dark green dot
+      };
+    }
+
+    return marked;
   };
 
   return (
@@ -85,28 +136,30 @@ export function DatePicker({
               </TouchableOpacity>
             </View>
 
+            {recommendedMinDate && recommendedMaxDate && (
+              <View className="mb-4 p-3 bg-blue-50 rounded-xl border border-blue-200">
+                <View className="flex-row items-start gap-2">
+                  <View className="mt-0.5">
+                    <View className="w-4 h-4 bg-[#E8F5E9] rounded" />
+                  </View>
+                  <Text className="text-xs text-blue-700 flex-1">
+                    Highlighted dates are the recommended harvest window for optimal crop maturity
+                  </Text>
+                </View>
+              </View>
+            )}
+
             <Calendar
               onDayPress={handleDayPress}
-              markedDates={
-                value
-                  ? {
-                      [value]: {
-                        selected: true,
-                        selectedColor: '#4CAF50',
-                      },
-                    }
-                  : {}
-              }
+              markedDates={getMarkedDates()}
+              markingType={'period'}
               minDate={minDate}
               maxDate={maxDate}
               theme={{
-                selectedDayBackgroundColor: '#4CAF50',
-                selectedDayTextColor: '#ffffff',
                 todayTextColor: '#4CAF50',
                 dayTextColor: '#2C3E50',
                 textDisabledColor: '#d9e1e8',
                 dotColor: '#4CAF50',
-                selectedDotColor: '#ffffff',
                 arrowColor: '#4CAF50',
                 monthTextColor: '#2C3E50',
                 textDayFontFamily: 'System',

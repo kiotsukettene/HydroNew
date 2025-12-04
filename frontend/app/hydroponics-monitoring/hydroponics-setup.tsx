@@ -372,6 +372,8 @@ const onSubmit = async () => {
                       onDateChange={handleHarvestDateChange}
                       placeholder="Select harvest date"
                       minDate={formData.setupDate}
+                      recommendedMinDate={getRecommendedHarvestDateRange(formData.cropName, formData.setupDate)?.minDate}
+                      recommendedMaxDate={getRecommendedHarvestDateRange(formData.cropName, formData.setupDate)?.maxDate}
                     />
                     
                     {/* Date Validation Feedback */}
