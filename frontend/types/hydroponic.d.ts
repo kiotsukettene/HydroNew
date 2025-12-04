@@ -6,13 +6,14 @@ interface PumpConfig {
 interface HydroponicSetupPayload {
   crop_name: string;
   number_of_crops: number;
-  bed_size: "small" | "medium" | "large";
-  nutrient_solution: string;
+  bed_size: "small" | "medium" | "large" | "custom";
+  nutrient_solution?: string | null;
   target_ph_min: number;
   target_ph_max: number;
   target_tds_min: number;
   target_tds_max: number;
   water_amount: string;
+  harvest_date: string;
   pump_config?: PumpConfig | null;
 }
 

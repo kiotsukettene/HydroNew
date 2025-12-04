@@ -17,6 +17,7 @@ import { hydroponicSchema } from '@/validators/hydoponicSchema';
 import { ConfirmationModal } from '@/components/ui/confirmation-modal';
 import { StatusModal } from '@/components/ui/status-modal';
 import CropInfoModal from './crop-info-modal';
+import { DatePicker } from '@/components/ui/date-picker';
 
 
 interface HydroponicsSetupData {
@@ -30,12 +31,22 @@ interface HydroponicsSetupData {
   targetTdsMax: string;
   waterAmount: string;
   setupDate: string;
+  harvestDate: string;
   status: 'active';
 }
 
 interface HydroponicsSetupProps {
   onSetupComplete?: () => void;
 }
+
+// Crop harvest days mapping
+const CROP_HARVEST_DAYS = {
+  'olmetie': { min: 28, max: 35 },
+  'green-rapid': { min: 25, max: 30 },
+  'romaine': { min: 45, max: 55 },
+  'butterhead': { min: 35, max: 45 },
+  'loose-leaf': { min: 30, max: 40 },
+} as const;
 
 export default function HydroponicsSetup({ onSetupComplete }: HydroponicsSetupProps) {
   const router = useRouter();
@@ -52,6 +63,7 @@ export default function HydroponicsSetup({ onSetupComplete }: HydroponicsSetupPr
     targetTdsMax: '150',
     waterAmount: '5',
     setupDate: new Date().toISOString().split('T')[0], 
+    harvestDate: '',
     status: 'active',
   });
 
@@ -79,6 +91,7 @@ export default function HydroponicsSetup({ onSetupComplete }: HydroponicsSetupPr
     targetTdsMax: '150',
     waterAmount: '5',
     setupDate: new Date().toISOString().split('T')[0], 
+    harvestDate: '',
     status: 'active',
   };
 
@@ -90,6 +103,62 @@ export default function HydroponicsSetup({ onSetupComplete }: HydroponicsSetupPr
     toast.success("Form reset successfully");
   };
 
+  // Helper function to calculate recommended harvest date range
+  const getRecommendedHarvestDateRange = (cropName: string, setupDate: string) => {
+    const cropKey = cropName as keyof typeof CROP_HARVEST_DAYS;
+    if (!cropKey || !CROP_HARVEST_DAYS[cropKey]) return null;
+    
+    const { min, max } = CROP_HARVEST_DAYS[cropKey];
+    const setup = new Date(setupDate);
+    
+    const minDate = new Date(setup);
+    minDate.setDate(minDate.getDate() + min);
+    
+    const maxDate = new Date(setup);
+    maxDate.setDate(maxDate.getDate() + max);
+    
+    return {
+      min,
+      max,
+      minDate: minDate.toISOString().split('T')[0],
+      maxDate: maxDate.toISOString().split('T')[0],
+    };
+  };
+
+  // Helper function to calculate suggested harvest date (using max days)
+  const calculateSuggestedHarvestDate = (cropName: string, setupDate: string): string => {
+    const cropKey = cropName as keyof typeof CROP_HARVEST_DAYS;
+    if (!cropKey || !CROP_HARVEST_DAYS[cropKey]) return '';
+    
+    const { max } = CROP_HARVEST_DAYS[cropKey];
+    const setup = new Date(setupDate);
+    const harvest = new Date(setup);
+    harvest.setDate(harvest.getDate() + max);
+    
+    return harvest.toISOString().split('T')[0];
+  };
+
+  // Helper function to get crop harvest range info
+  const getCropHarvestInfo = (cropName: string) => {
+    const cropKey = cropName as keyof typeof CROP_HARVEST_DAYS;
+    if (!cropKey || !CROP_HARVEST_DAYS[cropKey]) return null;
+    return CROP_HARVEST_DAYS[cropKey];
+  };
+
+  // Helper function to check if selected date is within recommended range
+  const isDateInRecommendedRange = (selectedDate: string, cropName: string, setupDate: string): boolean | null => {
+    if (!selectedDate || !cropName) return null;
+    
+    const range = getRecommendedHarvestDateRange(cropName, setupDate);
+    if (!range) return null;
+    
+    const selected = new Date(selectedDate);
+    const min = new Date(range.minDate);
+    const max = new Date(range.maxDate);
+    
+    return selected >= min && selected <= max;
+  };
+
   const handleInputChange = (field: keyof HydroponicsSetupData, value: string) => {
     setFormData(prev => ({
       ...prev,
@@ -98,7 +167,7 @@ export default function HydroponicsSetup({ onSetupComplete }: HydroponicsSetupPr
     resetErrors();
   };
 
-  const isSaveDisabled = !formData.cropName || !formData.bedSize || isSubmitting;
+  const isSaveDisabled = !formData.cropName || !formData.bedSize || !formData.harvestDate || isSubmitting;
 
   const handleStepperChange = (field: 'numberOfCrops', delta: number) => {
     // gagana lang yung stepper kung custom bed size
@@ -107,6 +176,23 @@ export default function HydroponicsSetup({ onSetupComplete }: HydroponicsSetupPr
     const currentValue = parseInt(formData[field]) || 1;
     const newValue = Math.max(1, currentValue + delta);
     handleInputChange(field, newValue.toString());
+  };
+
+  const handleCropChange = (cropName: string) => {
+    // Update crop name and suggest a harvest date
+    setFormData(prev => {
+      const suggestedDate = calculateSuggestedHarvestDate(cropName, prev.setupDate);
+      return {
+        ...prev,
+        cropName,
+        harvestDate: suggestedDate // Pre-fill with suggested date, but user can change
+      };
+    });
+    resetErrors();
+  };
+
+  const handleHarvestDateChange = (date: string) => {
+    handleInputChange('harvestDate', date);
   };
 
   const handleBedSizeChange = (value: string) => {
@@ -143,6 +229,7 @@ const onSubmit = async () => {
       target_tds_min: parseInt(formData.targetTdsMin, 10),
       target_tds_max: parseInt(formData.targetTdsMax, 10),
       water_amount: `${formData.waterAmount}L`,
+      harvest_date: formData.harvestDate,
       pump_config: null,
     };
 
@@ -238,7 +325,7 @@ const onSubmit = async () => {
                           key={option.value}
                           className="px-3 py-4 border-b border-[#F0F8F0] last:border-b-0"
                           onPress={() => {
-                            handleInputChange('cropName', option.value as 'olmetie' | 'green-rapid' | 'romaine' | 'butterhead' | 'loose-leaf');
+                            handleCropChange(option.value);
                             setShowCropDropdown(false);
                           }}
                         >
@@ -247,7 +334,70 @@ const onSubmit = async () => {
                       ))}
                     </View>
                   )}
+                  
+                  {/* Recommended Harvest Range Guidance */}
+                  {formData.cropName && (
+                    <View className="mt-3 p-4 bg-blue-50 rounded-xl border border-blue-200">
+                      <View className="flex-row items-center gap-2 mb-2">
+                        <Icon as={Info} size={16} className="text-blue-600" />
+                        <Text className="text-sm font-semibold text-blue-800">Recommended Growth Period</Text>
+                      </View>
+                      <Text className="text-xs text-blue-700">
+                        {getCropHarvestInfo(formData.cropName)?.min}-{getCropHarvestInfo(formData.cropName)?.max} days
+                      </Text>
+                      {getRecommendedHarvestDateRange(formData.cropName, formData.setupDate) && (
+                        <Text className="text-xs text-blue-600 mt-1">
+                          Ideal harvest: {new Date(getRecommendedHarvestDateRange(formData.cropName, formData.setupDate)!.minDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} - {new Date(getRecommendedHarvestDateRange(formData.cropName, formData.setupDate)!.maxDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                        </Text>
+                      )}
+                    </View>
+                  )}
                 </View>
+
+                {/* Harvest Date Selection */}
+                {formData.cropName && (
+                  <View>
+                    <View className="flex-row items-center gap-2 mb-2">
+                      <Text className="text-base font-medium">Target Harvest Date</Text>
+                      <TouchableOpacity onPress={() => {
+                        const suggested = calculateSuggestedHarvestDate(formData.cropName, formData.setupDate);
+                        handleHarvestDateChange(suggested);
+                        toast.success("Date set to recommended");
+                      }}>
+                        <Icon as={RotateCcw} size={14} className="text-[#7F8C8D]" />
+                      </TouchableOpacity>
+                    </View>
+                    <DatePicker
+                      value={formData.harvestDate}
+                      onDateChange={handleHarvestDateChange}
+                      placeholder="Select harvest date"
+                      minDate={formData.setupDate}
+                    />
+                    
+                    {/* Date Validation Feedback */}
+                    {formData.harvestDate && isDateInRecommendedRange(formData.harvestDate, formData.cropName, formData.setupDate) === false && (
+                      <View className="mt-2 p-3 bg-amber-50 rounded-xl border border-amber-200">
+                        <View className="flex-row items-center gap-2">
+                          <Icon as={Info} size={14} className="text-amber-600" />
+                          <Text className="text-xs text-amber-800 flex-1">
+                            Note: Selected date is outside the recommended range. Your crop may be under or over-mature at harvest.
+                          </Text>
+                        </View>
+                      </View>
+                    )}
+                    
+                    {formData.harvestDate && isDateInRecommendedRange(formData.harvestDate, formData.cropName, formData.setupDate) === true && (
+                      <View className="mt-2 p-3 bg-emerald-50 rounded-xl border border-emerald-200">
+                        <View className="flex-row items-center gap-2">
+                          <Icon as={CheckCircle} size={14} className="text-emerald-600" />
+                          <Text className="text-xs text-emerald-800">
+                            Perfect! This date is within the ideal harvest window.
+                          </Text>
+                        </View>
+                      </View>
+                    )}
+                  </View>
+                )}
 
 
                 {/* Bed Size Dropdown */}
