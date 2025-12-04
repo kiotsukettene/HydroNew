@@ -195,18 +195,51 @@ export default function HydroponicsSetup({ onSetupComplete }: HydroponicsSetupPr
     handleInputChange('harvestDate', date);
   };
 
+  const handleWaterAmountChange = (value: string) => {
+    // Only allow numbers and decimal point
+    const numericValue = value.replace(/[^0-9.]/g, '');
+    
+    // Prevent multiple decimal points
+    const parts = numericValue.split('.');
+    const sanitizedValue = parts.length > 2 
+      ? parts[0] + '.' + parts.slice(1).join('') 
+      : numericValue;
+    
+    handleInputChange('waterAmount', sanitizedValue);
+  };
+
+  const handleNumberOfCropsChange = (value: string) => {
+    // Only allow whole numbers (no decimals, letters, or special characters)
+    const numericValue = value.replace(/[^0-9]/g, '');
+    handleInputChange('numberOfCrops', numericValue);
+  };
+
   const handleBedSizeChange = (value: string) => {
-    handleInputChange('bedSize', value);
-    
-    //set number of crops based on bed size
-    if (value === 'small') {
-      handleInputChange('numberOfCrops', '3');
-    } else if (value === 'medium') {
-      handleInputChange('numberOfCrops', '9');
-    } else if (value === 'large') {
-      handleInputChange('numberOfCrops', '12');
-    }
-    
+    setFormData(prev => {
+      let numberOfCrops = prev.numberOfCrops;
+      let waterAmount = prev.waterAmount;
+      
+      // Set number of crops and water amount based on bed size
+      if (value === 'small') {
+        numberOfCrops = '3';
+        waterAmount = '5';
+      } else if (value === 'medium') {
+        numberOfCrops = '9';
+        waterAmount = '10';
+      } else if (value === 'large') {
+        numberOfCrops = '12';
+        waterAmount = '15';
+      }
+      // For custom, keep current values (user can edit)
+      
+      return {
+        ...prev,
+        bedSize: value,
+        numberOfCrops,
+        waterAmount,
+      };
+    });
+    resetErrors();
   };
 
 const handleSaveClick = () => {
@@ -452,7 +485,7 @@ const onSubmit = async () => {
                       {formData.bedSize === 'custom' ? (
                         <Input
                           value={formData.numberOfCrops}
-                          onChangeText={(value) => handleInputChange('numberOfCrops', value)}
+                          onChangeText={handleNumberOfCropsChange}
                           keyboardType="numeric"
                           className="text-center text-lg font-semibold border-0 bg-transparent"
                           placeholderTextColor="#95A5A6"
@@ -481,11 +514,19 @@ const onSubmit = async () => {
                   <Text className="text-base font-medium text-[#34495E] mb-2">Water Amount (Liters)</Text>
                   <Input
                     value={formData.waterAmount}
-                    editable={false}
+                    onChangeText={handleWaterAmountChange}
+                    editable={formData.bedSize === 'custom'}
                     keyboardType="numeric"
-                    className="border border-muted-foreground/50 rounded-xl px-3 py-4 bg-gray-100 text-[#2C3E50] text-base"
+                    className={`border border-muted-foreground/50 rounded-xl px-3 py-4 text-[#2C3E50] text-base ${
+                      formData.bedSize === 'custom' ? 'bg-[#FAFFFA]' : 'bg-gray-100'
+                    }`}
                     placeholderTextColor="#95A5A6"
                   />
+                  {formData.bedSize !== 'custom' && (
+                    <Text className="text-xs text-muted-foreground mt-1">
+                      Water amount is set based on bed size. Select "Custom" to edit.
+                    </Text>
+                  )}
                 </View>
 
                 {/* Nutrient Solution */}
