@@ -3,7 +3,6 @@ import axiosInstance from "@/api/axiosInstance";
 import { handleAxiosError } from "@/api/handleAxiosError";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
-
 export interface HydroponicSetupPayload {
   crop_name: string;
   number_of_crops: number;
@@ -17,11 +16,11 @@ export interface HydroponicSetupPayload {
   pump_config?: PumpConfig | null;
 }
 
-
 export const useHydroponicSetupStore = create<HydroponicSetupStore>((set) => ({
   loading: false,
   error: null,
-  hydroponicSetups: [], 
+  hydroponicSetups: [],
+  currentSetup: null,
 
   createHydroponicSetup: async (data) => {
     set({ loading: true, error: null });
@@ -53,6 +52,19 @@ export const useHydroponicSetupStore = create<HydroponicSetupStore>((set) => ({
     }
   },
 
+  fetchSetupById: async (setupId: number) => {
+    set({ loading: true, error: null });
+    try {
+      const response = await axiosInstance.get(`/hydroponic-setups/${setupId}`);
+      set({ 
+        currentSetup: response.data.data,
+        loading: false 
+      });
+    } catch (err: any) {
+      const { message } = handleAxiosError(err);
+      set({ error: message, loading: false });
+    }
+  },
+
   resetError: () => set({ error: null }),
 }));
-
