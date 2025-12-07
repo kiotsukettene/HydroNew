@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Link, router } from 'expo-router';
 import { Text } from '@/components/ui/text';
 
+
 const { height } = Dimensions.get('window');
 
 const WelcomeScreen = () => {
@@ -31,7 +32,7 @@ const WelcomeScreen = () => {
 
         {/* Buttons */}
         <View className="w-full px-6 gap-3 mt-3 mb-6">
-          <Link href="/device" asChild>
+          <Link href="/signup" asChild>
             <Button className="bg-primary">
               <Text className=" text-base">Get Started</Text>
             </Button>
