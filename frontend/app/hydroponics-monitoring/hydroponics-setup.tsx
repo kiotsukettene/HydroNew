@@ -48,6 +48,30 @@ const CROP_HARVEST_DAYS = {
   'loose-leaf': { min: 30, max: 40 },
 } as const;
 
+// Crop ideal growing range (pH and TDS)
+const CROP_IDEAL_RANGES = {
+  'olmetie': { 
+    ph: { min: 5.5, max: 6.5 }, 
+    tds: { min: 560, max: 840 } 
+  },
+  'green-rapid': { 
+    ph: { min: 5.5, max: 6.5 }, 
+    tds: { min: 560, max: 840 } 
+  },
+  'romaine': { 
+    ph: { min: 6.0, max: 7.0 }, 
+    tds: { min: 1050, max: 1400 } 
+  },
+  'butterhead': { 
+    ph: { min: 6.0, max: 7.0 }, 
+    tds: { min: 700, max: 1050 } 
+  },
+  'loose-leaf': { 
+    ph: { min: 6.0, max: 6.8 }, 
+    tds: { min: 560, max: 980 } 
+  },
+} as const;
+
 export default function HydroponicsSetup({ onSetupComplete }: HydroponicsSetupProps) {
   const router = useRouter();
   const { createHydroponicSetup, error, resetError } = useHydroponicSetupStore();
@@ -179,13 +203,21 @@ export default function HydroponicsSetup({ onSetupComplete }: HydroponicsSetupPr
   };
 
   const handleCropChange = (cropName: string) => {
-    // Update crop name and suggest a harvest date
+    // Update crop name and suggest harvest date, pH, and TDS values
     setFormData(prev => {
       const suggestedDate = calculateSuggestedHarvestDate(cropName, prev.setupDate);
+      const cropKey = cropName as keyof typeof CROP_IDEAL_RANGES;
+      const idealRange = CROP_IDEAL_RANGES[cropKey];
+      
       return {
         ...prev,
         cropName,
-        harvestDate: suggestedDate // Pre-fill with suggested date, but user can change
+        harvestDate: suggestedDate,
+        // Set recommended pH and TDS ranges
+        targetPh: idealRange?.ph.min.toString() || prev.targetPh,
+        targetPhMax: idealRange?.ph.max.toString() || prev.targetPhMax,
+        targetTdsMin: idealRange?.tds.min.toString() || prev.targetTdsMin,
+        targetTdsMax: idealRange?.tds.max.toString() || prev.targetTdsMax,
       };
     });
     resetErrors();
@@ -212,6 +244,19 @@ export default function HydroponicsSetup({ onSetupComplete }: HydroponicsSetupPr
     // Only allow whole numbers (no decimals, letters, or special characters)
     const numericValue = value.replace(/[^0-9]/g, '');
     handleInputChange('numberOfCrops', numericValue);
+  };
+
+  const handleNumericInput = (field: keyof HydroponicsSetupData, value: string) => {
+    // Only allow numbers and decimal point
+    const numericValue = value.replace(/[^0-9.]/g, '');
+    
+    // Prevent multiple decimal points
+    const parts = numericValue.split('.');
+    const sanitizedValue = parts.length > 2 
+      ? parts[0] + '.' + parts.slice(1).join('') 
+      : numericValue;
+    
+    handleInputChange(field, sanitizedValue);
   };
 
   const handleBedSizeChange = (value: string) => {
@@ -554,33 +599,111 @@ const onSubmit = async () => {
                 <View className="w-full h-1 bg-[#6ECF8B] rounded-full" />
               </View>
               
+              {/* Recommended Range Info */}
+              {formData.cropName && CROP_IDEAL_RANGES[formData.cropName as keyof typeof CROP_IDEAL_RANGES] && (
+                <View className="mb-4 p-4 bg-emerald-50 rounded-xl border border-emerald-200">
+                  <View className="flex-row items-center gap-2 mb-2">
+                    <Icon as={Info} size={16} className="text-emerald-600" />
+                    <Text className="text-sm font-semibold text-emerald-800">Recommended for {formData.cropName.charAt(0).toUpperCase() + formData.cropName.slice(1)}</Text>
+                  </View>
+                  <View className="flex-row gap-4">
+                    <View className="flex-1">
+                      <Text className="text-xs text-emerald-700">pH Range</Text>
+                      <Text className="text-sm font-semibold text-emerald-900">
+                        {CROP_IDEAL_RANGES[formData.cropName as keyof typeof CROP_IDEAL_RANGES].ph.min} - {CROP_IDEAL_RANGES[formData.cropName as keyof typeof CROP_IDEAL_RANGES].ph.max}
+                      </Text>
+                    </View>
+                    <View className="flex-1">
+                      <Text className="text-xs text-emerald-700">TDS Range (ppm)</Text>
+                      <Text className="text-sm font-semibold text-emerald-900">
+                        {CROP_IDEAL_RANGES[formData.cropName as keyof typeof CROP_IDEAL_RANGES].tds.min} - {CROP_IDEAL_RANGES[formData.cropName as keyof typeof CROP_IDEAL_RANGES].tds.max}
+                      </Text>
+                    </View>
+                  </View>
+                </View>
+              )}
+              
               <View className="space-y-5 gap-6">
                 {/* pH Range */}
                 <View>
-                  <Text className="text-base font-medium  mb-3 bg-lime-50">Target pH Range</Text>
+                  <View className="flex-row items-center justify-between mb-3">
+                    <Text className="text-base font-medium">Target pH Range</Text>
+                    <TouchableOpacity onPress={() => {
+                      if (formData.cropName && CROP_IDEAL_RANGES[formData.cropName as keyof typeof CROP_IDEAL_RANGES]) {
+                        const range = CROP_IDEAL_RANGES[formData.cropName as keyof typeof CROP_IDEAL_RANGES];
+                        setFormData(prev => ({
+                          ...prev,
+                          targetPh: range.ph.min.toString(),
+                          targetPhMax: range.ph.max.toString(),
+                        }));
+                        toast.success("pH set to recommended");
+                      }
+                    }}>
+                      <Icon as={RotateCcw} size={14} className="text-[#7F8C8D]" />
+                    </TouchableOpacity>
+                  </View>
                   <View className="flex-row space-x-3 gap-4">
                     <View className="flex-1">
                       <Text className="text-xs text-[#7F8C8D] mb-2">Minimum</Text>
-                      <Text>{formData.targetPh}</Text>
+                      <Input
+                        value={formData.targetPh}
+                        onChangeText={(value) => handleNumericInput('targetPh', value)}
+                        keyboardType="numeric"
+                        className="border border-muted-foreground/50 rounded-xl px-3 py-3 bg-[#FAFFFA] text-[#2C3E50]"
+                        placeholderTextColor="#95A5A6"
+                      />
                     </View>
                      <View className="flex-1">
                       <Text className="text-xs text-[#7F8C8D] mb-2">Maximum</Text>
-                      <Text>{formData.targetPhMax}</Text>
+                      <Input
+                        value={formData.targetPhMax}
+                        onChangeText={(value) => handleNumericInput('targetPhMax', value)}
+                        keyboardType="numeric"
+                        className="border border-muted-foreground/50 rounded-xl px-3 py-3 bg-[#FAFFFA] text-[#2C3E50]"
+                        placeholderTextColor="#95A5A6"
+                      />
                     </View>
                   </View>
                 </View>
 
                 {/* TDS Range */}
                 <View>
-                  <Text className="text-base font-medium bg-lime-50 mb-3">Target TDS Range (ppm)</Text>
+                  <View className="flex-row items-center justify-between mb-3">
+                    <Text className="text-base font-medium">Target TDS Range (ppm)</Text>
+                    <TouchableOpacity onPress={() => {
+                      if (formData.cropName && CROP_IDEAL_RANGES[formData.cropName as keyof typeof CROP_IDEAL_RANGES]) {
+                        const range = CROP_IDEAL_RANGES[formData.cropName as keyof typeof CROP_IDEAL_RANGES];
+                        setFormData(prev => ({
+                          ...prev,
+                          targetTdsMin: range.tds.min.toString(),
+                          targetTdsMax: range.tds.max.toString(),
+                        }));
+                        toast.success("TDS set to recommended");
+                      }
+                    }}>
+                      <Icon as={RotateCcw} size={14} className="text-[#7F8C8D]" />
+                    </TouchableOpacity>
+                  </View>
                   <View className="flex-row space-x-3 gap-4">
                     <View className="flex-1">
                       <Text className="text-xs text-[#7F8C8D] mb-2">Minimum</Text>
-                      <Text>{formData.targetTdsMin}</Text>
+                      <Input
+                        value={formData.targetTdsMin}
+                        onChangeText={(value) => handleNumericInput('targetTdsMin', value)}
+                        keyboardType="numeric"
+                        className="border border-muted-foreground/50 rounded-xl px-3 py-3 bg-[#FAFFFA] text-[#2C3E50]"
+                        placeholderTextColor="#95A5A6"
+                      />
                     </View>
                     <View className="flex-1">
                       <Text className="text-xs text-[#7F8C8D] mb-2">Maximum</Text>
-                      <Text>{formData.targetTdsMax}</Text>
+                      <Input
+                        value={formData.targetTdsMax}
+                        onChangeText={(value) => handleNumericInput('targetTdsMax', value)}
+                        keyboardType="numeric"
+                        className="border border-muted-foreground/50 rounded-xl px-3 py-3 bg-[#FAFFFA] text-[#2C3E50]"
+                        placeholderTextColor="#95A5A6"
+                      />
                     </View>
                   </View>
                 </View>

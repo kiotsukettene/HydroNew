@@ -1,11 +1,11 @@
-import { View, Image } from 'react-native';
-import React, { useEffect } from 'react';
+import { View, Image, ScrollView, TouchableOpacity } from 'react-native';
+import React, { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Icon } from '@/components/ui/icon';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { PageHeader } from '@/components/ui/page-header';
 import FolderBg from '@/components/ui/folder-bg';
-import { Droplet, Leaf } from 'lucide-react-native';
+import { Droplet, Leaf, Activity, Thermometer, Wind } from 'lucide-react-native';
 import { Text } from '@/components/ui/text';
 import { Card } from '@/components/ui/card';
 import { useLocalSearchParams, useRouter } from 'expo-router';
@@ -16,6 +16,7 @@ export default function LettuceView() {
   const params = useLocalSearchParams();
   const setupId = params.id;
   const { currentSetup, fetchSetupById, loading, error } = useHydroponicSetupStore();
+  const [activeTab, setActiveTab] = useState<'details' | 'monitoring'>('monitoring');
 
   useEffect(() => {
     if (setupId) {
@@ -25,7 +26,7 @@ export default function LettuceView() {
 
   return (
     <SafeAreaView className="flex-1 bg-background">
-      <View className="flex-1">
+      <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
         {/* =========== Page Header =========== */}
         <View className="relative z-10">
           <PageHeader title="Hydroponics Monitoring" />
@@ -48,7 +49,7 @@ export default function LettuceView() {
         </View>
 
         {/* =========== Folder Section =========== */}
-        <View className="flex-1 px-4 pt-5">
+        <View className="flex-1 px-4 pt-5 pb-5">
           <FolderBg>
             <View className="flex-1 justify-between p-4">
               <View>
@@ -84,7 +85,7 @@ export default function LettuceView() {
                 </View>
               </View>
 
-              <View className="mt-7 gap-3">
+              <View className="mt-7">
                 <Button
                   className="w-full rounded-xl bg-emerald-50"
                   onPress={() => {
@@ -95,64 +96,194 @@ export default function LettuceView() {
                   <Text className="ml-2 text-primary">Start Pump</Text>
                 </Button>
               </View>
-                              <Button
-                  variant="outline"
-                  className="w-full rounded-xl border-primary mt-7"
-                  onPress={() => {
-                    router.push({
-                      pathname: '/hydroponics-monitoring/harvest-form',
-                      params: { id: setupId }
-                    });
-                  }}
-                  disabled={loading}>
-                  <Icon as={Leaf} className="text-primary" />
-                  <Text className="ml-2 text-primary">Mark as Harvested</Text>
-                </Button>
             </View>
           </FolderBg>
+
+          {/* Mark as Harvested Button - Outside FolderBg */}
+          <Button
+            variant="outline"
+            className="w-full rounded-xl border-primary mt-2 mb-4"
+            onPress={() => {
+              router.push({
+                pathname: '/hydroponics-monitoring/harvest-form',
+                params: { id: setupId }
+              });
+            }}
+            disabled={loading}>
+            <Icon as={Leaf} className="text-primary" />
+            <Text className="ml-2 text-primary">Mark as Harvested</Text>
+          </Button>
         </View>
+
+        {/* =========== Tabs Section =========== */}
+        <View className="px-4 pb-4">
+          <View className="flex-row bg-gray-100 rounded-xl p-1">
+            <TouchableOpacity
+              activeOpacity={0.7}
+              className={`flex-1 py-3 rounded-lg ${activeTab === 'monitoring' ? 'bg-primary' : 'bg-transparent'}`}
+              onPress={() => setActiveTab('monitoring')}
+            >
+              <Text className={`text-center font-semibold ${activeTab === 'monitoring' ? 'text-white' : 'text-muted-foreground'}`}>
+                Real-Time
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              activeOpacity={0.7}
+              className={`flex-1 py-3 rounded-lg ${activeTab === 'details' ? 'bg-primary' : 'bg-transparent'}`}
+              onPress={() => setActiveTab('details')}
+            >
+              <Text className={`text-center font-semibold ${activeTab === 'details' ? 'text-white' : 'text-muted-foreground'}`}>
+                Crop Details
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+
+        {/* =========== Real-Time Monitoring Section =========== */}
+        {activeTab === 'monitoring' && (
+          <View className="px-4 pb-5">
+            <View className="mb-4">
+              <Text className="text-lg font-semibold">Real-Time Monitoring</Text>
+              <Text className="text-xs text-muted-foreground mt-1">Updated just now</Text>
+            </View>
+
+            {/* Monitoring Cards Grid */}
+            <View className="gap-3">
+              {/* pH Level Card */}
+              <Card className="p-4 border border-muted-foreground/20">
+                <View className="flex-row items-center justify-between">
+                  <View className="flex-1">
+                    <View className="flex-row items-center gap-2 mb-1">
+                      <Icon as={Activity} size={16} className="text-muted-foreground" />
+                      <Text className="text-sm text-muted-foreground">pH Level</Text>
+                    </View>
+                    <Text className="text-3xl font-bold">6.8</Text>
+                  </View>
+                  <View className="items-end">
+                    <Text className="text-xs text-muted-foreground mb-1">Target Range</Text>
+                    <Text className="text-sm font-semibold">{currentSetup?.target_ph_min} - {currentSetup?.target_ph_max}</Text>
+                  </View>
+                </View>
+              </Card>
+
+              {/* TDS Card */}
+              <Card className="p-4 border border-muted-foreground/20">
+                <View className="flex-row items-center justify-between">
+                  <View className="flex-1">
+                    <View className="flex-row items-center gap-2 mb-1">
+                      <Icon as={Droplet} size={16} className="text-muted-foreground" />
+                      <Text className="text-sm text-muted-foreground">TDS (Total Dissolved Solids)</Text>
+                    </View>
+                    <Text className="text-3xl font-bold">920 <Text className="text-lg text-muted-foreground">ppm</Text></Text>
+                  </View>
+                  <View className="items-end">
+                    <Text className="text-xs text-muted-foreground mb-1">Target Range</Text>
+                    <Text className="text-sm font-semibold">{currentSetup?.target_tds_min} - {currentSetup?.target_tds_max}</Text>
+                  </View>
+                </View>
+              </Card>
+
+              {/* EC and Humidity Row */}
+              <View className="flex-row gap-3">
+                <Card className="flex-1 p-4 border border-muted-foreground/20">
+                  <View className="flex-row items-center gap-2 mb-2">
+                    <Icon as={Thermometer} size={16} className="text-muted-foreground" />
+                    <Text className="text-xs text-muted-foreground">EC</Text>
+                  </View>
+                  <Text className="text-2xl font-bold">1.8</Text>
+                  <Text className="text-xs text-muted-foreground mt-1">mS/cm</Text>
+                </Card>
+
+                <Card className="flex-1 p-4 border border-muted-foreground/20">
+                  <View className="flex-row items-center gap-2 mb-2">
+                    <Icon as={Wind} size={16} className="text-muted-foreground" />
+                    <Text className="text-xs text-muted-foreground">Humidity</Text>
+                  </View>
+                  <Text className="text-2xl font-bold">41%</Text>
+                  <Text className="text-xs text-muted-foreground mt-1">Optimal: 50-70%</Text>
+                </Card>
+              </View>
+            </View>
+          </View>
+        )}
 
         {/* =========== Setup Information Section =========== */}
-        <View className="px-4 pb-5">
-          <Card className="rounded-2xl p-6">
-            <Text className="mb-4 bg-lime-50 text-lg font-semibold">Crop Details</Text>
+        {activeTab === 'details' && (
+          <View className="px-4 pb-5">
+            <Card className="rounded-2xl p-6">
+              <Text className="mb-4 text-lg font-semibold">Crop Details</Text>
 
-            <View className="mb-4 flex-row justify-between">
-              <View className="flex-1">
-                <Text className="text-base font-bold">
-                  {currentSetup?.number_of_crops || 'N/A'}
-                </Text>
-                <Text className="text-xs text-muted-foreground">NUMBER OF CROPS</Text>
+              {/* Basic Info */}
+              <View className="mb-4 flex-row justify-between">
+                <View className="flex-1">
+                  <Text className="text-base font-bold capitalize">
+                    {currentSetup?.crop_name || 'N/A'}
+                  </Text>
+                  <Text className="text-xs text-muted-foreground">CROP NAME</Text>
+                </View>
+                <View className="flex-1">
+                  <Text className="text-base font-bold">
+                    {currentSetup?.status ? currentSetup.status.charAt(0).toUpperCase() + currentSetup.status.slice(1) : 'N/A'}
+                  </Text>
+                  <Text className="text-xs text-muted-foreground">STATUS</Text>
+                </View>
               </View>
-              <View className="flex-1">
-                <Text className="text-base font-bold capitalize">
-                  {currentSetup?.bed_size || 'N/A'}
-                </Text>
-                <Text className="text-xs text-muted-foreground">BED SIZE</Text>
-              </View>
-            </View>
 
-            <View className="flex-row justify-between">
-              <View className="flex-1">
-                <Text className="text-base font-bold">
-                  {currentSetup?.target_ph_min && currentSetup?.target_ph_max
-                    ? `${currentSetup.target_ph_min} - ${currentSetup.target_ph_max}`
-                    : 'N/A'}
-                </Text>
-                <Text className="text-xs text-muted-foreground">TARGET pH RANGE</Text>
+              {/* Setup and Harvest Dates */}
+              <View className="mb-4 flex-row justify-between">
+                <View className="flex-1">
+                  <Text className="text-base font-bold">
+                    {currentSetup?.setup_date 
+                      ? new Date(currentSetup.setup_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+                      : 'N/A'}
+                  </Text>
+                  <Text className="text-xs text-muted-foreground">SETUP DATE</Text>
+                </View>
+                <View className="flex-1">
+                  <Text className="text-base font-bold">
+                    {currentSetup?.harvest_date 
+                      ? new Date(currentSetup.harvest_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+                      : 'N/A'}
+                  </Text>
+                  <Text className="text-xs text-muted-foreground">EXPECTED HARVEST</Text>
+                </View>
               </View>
-              <View className="flex-1">
-                <Text className="text-base font-bold">
-                  {currentSetup?.target_tds_min && currentSetup?.target_tds_max
-                    ? `${currentSetup.target_tds_min} - ${currentSetup.target_tds_max} ppm`
-                    : 'N/A'}
-                </Text>
-                <Text className="text-xs text-muted-foreground">TARGET TDS RANGE</Text>
+
+              {/* Bed and Crops Info */}
+              <View className="mb-4 flex-row justify-between">
+                <View className="flex-1">
+                  <Text className="text-base font-bold">
+                    {currentSetup?.number_of_crops || 'N/A'}
+                  </Text>
+                  <Text className="text-xs text-muted-foreground">NUMBER OF CROPS</Text>
+                </View>
+                <View className="flex-1">
+                  <Text className="text-base font-bold capitalize">
+                    {currentSetup?.bed_size || 'N/A'}
+                  </Text>
+                  <Text className="text-xs text-muted-foreground">BED SIZE</Text>
+                </View>
               </View>
-            </View>
-          </Card>
-        </View>
-      </View>
+
+              {/* Water Amount and Nutrient Solution */}
+              <View className="mb-4 flex-row justify-between">
+                <View className="flex-1">
+                  <Text className="text-base font-bold">
+                    {currentSetup?.water_amount || 'N/A'}
+                  </Text>
+                  <Text className="text-xs text-muted-foreground">WATER AMOUNT</Text>
+                </View>
+                <View className="flex-1">
+                  <Text className="text-base font-bold">
+                    {currentSetup?.nutrient_solution || 'Not specified'}
+                  </Text>
+                  <Text className="text-xs text-muted-foreground">NUTRIENT SOLUTION</Text>
+                </View>
+              </View>
+            </Card>
+          </View>
+        )}
+      </ScrollView>
     </SafeAreaView>
   );
 }
