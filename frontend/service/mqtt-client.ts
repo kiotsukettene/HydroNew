@@ -28,5 +28,5 @@ export function getMQTTClient(): MqttClient {
 }
 
 export function publishMessage(topic: string, message: string, qos: 0|1|2 = 1) {
-  getMQTTClient().publish(topic, message, { qos });
+  getMQTTClient().publish(topic, message, { qos, retain: true });
 }

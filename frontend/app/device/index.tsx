@@ -19,9 +19,20 @@ import { Label } from "@/components/ui/label";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { WifiOff } from "lucide-react-native"
 import WifiModal from "@/components/ui/wifi-connection";
+import FolderBg from "@/components/ui/folder-bg";
+import { getMQTTClient, publishMessage } from "@/service/mqtt-client";
 
 export default function DeviceConnection () {
 const [wifiModal, setWifiModal] = useState(false);
+
+function publishTestMessage() {
+    publishMessage('iot/valve', 'OPEN', 0);
+
+}
+function publishTestMessage1() {
+    publishMessage('iot/valve', 'CLOSE', 1);
+    
+}
 
     return (
         <ImageBackground className="flex-1" source={require('@/assets/images/device-con-bg.png')} resizeMode="cover">
@@ -38,13 +49,18 @@ const [wifiModal, setWifiModal] = useState(false);
                         </View>
                     </ImageBackground>
                     <ScrollView className="flex-1 bg-white/20 rounded-3xl p-4">
-                        <View className="mt-4 justify-center items-center">
-                            <WifiOff size={48} color="white" />
-                            <Text className="text-white">No Device Connected</Text>
 
-                        </View>
+
+                        <FolderBg>
+                            <View className="p-4">
+                                <Text className="text-white mb-2">Connected Device</Text>
+                            </View>
+                        </FolderBg>
+
+
                     </ScrollView>
-                    <Button className="bg-[#155036] mt-3" onPress={() => setWifiModal(true)}> <Text className="text-white">Add Device</Text></Button>
+                    <Button className="bg-[#155036] mt-3" onPress={publishTestMessage}> <Text className="text-white">Open</Text></Button>
+                    <Button className="bg-[#155036] mt-3" onPress={publishTestMessage1}> <Text className="text-white">Close</Text></Button>
                 </View>
 
                 <WifiModal
