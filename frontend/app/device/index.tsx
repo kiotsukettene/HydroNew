@@ -60,7 +60,7 @@ function publishTestMessage1() {
 
                     </ScrollView>
                     <Button className="bg-[#155036] mt-3" onPress={publishTestMessage}> <Text className="text-white">Open</Text></Button>
-                    <Button className="bg-[#155036] mt-3" onPress={publishTestMessage1}> <Text className="text-white">Close</Text></Button>
+                    <Button className="bg-[#155036] mt-3" onPress={() => setWifiModal(true)}> <Text className="text-white">Close</Text></Button>
                 </View>
 
                 <WifiModal
