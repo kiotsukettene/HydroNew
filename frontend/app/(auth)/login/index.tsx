@@ -30,6 +30,15 @@ import { loginSchema } from "@/validators/authSchema";
 import { ZodError } from "zod";
 import { toast } from "sonner-native"
 import { GestureHandlerRootView } from "react-native-gesture-handler";
+import { useCallback } from "react";
+import { useFocusEffect } from "expo-router";
+
+
+import { GoogleSignin } from '@react-native-google-signin/google-signin';
+import auth from '@react-native-firebase/auth';
+
+
+
 
 const { height } = Dimensions.get("window");
 
@@ -37,7 +46,9 @@ export default function Login() {
   const login = useAuthStore((state) => state.login);
   const user = useAuthStore((state) => state.user);
   const error = useAuthStore((state) => state.error);
+  const googleSSO = useAuthStore((state) => state.signInWithGoogle);
   const resetErrors = useAuthStore((state) => state.resetErrors);
+  const loading = useAuthStore((state) => state.loading);
   const needsVerification = useAuthStore((state) => state.needsVerification);
   const [zodErrors, setZodErrors] = useState<{ email?: string; password?: string }>({});
 
@@ -53,33 +64,52 @@ export default function Login() {
     passwordInputRef.current?.focus();
   }
 
-  useEffect(() => {
-    if (error) resetErrors();
-    setZodErrors({});
-  }, [email, password]);
+  const toastShown = useRef (false);
+
+  useFocusEffect(
+    useCallback(() => {
+      resetErrors();  
+      setZodErrors({});
+      setEmail("");
+      setPassword("");
+    }, [])
+  );
 
   useEffect(() => {
-    if (!user) return;
-    if (needsVerification) {
-      router.push("/(auth)/signup/email-verification");
-    } else {
-      toast.success("Login successful!");
-      router.push("/(tabs)/home");
-    }
-  }, [user, needsVerification]);
+      if (error) resetErrors();
+        setZodErrors({});
+      }, [email, password]);
+
 
   function getInputBorderStyle(field: "email" | "password") {
-  if (zodErrors[field]) return "border-red-500"; 
-  if (error) return "border-red-500";   
-  return "border-muted-foreground/50";   
-}
+    if (zodErrors[field]) return "border-red-500"; 
+    if (error) return "border-red-500";   
+    return "border-muted-foreground/50";   
+  }
 
   async function onSubmit() {
     try {
       resetErrors();
       setZodErrors({});
       const validated = loginSchema.parse({ email, password });
-      await login(validated.email, validated.password);
+      const emailRegex = /^\S+@\S+\.\S+$/;
+      if (!emailRegex.test(validated.email)) {
+        setZodErrors({ email: "Please enter a valid email address" });
+        return;
+      }
+      const response = await login(validated.email, validated.password);
+
+      if (!response) {
+        return;
+      }
+      if (response?.needs_verification) {
+        toast.error("Please verify your email to continue.");
+        router.push("/(auth)/signup/email-verification");
+        return;
+      }
+      toast.success("Logged in successfully!");
+      router.replace("/(tabs)/home");
+
     } catch (err) {
       if (err instanceof ZodError) {
         const fieldErrors: any = {};
@@ -93,9 +123,50 @@ export default function Login() {
     }
   }
 
-  const showToast = () => {
-    toast.error("Google login is not implemented yet.");
+
+GoogleSignin.configure({
+  webClientId: '835032812073-av4pmjr94757qiu2ug8ri9ivfdkdp9nd.apps.googleusercontent.com',
+  offlineAccess: true,
+});
+
+async function signInWithGoogle() {
+  try {
+    
+
+    const userInfo = await GoogleSignin.signIn();
+    console.log('Google user info:', userInfo);
+
+    const idToken = (userInfo as any).data?.idToken; 
+    if (!idToken) {
+      console.warn('No idToken returned!');
+      return;
+    }
+    const googleCredential = auth.GoogleAuthProvider.credential(idToken);
+    const userCredential = await auth().signInWithCredential(googleCredential);
+    console.log('Google user:', userCredential.user);
+
+    const firebaseIdToken = await auth().currentUser?.getIdToken();
+    console.log('Firebase ID token:', firebaseIdToken);
+
+    const first_name = userInfo.data?.user?.givenName ?? "";
+    const last_name = userInfo.data?.user?.familyName ?? "";
+    if (!firebaseIdToken) {
+      console.warn('Firebase ID token is null, aborting backend call');
+      return;
+    }
+    const result = await googleSSO(firebaseIdToken!, first_name, last_name);
+
+    if(result?.user){
+      toast.success("Login successful!");
+      router.push("/(tabs)/home");
+    }
+    
+    console.log('Backend SSO result:', result);
+  } catch (error) {
+    console.error('Google sign-in error:', error);
   }
+}
+
 
   return (
     <SafeAreaView className="flex-1 bg-background">
@@ -144,7 +215,7 @@ export default function Login() {
                   )}
 
                   {/* Email */}
-                  <View className="gap-1">
+                  <View>
                     <Label className="font-normal text-muted-foreground">
                       Email
                     </Label>
@@ -184,11 +255,11 @@ export default function Login() {
                       />
                     </View>
                     {zodErrors.password && (
-                      <Text className="text-destructive text-sm">{zodErrors.password}</Text>
+                      <Text className="text-destructive text-sm mt-1">{zodErrors.password}</Text>
                     )}
-                    <View className="mb-2 mt-3 flex-row items-center justify-between">
+                    <View className="mb-2 mt-3 flex items-end justify-end">
                       {/* Remember Me */}
-                      <View className="flex-row items-center justify-center gap-2">
+                      {/* <View className="flex-row items-center justify-center gap-2">
                         <Checkbox
                           checked={checked}
                           onCheckedChange={setChecked}
@@ -197,7 +268,7 @@ export default function Login() {
                         <Text className="self-end text-muted-foreground">
                           Remember me?
                         </Text>
-                      </View>
+                      </View> */}
                       <Link href="/forgot-password">
                         <Text className="self-end text-primary/70">
                           Forgot Password
@@ -207,8 +278,12 @@ export default function Login() {
                   </View>
 
                   {/* LOGIN Button */}
-                  <Button className="w-full" onPress={onSubmit}>
-                    <Text>Login</Text>
+                  <Button 
+                    className="w-full" 
+                    onPress={onSubmit}
+                    disabled={loading}
+                  >
+                    {loading ? <Text>Logging in...</Text> : <Text>Login</Text>}
                   </Button>
 
                   {/* Separator */}
@@ -220,7 +295,7 @@ export default function Login() {
 
                   {/* Google Button */}
                   <Button
-                    onPress={() => {showToast()}}
+                    onPress={signInWithGoogle}
                     variant="outline"
                     className="w-full flex-row items-center justify-center gap-2 mt-2"
                   >

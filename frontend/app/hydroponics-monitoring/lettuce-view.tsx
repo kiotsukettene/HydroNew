@@ -7,12 +7,14 @@ import { PageHeader } from '@/components/ui/page-header'
 import FolderBg from '@/components/ui/folder-bg'
 import { Droplet } from 'lucide-react-native'
 import { Text } from '@/components/ui/text'
-import { useLocalSearchParams } from 'expo-router'
+import { Card } from '@/components/ui/card'
+import { useLocalSearchParams, useRouter } from 'expo-router'
 import { useHydroponicSetupStore } from '@/store/hydroponics/hydroponicSetupStore'
 import { useYieldStore } from '@/store/hydroponics/hydroponicYieldStore'
 
 
 export default function LettuceView() {
+  const router = useRouter()
   const params = useLocalSearchParams();
   const setupId = params.id;
   const { hydroponicSetups } = useHydroponicSetupStore();
@@ -37,13 +39,17 @@ export default function LettuceView() {
 
         {/* =========== Plant Section =========== */}
         <View
-          className="bg-[#E7F5EA] dark:bg-[#1A3D1F] mt-4"
+          className="mt-2"
           style={{
             borderBottomLeftRadius: 30,
             borderBottomRightRadius: 30,
           }}>
-          <View className="items-center justify-center py-8">
-            <Image source={require('@/assets/images/lettuce.png')} />
+          <View className="items-center justify-center py-4">
+            <Image 
+              source={require('@/assets/images/lettuce.png')} 
+              style={{ width: 160, height: 160 }}
+              resizeMode="contain"
+            />
           </View>
         </View>
 
@@ -74,7 +80,7 @@ export default function LettuceView() {
     </View>
  
     <View className="items-center mt-7">
-      <Button className="w-full rounded-xl bg-emerald-50 ">
+      <Button className="w-full rounded-xl bg-emerald-50 " onPress={() => {router.push('/hydroponics-monitoring/pump-screen')}}>
         <Icon as={Droplet} className="text-primary" />
         <Text className="ml-2  text-primary">Start Pump</Text>
       </Button>
@@ -90,6 +96,43 @@ export default function LettuceView() {
     </View>
   </View>
 </FolderBg>
+        </View>
+
+        {/* =========== Setup Information Section =========== */}
+        <View className="px-4 pb-5">
+          <Card className="p-6 rounded-2xl ">
+            <Text className="text-lg font-semibold mb-4 bg-lime-50">Crop Details</Text>
+            
+            <View className="flex-row justify-between mb-4">
+              <View className="flex-1">
+                <Text className="text-base font-bold">{setup?.number_of_crops || 'N/A'}</Text>
+                <Text className="text-xs text-muted-foreground">NUMBER OF CROPS</Text>
+              </View>
+              <View className="flex-1">
+                <Text className="text-base font-bold capitalize">{setup?.bed_size || 'N/A'}</Text>
+                <Text className="text-xs text-muted-foreground">BED SIZE</Text>
+              </View>
+            </View>
+
+            <View className="flex-row justify-between">
+              <View className="flex-1">
+                <Text className="text-base font-bold">
+                  {setup?.target_ph_min && setup?.target_ph_max 
+                    ? `${setup.target_ph_min} - ${setup.target_ph_max}`
+                    : 'N/A'}
+                </Text>
+                <Text className="text-xs text-muted-foreground">TARGET pH RANGE</Text>
+              </View>
+              <View className="flex-1">
+                <Text className="text-base font-bold">
+                  {setup?.target_tds_min && setup?.target_tds_max 
+                    ? `${setup.target_tds_min} - ${setup.target_tds_max} ppm`
+                    : 'N/A'}
+                </Text>
+                <Text className="text-xs text-muted-foreground">TARGET TDS RANGE</Text>
+              </View>
+            </View>
+          </Card>
         </View>
       </View>
       

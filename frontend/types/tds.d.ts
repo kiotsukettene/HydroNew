@@ -1,6 +1,6 @@
 export interface TDSRecommendation {
-  ppm: number;
-  stage: string;
+  ppm: string;
+  status: string;
   description: string;
 }
 
