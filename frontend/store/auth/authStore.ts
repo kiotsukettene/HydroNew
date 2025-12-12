@@ -4,6 +4,8 @@ import { handleAxiosError } from "@/api/handleAxiosError";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useAccountStore } from "../account/accountStore";
 import { Platform } from "react-native";
+import { disconnectEcho } from "@/lib/echo";
+import { useNotificationStore } from "../notification/notificationStore";
 import { firebase } from "@react-native-firebase/auth";
 import { GoogleSignin } from "@react-native-google-signin/google-signin";
 
@@ -195,6 +197,16 @@ signInWithGoogle: async (firebaseIdToken, first_name, last_name) => {
   },
 
   logout: async () => {
+     // Get user ID before clearing state
+    const user = get().user;
+    
+    // Stop listening to notifications
+    if (user?.id) {
+      useNotificationStore.getState().stopListening(user.id);
+    }
+    
+    // Disconnect Echo
+    disconnectEcho();
     await storage.removeItem("token");
     await GoogleSignin.signOut();
     set({
