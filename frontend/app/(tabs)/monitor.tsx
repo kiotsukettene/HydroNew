@@ -99,64 +99,159 @@ export default function Monitor() {
             
               <Tabs value={tabValue} onValueChange={setTabValue}>
                 <TabsList className="w-full">
-                  <TabsTrigger value="clean" className="flex-1">
-                    <Text>Clean</Text>
-                  </TabsTrigger>
+                
                   <TabsTrigger value="dirty" className="flex-1">
                     <Text>Dirty</Text>
                   </TabsTrigger>
+
+                    <TabsTrigger value="clean" className="flex-1">
+                    <Text>Clean</Text>
+                  </TabsTrigger>
                 </TabsList>
 
-                {/* =========== Clean Water card ==================== */}
-                <TabsContent value="clean">
+              
+
+                {/* =========== Dirty Water card ==================== */}
+                <TabsContent value="dirty">
                   <CardContent className="p-2">
                     <View className="flex-row justify-between">
                       {/* Left Column: Details */}
                       <View className="justify-between">
-                        <View className="flex-row items-center mb-4">
-                <View>
-                  <Text className="text-gray-600">pH Level</Text>
-                  <Text className="text-xl font-medium text-gray-800">{sensorData ? sensorData.ph : '--'}</Text>
-                </View>
-
-                <Button variant={'ghost'} className='bg-transparent' onPress={() => setIsPHLevelDetailsModalVisible(true)}>
-                  <Icon as={Info} color="#059669" size={18} className="ml-2" />
-                </Button>
-                <PHLevelDetailsModal
-                  visible={isPHLevelDetailsModalVisible}
-                  onClose={() => setIsPHLevelDetailsModalVisible(false)}
-                />
-              </View>
-
-
-                        <View className="flex-row items-center">
+                        <View className="flex-row items-start">
                           <View>
-                            <Text className="text-gray-600">TDS</Text>
+                            <View className="flex-row items-center">
+                              <Text className="text-gray-600">pH Level</Text>
+                              <Button variant={'ghost'} className='bg-transparent p-0 h-auto' onPress={() => setIsPHLevelDetailsModalVisible(true)}>
+                                <Icon as={Info} color="#059669" size={18} className="ml-2" />
+                              </Button>
+                            </View>
+                            <Text className="text-xl font-medium text-gray-800">
+                              {sensorData ? sensorData.ph : '--'}
+                            </Text>
+                          </View>
+                          <PHLevelDetailsModal
+                            visible={isPHLevelDetailsModalVisible}
+                            onClose={() => setIsPHLevelDetailsModalVisible(false)}
+                          />
+                        </View>
+
+                        <View className="flex-row items-start">
+                          <View>
+                            <View className="flex-row items-center">
+                              <Text className="text-gray-600">TDS</Text>
+                              <Button variant={'ghost'} className='bg-transparent p-0 h-auto' onPress={() => setIsTDSDetailsModalVisible(true)}>
+                                <Icon as={Info} color="#059669" size={18} className="ml-2" />
+                              </Button>
+                            </View>
                             <Text className="text-xl font-medium text-gray-800">
                               {sensorData ? `${Math.round(sensorData.tds)} ppm` : '--'}
                             </Text>
                           </View>
-
-                          <Button variant={'ghost'} onPress={() => setIsTDSDetailsModalVisible(true)}>
-                            <Icon as={Info} color="#059669" size={18} className="ml-2 mt-1" />
-                          </Button>
                           <TDSDetailsModal
                             visible={isTDSDetailsModalVisible}
                             onClose={() => setIsTDSDetailsModalVisible(false)}
                           />
                         </View>
 
-                        <View className="flex-row items-center">
+                        <View className="flex-row items-start">
                           <View>
-                            <Text className="text-gray-600">Turbidity</Text>
+                            <View className="flex-row items-center">
+                              <Text className="text-gray-600">Turbidity</Text>
+                              <Button className='bg-transparent p-0 h-auto' onPress={() => setIsTurbidityDetailsModalVisible(true)}>
+                                <Icon as={Info} color="#059669" size={18} className="ml-2" />
+                              </Button>
+                            </View>
                             <Text className="text-xl font-medium text-gray-800">
-                              {sensorData ? `${Math.round(sensorData.turbidity)}` : '--'}
+                              {sensorData ? sensorData.turbidity.toFixed(2) : '--'}
                             </Text>
                           </View>
+                          <TurbidityDetailsModal
+                            visible={isTurbidityDetailsModalVisible}
+                            onClose={() => setIsTurbidityDetailsModalVisible(false)}
+                          />
+                        </View>
+                      </View>
 
-                          <Button className='bg-transparent' onPress={() => setIsTurbidityDetailsModalVisible(true)}>
-                            <Icon as={Info} color="#059669" size={18} className="ml-2 mt-1" />
-                          </Button>
+                      {/* Right Column: WATER TANK LEVEL */}
+                      <View className="items-center">
+                        <View className="size-36 items-center justify-center rounded-full bg-white">
+                          <Text className="text-4xl font-bold text-gray-800">20%</Text>
+                          <Text className="text-sm text-gray-600">Water Tank Level</Text>
+                        </View>
+
+                        {/* Badge */}
+                        <Badge variant="secondary" className="bg-blue-500 dark:bg-blue-600">
+                          <Icon as={BadgeCheckIcon} className="text-white" />
+                          <Text className="text-white">Low</Text>
+                        </Badge>
+                      </View>
+                    </View>
+
+                    {/* Button */}
+                    <Button
+                      className="mt-4 rounded-lg bg-white/70 transition-all duration-200 hover:scale-105 hover:bg-muted-foreground/70 active:scale-95 active:bg-muted-foreground/80"
+                      onPress={() => {
+                        router.push('/(tabs)/filtration');
+                      }}>
+                      <Text className="font-semibold text-gray-800">Start Filtration</Text>
+                    </Button>
+                  </CardContent>
+                </TabsContent>
+
+                  {/* =========== Clean Water card ==================== */}
+                <TabsContent value="clean">
+                  <CardContent className="p-2">
+                    <View className="flex-row justify-between">
+                      {/* Left Column: Details */}
+                      <View className="justify-between">
+                        <View className="flex-row items-start">
+                          <View>
+                            <View className="flex-row items-center">
+                              <Text className="text-gray-600">pH Level</Text>
+                              <Button variant={'ghost'} className='bg-transparent p-0 h-auto' onPress={() => setIsPHLevelDetailsModalVisible(true)}>
+                                <Icon as={Info} color="#059669" size={18} className="ml-2" />
+                              </Button>
+                            </View>
+                            <Text className="text-xl font-medium text-gray-800">
+                              {sensorData ? sensorData.ph : '--'}
+                            </Text>
+                          </View>
+                          <PHLevelDetailsModal
+                            visible={isPHLevelDetailsModalVisible}
+                            onClose={() => setIsPHLevelDetailsModalVisible(false)}
+                          />
+                        </View>
+
+                        <View className="flex-row items-start">
+                          <View>
+                            <View className="flex-row items-center">
+                              <Text className="text-gray-600">TDS</Text>
+                              <Button variant={'ghost'} className='bg-transparent p-0 h-auto' onPress={() => setIsTDSDetailsModalVisible(true)}>
+                                <Icon as={Info} color="#059669" size={18} className="ml-2" />
+                              </Button>
+                            </View>
+                            <Text className="text-xl font-medium text-gray-800">
+                              {sensorData ? `${Math.round(sensorData.tds)} ppm` : '--'}
+                            </Text>
+                          </View>
+                          <TDSDetailsModal
+                            visible={isTDSDetailsModalVisible}
+                            onClose={() => setIsTDSDetailsModalVisible(false)}
+                          />
+                        </View>
+
+                        <View className="flex-row items-start">
+                          <View>
+                            <View className="flex-row items-center">
+                              <Text className="text-gray-600">Turbidity</Text>
+                              <Button className='bg-transparent p-0 h-auto' onPress={() => setIsTurbidityDetailsModalVisible(true)}>
+                                <Icon as={Info} color="#059669" size={18} className="ml-2" />
+                              </Button>
+                            </View>
+                            <Text className="text-xl font-medium text-gray-800">
+                              {sensorData ? sensorData.turbidity.toFixed(2) : '--'}
+                            </Text>
+                          </View>
                           <TurbidityDetailsModal
                             visible={isTurbidityDetailsModalVisible}
                             onClose={() => setIsTurbidityDetailsModalVisible(false)}
@@ -180,70 +275,6 @@ export default function Monitor() {
                     </View>
 
                  
-
-                    {/* Button */}
-                    <Button
-                      className="mt-4 rounded-lg bg-white/70 transition-all duration-200 hover:scale-105 hover:bg-muted-foreground/70 active:scale-95 active:bg-muted-foreground/80"
-                      onPress={() => {
-                        router.push('/(tabs)/filtration');
-                      }}>
-                      <Text className="font-semibold text-gray-800">Start Filtration</Text>
-                    </Button>
-                  </CardContent>
-                </TabsContent>
-
-                {/* =========== Dirty Water card ==================== */}
-                <TabsContent value="dirty">
-                  <CardContent className="p-2">
-                    <View className="flex-row justify-between">
-                      {/* Left Column: Details */}
-                      <View className="justify-between">
-                        <View>
-                          <Text className="text-gray-600">pH Level</Text>
-                          <Text className="text-xl font-medium text-gray-800">
-                            {sensorData ? sensorData.ph : '--'}
-                          </Text>
-                        </View>
-
-                        <View className="flex-row items-center">
-                          <View>
-                            <Text className="text-gray-600">TDS</Text>
-                            <Text className="text-xl font-medium text-gray-800">
-                              {sensorData ? `${Math.round(sensorData.tds)} ppm` : '--'}
-                            </Text>
-                          </View>
-
-                          <Button variant={'ghost'} onPress={() => setIsTDSDetailsModalVisible(true)}>
-                            <Icon as={Info} color="#059669" size={18} className="ml-2 mt-1" />
-                          </Button>
-                          <TDSDetailsModal
-                            visible={isTDSDetailsModalVisible}
-                            onClose={() => setIsTDSDetailsModalVisible(false)}
-                          />
-                        </View>
-
-                        <View>
-                          <Text className="text-gray-600">Turbidity</Text>
-                          <Text className="text-xl font-medium text-gray-800">
-                            {sensorData ? sensorData.turbidity.toFixed(2) : '--'}
-                          </Text>
-                        </View>
-                      </View>
-
-                      {/* Right Column: WATER TANK LEVEL */}
-                      <View className="items-center">
-                        <View className="size-36 items-center justify-center rounded-full bg-white">
-                          <Text className="text-4xl font-bold text-gray-800">20%</Text>
-                          <Text className="text-sm text-gray-600">Water Tank Level</Text>
-                        </View>
-
-                        {/* Badge */}
-                        <Badge variant="secondary" className="bg-blue-500 dark:bg-blue-600">
-                          <Icon as={BadgeCheckIcon} className="text-white" />
-                          <Text className="text-white">Low</Text>
-                        </Badge>
-                      </View>
-                    </View>
 
                     {/* Button */}
                     <Button
