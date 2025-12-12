@@ -190,73 +190,69 @@ const HarvestedList = () => {
       <View className="relative z-10">
         <PageHeader title="Harvested Crops" />
       </View>
-      <View className='px-2'>
+      
+      <ScrollView
+        className="flex-1"
+        keyboardShouldPersistTaps="handled"
+        stickyHeaderIndices={[1]}
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ paddingBottom: 20 }}>
+        
         {/* Summary */}
         {statistics && (
-          <View>
+          <View className="px-5 mt-5">
             {/* ===== Statistics Card ===== */}
-            <View className="mt-5 px-3">
-              <Card className=" bg-lime-50 relative min-h-28 overflow-hidden border border-muted py-4 px-6" >
-                <View className="relative z-10">
-                  {/* Badge and Title */}
-                  <View>
-                    <View className="mb-2 self-start rounded-full bg-lime-400/20 px-3 py-1">
-                      <Text className="text-xs font-semibold uppercase tracking-wide ">
-                        Total Harvested
-                      </Text>
-                    </View>
-                    
-                    {/* Total Count */}
-                    <View className="flex-row items-baseline mt-2">
-                      <Text className="text-5xl font-bold ">
-                        {statistics.total_harvested_setups}
-                      </Text>
-                    </View>
+            <Card className="bg-lime-50 relative min-h-28 overflow-hidden border border-muted py-4 px-6">
+              <View className="relative z-10">
+                {/* Badge and Title */}
+                <View>
+                  <View className="mb-2 self-start rounded-full bg-lime-400/20 px-3 py-1">
+                    <Text className="text-xs font-semibold uppercase tracking-wide">
+                      Total Harvested
+                    </Text>
                   </View>
+                  
+                  {/* Total Count */}
+                  <View className="flex-row items-baseline mt-2">
+                    <Text className="text-5xl font-bold">
+                      {statistics.total_harvested_setups}
+                    </Text>
+                  </View>
+                </View>
 
-                  {/* Additional Statistics */}
-                  <View className="mt-4 pt-4 border-t border-lime-200/50">
-                    <View className="flex-row justify-between">
-                      <View className="flex-1">
-                        <Text className="text-xs text-muted-foreground mb-1">Sold</Text>
-                        <Text className="text-xl font-semibold text-foreground">
-                          {statistics.total_sold}
-                        </Text>
-                      </View>
-                      <View className="flex-1">
-                        <Text className="text-xs text-muted-foreground mb-1">Consumed</Text>
-                        <Text className="text-xl font-semibold text-foreground">
-                          {statistics.total_consumed}
-                        </Text>
-                      </View>
-                      <View className="flex-1">
-                        <Text className="text-xs text-muted-foreground mb-1">Disposed</Text>
-                        <Text className="text-xl font-semibold text-foreground">
-                          {statistics.total_disposed}
-                        </Text>
-                      </View>
+                {/* Additional Statistics */}
+                <View className="mt-4 pt-4 border-t border-lime-200/50">
+                  <View className="flex-row justify-between">
+                    <View className="flex-1">
+                      <Text className="text-xs text-muted-foreground mb-1">Sold</Text>
+                      <Text className="text-xl font-semibold text-foreground">
+                        {statistics.total_sold}
+                      </Text>
+                    </View>
+                    <View className="flex-1">
+                      <Text className="text-xs text-muted-foreground mb-1">Consumed</Text>
+                      <Text className="text-xl font-semibold text-foreground">
+                        {statistics.total_consumed}
+                      </Text>
+                    </View>
+                    <View className="flex-1">
+                      <Text className="text-xs text-muted-foreground mb-1">Disposed</Text>
+                      <Text className="text-xl font-semibold text-foreground">
+                        {statistics.total_disposed}
+                      </Text>
                     </View>
                   </View>
                 </View>
-              </Card>
-            </View>
+              </View>
+            </Card>
           </View>
         )}
 
-        <ScrollView
-          keyboardShouldPersistTaps="handled"
-          stickyHeaderIndices={[0]}
-          showsVerticalScrollIndicator={false}>
-
-          <View className="px-4 relative flex-1">
+        <View className="px-4 bg-background">
             {/* Search + Filter */}
             <View className="mt-4 flex-row items-center gap-2">
               <View className="flex-1 flex-row items-center rounded-xl border border-muted-foreground/30 px-3 py-2">
-                {loading && query.trim() !== '' ? (
-                  <ActivityIndicator size="small" color="#6BBF59" />
-                ) : (
-                  <Search size={18} color="#888" />
-                )}
+                <Search size={18} color="#888" />
                 <TextInput
                   placeholder="Search harvest batch…"
                   placeholderTextColor="#9CA3AF"
@@ -275,11 +271,7 @@ const HarvestedList = () => {
                 className={`h-12 w-12 items-center justify-center rounded-xl border border-muted-foreground/30 bg-white ${
                   loading ? 'opacity-50' : ''
                 }`}>
-                {loading && filterMonth ? (
-                  <ActivityIndicator size="small" color="#6BBF59" />
-                ) : (
-                  <Filter size={20} />
-                )}
+                <Filter size={20} />
               </TouchableOpacity>
             </View>
 
@@ -389,90 +381,90 @@ const HarvestedList = () => {
               )}
             </View>
           </View>
-        </ScrollView>
+      </ScrollView>
 
-        {/* Filter Bottom Sheet Modal */}
-        <Modal
-          visible={showFilter}
-          animationType="slide"
-          transparent
-          onRequestClose={() => setShowFilter(false)}>
-          <View className="flex-1 justify-end bg-black/30">
-            <View className="rounded-t-3xl bg-white p-6">
-              <View className="mb-2 flex-row items-center justify-between">
-                <Text className="text-base font-semibold"> Filters </Text>
-                <TouchableOpacity onPress={() => setShowFilter(false)} className="p-1">
-                  <X size={18} color="#6B7280" />
-                </TouchableOpacity>
+      {/* Filter Bottom Sheet Modal */}
+      <Modal
+        visible={showFilter}
+        animationType="slide"
+        transparent
+        onRequestClose={() => setShowFilter(false)}>
+        <View className="flex-1 justify-end bg-black/30">
+          <View className="rounded-t-3xl bg-white p-6">
+            <View className="mb-2 flex-row items-center justify-between">
+              <Text className="text-base font-semibold"> Filters </Text>
+              <TouchableOpacity onPress={() => setShowFilter(false)} className="p-1">
+                <X size={18} color="#6B7280" />
+              </TouchableOpacity>
+            </View>
+
+            <View className="gap-3">
+              {/* Month */}
+              <View>
+                <Text className="mb-1 text-sm text-muted-foreground">Month</Text>
+                <View className="flex-row flex-wrap gap-2">
+                  {[
+                    'Jan',
+                    'Feb',
+                    'Mar',
+                    'Apr',
+                    'May',
+                    'Jun',
+                    'Jul',
+                    'Aug',
+                    'Sep',
+                    'Oct',
+                    'Nov',
+                    'Dec',
+                  ].map((m) => (
+                    <Pressable
+                      key={m}
+                      onPress={() => handleMonthSelect(m)}
+                      className={`rounded-full border px-3 py-2 ${localFilterMonth === m ? 'border-[#6BBF59] bg-[#6BBF59]/10' : 'border-muted-foreground/30'}`}>
+                      <Text className={localFilterMonth === m ? 'text-[#197A2E]' : 'text-foreground'}>
+                        {m}
+                      </Text>
+                    </Pressable>
+                  ))}
+                </View>
               </View>
 
-              <View className="gap-3">
-                {/* Month */}
-                <View>
-                  <Text className="mb-1 text-sm text-muted-foreground">Month</Text>
-                  <View className="flex-row flex-wrap gap-2">
-                    {[
-                      'Jan',
-                      'Feb',
-                      'Mar',
-                      'Apr',
-                      'May',
-                      'Jun',
-                      'Jul',
-                      'Aug',
-                      'Sep',
-                      'Oct',
-                      'Nov',
-                      'Dec',
-                    ].map((m) => (
-                      <Pressable
-                        key={m}
-                        onPress={() => handleMonthSelect(m)}
-                        className={`rounded-full border px-3 py-2 ${localFilterMonth === m ? 'border-[#6BBF59] bg-[#6BBF59]/10' : 'border-muted-foreground/30'}`}>
-                        <Text className={localFilterMonth === m ? 'text-[#197A2E]' : 'text-foreground'}>
-                          {m}
-                        </Text>
-                      </Pressable>
-                    ))}
-                  </View>
-                </View>
-
-                <View className="mt-2 flex-col gap-2 justify-between">
-                  <Button 
-                    variant="outline" 
-                    className=" w-full" 
-                    onPress={clearFilters}
-                    disabled={loading}>
-                    <Text className="">Reset</Text>
-                  </Button>
-                  <Button 
-                    className="  w-full" 
-                    onPress={handleApplyFilter}
-                    disabled={loading}>
-                    {loading ? (
-                      <View className="flex-row items-center gap-2">
-                        <ActivityIndicator size="small" color="#fff" />
-                        <Text>Applying...</Text>
-                      </View>
-                    ) : (
-                      <Text>Apply</Text>
-                    )}
-                  </Button>
-                </View>
+              <View className="mt-2 flex-col gap-2 justify-between">
+                <Button 
+                  variant="outline" 
+                  className=" w-full" 
+                  onPress={clearFilters}
+                  disabled={loading}>
+                  <Text className="">Reset</Text>
+                </Button>
+                <Button 
+                  className="  w-full" 
+                  onPress={handleApplyFilter}
+                  disabled={loading}>
+                  {loading ? (
+                    <View className="flex-row items-center gap-2">
+                      <ActivityIndicator size="small" color="#fff" />
+                      <Text>Applying...</Text>
+                    </View>
+                  ) : (
+                    <Text>Apply</Text>
+                  )}
+                </Button>
               </View>
             </View>
           </View>
-        </Modal>
+        </View>
+      </Modal>
 
-        {/* Details Modal */}
-        <Modal
-          visible={!!showDetails}
-          animationType="slide"
-          transparent
-          onRequestClose={() => setShowDetails(null)}>
-          <View className="flex-1 justify-end bg-foreground/50">
-            <View className="rounded-t-3xl bg-white max-h-[90%]">
-              <ScrollView showsVerticalScrollIndicator={false} className="px-6 pt-6">
+      {/* Details Modal */}
+      <Modal
+        visible={!!showDetails}
+        animationType="slide"
+        transparent
+        onRequestClose={() => setShowDetails(null)}>
+        <View className="flex-1 justify-end bg-foreground/50">
+          <View className="rounded-t-3xl bg-white max-h-[90%]">
+            <ScrollView showsVerticalScrollIndicator={false} className="px-6 pt-6">
                 {/* Header */}
                 <View className="mb-6 flex-row items-center justify-between">
                   <Text className="text-xl font-bold text-foreground">Batch Details</Text>
@@ -638,11 +630,10 @@ const HarvestedList = () => {
                     </View>
                   </View>
                 )}
-              </ScrollView>
-            </View>
+            </ScrollView>
           </View>
-        </Modal>
-      </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 };

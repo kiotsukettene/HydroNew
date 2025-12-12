@@ -26,7 +26,7 @@ export const useHarvestedStore = create<HarvestedStore>((set, get) => ({
 
     // Return cached data if available and not forcing refresh
     if (cache[cacheKey] && !forceRefresh) {
-      set(cache[cacheKey]);
+      set(cache[cacheKey]); // Fixed: removed cache preservation
       return;
     }
 
@@ -60,10 +60,9 @@ export const useHarvestedStore = create<HarvestedStore>((set, get) => ({
         error: null,
       };
 
-      set(result);
-
-      // Cache the result
+      // Set result and cache together to avoid double render
       set({
+        ...result,
         cache: {
           ...cache,
           [cacheKey]: result,
@@ -81,21 +80,18 @@ export const useHarvestedStore = create<HarvestedStore>((set, get) => ({
 
   searchHarvested: async (search: string) => {
     const { filterMonth } = get();
-    // Force refresh and clear cache when searching
     set({ cache: {} });
     await get().fetchHarvested(1, search, filterMonth, true);
   },
 
   filterByMonth: async (month: string | null) => {
     const { searchQuery } = get();
-    // Force refresh and clear cache when filtering
     set({ cache: {} });
     await get().fetchHarvested(1, searchQuery, month, true);
   },
 
   nextPage: async () => {
-    const { currentPage, lastPage, fetchHarvested, searchQuery, filterMonth } =
-      get();
+    const { currentPage, lastPage, fetchHarvested, searchQuery, filterMonth } = get();
     if (currentPage < lastPage) {
       await fetchHarvested(currentPage + 1, searchQuery, filterMonth);
     }
