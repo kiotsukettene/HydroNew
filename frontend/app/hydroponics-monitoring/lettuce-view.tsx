@@ -18,6 +18,9 @@ export default function LettuceView() {
   const { currentSetup, fetchSetupById, loading, error } = useHydroponicSetupStore();
   const [activeTab, setActiveTab] = useState<'details' | 'monitoring'>('monitoring');
 
+  // Check if harvest is allowed (plant age must be >= 14 days)
+  const canHarvest = currentSetup ? (currentSetup.plant_age ?? 0) >= 14 : false;
+
   useEffect(() => {
     if (setupId) {
       fetchSetupById(Number(setupId));
@@ -67,8 +70,8 @@ export default function LettuceView() {
                     </Text>
                     <Text className="text-xs text-lime-200">PLANT AGE</Text>
 
-                    <Text className="mt-1 text-xl font-bold text-white">41 %</Text>
-                    <Text className="text-xs text-lime-200">HUMIDITY</Text>
+                    <Text className="mt-1 text-xl font-bold text-white">{currentSetup?.water_amount ?? '-'}</Text>
+                    <Text className="text-xs text-lime-200">WATER AMOUNT</Text>
                   </View>
 
                   <View className="flex-1">
@@ -100,19 +103,30 @@ export default function LettuceView() {
           </FolderBg>
 
           {/* Mark as Harvested Button - Outside FolderBg */}
-          <Button
-            variant="outline"
-            className="w-full rounded-xl border-primary mt-2 mb-4"
-            onPress={() => {
-              router.push({
-                pathname: '/hydroponics-monitoring/harvest-form',
-                params: { id: setupId }
-              });
-            }}
-            disabled={loading}>
-            <Icon as={Leaf} className="text-primary" />
-            <Text className="ml-2 text-primary">Mark as Harvested</Text>
-          </Button>
+          <View>
+            <Button
+              variant="outline"
+              className={`w-full rounded-xl mt-2 ${!canHarvest ? 'opacity-50 border-muted-foreground' : 'border-primary'}`}
+              onPress={() => {
+                router.push({
+                  pathname: '/hydroponics-monitoring/harvest-form',
+                  params: { id: setupId }
+                });
+              }}
+              disabled={loading || !canHarvest}>
+              <Icon as={Leaf} className={!canHarvest ? 'text-muted-foreground' : 'text-primary'} />
+              <Text className={`ml-2 ${!canHarvest ? 'text-muted-foreground' : 'text-primary'}`}>
+                Mark as Harvested
+              </Text>
+            </Button>
+            {!canHarvest && currentSetup && (
+              <Text className="text-xs text-muted-foreground text-center mt-2">
+                {currentSetup.plant_age !== null && currentSetup.plant_age !== undefined
+                  ? `${14 - currentSetup.plant_age} day${14 - currentSetup.plant_age !== 1 ? 's' : ''} remaining until harvest is available`
+                  : 'Minimum 14 days required before harvest'}
+              </Text>
+            )}
+          </View>
         </View>
 
         {/* =========== Tabs Section =========== */}
@@ -252,16 +266,16 @@ export default function LettuceView() {
               {/* Bed and Crops Info */}
               <View className="mb-4 flex-row justify-between">
                 <View className="flex-1">
-                  <Text className="text-base font-bold">
-                    {currentSetup?.number_of_crops || 'N/A'}
-                  </Text>
-                  <Text className="text-xs text-muted-foreground">NUMBER OF CROPS</Text>
-                </View>
-                <View className="flex-1">
                   <Text className="text-base font-bold capitalize">
                     {currentSetup?.bed_size || 'N/A'}
                   </Text>
                   <Text className="text-xs text-muted-foreground">BED SIZE</Text>
+                </View>
+                <View className="flex-1">
+                  <Text className="text-base font-bold">
+                    {currentSetup?.nutrient_solution || 'Not specified'}
+                  </Text>
+                  <Text className="text-xs text-muted-foreground">NUTRIENT SOLUTION</Text>
                 </View>
               </View>
 
@@ -273,12 +287,7 @@ export default function LettuceView() {
                   </Text>
                   <Text className="text-xs text-muted-foreground">WATER AMOUNT</Text>
                 </View>
-                <View className="flex-1">
-                  <Text className="text-base font-bold">
-                    {currentSetup?.nutrient_solution || 'Not specified'}
-                  </Text>
-                  <Text className="text-xs text-muted-foreground">NUTRIENT SOLUTION</Text>
-                </View>
+                
               </View>
             </Card>
           </View>
