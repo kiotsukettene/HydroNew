@@ -578,7 +578,7 @@ const HarvestedList = () => {
                                 Total Weight
                               </Text>
                               <Text className="text-lg font-bold text-foreground">
-                                {showDetails.yield.total_weight.toFixed(2)} g
+                                {showDetails?.yield.total_weight?.toFixed(2) ?? '0.00'} g
                               </Text>
                             </View>
                           </View>
@@ -615,7 +615,7 @@ const HarvestedList = () => {
                                         {grade.weight !== null && (
                                           <Text className="text-xs text-muted-foreground">
                                             Weight: <Text className="font-semibold text-foreground">
-                                              {grade.weight.toFixed(2)} g
+                                              {grade?.weight?.toFixed(2) ?? '0.00'} g
                                             </Text>
                                           </Text>
                                         )}
