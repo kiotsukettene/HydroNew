@@ -278,17 +278,6 @@ export default function LettuceView() {
                   <Text className="text-xs text-muted-foreground">NUTRIENT SOLUTION</Text>
                 </View>
               </View>
-
-              {/* Water Amount and Nutrient Solution */}
-              <View className="mb-4 flex-row justify-between">
-                <View className="flex-1">
-                  <Text className="text-base font-bold">
-                    {currentSetup?.water_amount || 'N/A'}
-                  </Text>
-                  <Text className="text-xs text-muted-foreground">WATER AMOUNT</Text>
-                </View>
-                
-              </View>
             </Card>
           </View>
         )}
