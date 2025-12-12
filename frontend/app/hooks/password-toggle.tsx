@@ -24,12 +24,7 @@ export default function PasswordToggle({
   return (
     <Pressable
       onPress={handleToggle}
-      className="absolute "
-        style={{
-        top: '50%',
-        right: 10,
-        transform: [{ translateY: -10 }], 
-      }}
+      className="absolute right-3 top-1/2 -translate-y-1/2 mt-1"
     >
       {showPassword ? (
         <EyeOff size={20} color="#6b7280" /> // gray-500

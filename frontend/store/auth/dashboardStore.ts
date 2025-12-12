@@ -19,7 +19,7 @@ export const useDashboardStore = create<DashboardState>((set) => ({
 
       set({
         data: {
-            user,
+          user,
           pHLevel: ph_level.value,
           unit: ph_level.unit,
           status: ph_level.status,

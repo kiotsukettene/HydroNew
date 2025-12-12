@@ -20,18 +20,18 @@ export default function TDSDetailsModal({ visible, onClose, tdsData }: TDSDetail
     title: 'Total Dissolved Solids',
     recommendations: [
       {
-        ppm: 600,
-        stage: 'Seedling',
+        ppm: '0 - 49 ',
+        status: 'Unsafe',
         description: 'Early growth stage - lower nutrient concentration'
       },
       {
-        ppm: 1000,
-        stage: 'Vegetative', 
+        ppm: '50 - 150',
+        status: 'Safe',
         description: 'Active growth phase - moderate nutrient concentration'
       },
       {
-        ppm: 1500,
-        stage: 'Mature',
+        ppm: '150 above',
+        status: 'Unsafe',
         description: 'Full maturity - higher nutrient concentration'
       }
     ],
@@ -54,19 +54,20 @@ export default function TDSDetailsModal({ visible, onClose, tdsData }: TDSDetail
             <CardTitle className="text-secondary font-bold text-xl">
               {data.title}
             </CardTitle>
-            <Button
-              variant="ghost"
-              onPress={onClose}
-            >
-              <X size={16} />
-            </Button>
+             <Button
+                        size={'sm'}
+                          onPress={onClose}
+                          className="bg-muted-foreground/50 rounded-full"
+                        >
+                          <X size={16} className="text-foreground" />
+                        </Button>
           </CardHeader>
           
           <CardContent className="space-y-2">
             <View className="space-y-2">
               {data.recommendations.map((recommendation: TDSRecommendation, index: number) => (
                 <Text key={index} className="">
-                  • {recommendation.ppm} ppm - ({recommendation.stage})
+                  • {recommendation.ppm} ppm - ({recommendation.status})
                 </Text>
               ))}
             </View>
@@ -74,7 +75,7 @@ export default function TDSDetailsModal({ visible, onClose, tdsData }: TDSDetail
             <View className="space-y-1 mt-6">
               <Text className="text-primary font-bold text-lg">Note:</Text>
               <Text className="italic ">
-                {data.note}
+                In hydroponics, TDS (Total Dissolved Solids) is one of the most important indicators of water quality and nutrient strength. It measures how many dissolved nutrients, minerals, and salts are present in the water — expressed in parts per million (ppm).
               </Text>
             </View>
           </CardContent>

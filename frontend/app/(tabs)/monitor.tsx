@@ -25,10 +25,12 @@ import PhScale from '@/components/ui/ph-meter';
 import { db } from '@/src/firebase';
 import { onValue, ref } from 'firebase/database';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import TurbidityDetailsModal from '../water-monitor/turbidity-details';
 
 interface SensorData {
   ph: number;
   tds: number;
+  status: string;
   turbidity: number;
   timestamp: number;
 }
@@ -36,6 +38,7 @@ interface SensorData {
 export default function Monitor() {
   const router = useRouter();
   const [isTDSDetailsModalVisible, setIsTDSDetailsModalVisible] = useState(false);
+  const [isTurbidityDetailsModalVisible, setIsTurbidityDetailsModalVisible] = useState(false);
   const [isPHLevelDetailsModalVisible, setIsPHLevelDetailsModalVisible] = useState(false);
   const [tabValue, setTabValue] = useState('clean');
   const [showRecommendations, setShowRecommendations] = useState(false);
@@ -92,6 +95,24 @@ export default function Monitor() {
 
           {/* ========================== Water Quality Card ============================ */}
           <Card className="mt-1 overflow-hidden rounded-2xl border-transparent bg-[#BCE7F0] p-4">
+            <CardContent className="p-2">
+              <View className="flex-row justify-between">
+                {/* Left Column: Details */}
+                <View className="justify-between">
+                  <View className="flex-row items-center">
+                    <View>
+                      <Text className="text-gray-600">pH Level</Text>
+                      <Text className="text-xl font-medium text-gray-800">{sensorData ? sensorData.ph : '--'}</Text>
+                    </View>
+
+                    <Button variant={'ghost'} className='bg-transparent' onPress={() => setIsPHLevelDetailsModalVisible(true)}>
+                      <Icon as={Info} color="#059669" size={18} className="ml-2 mt-1" />
+                    </Button>
+                    <PHLevelDetailsModal
+                      visible={isPHLevelDetailsModalVisible}
+                      onClose={() => setIsPHLevelDetailsModalVisible(false)}
+                    />
+                  </View>
 
             <Tabs value={tabValue} onValueChange={setTabValue} >
               <TabsList className="w-full">
@@ -157,6 +178,32 @@ export default function Monitor() {
                       </Badge>
                     </View>
                   </View>
+                    <Button className='bg-transparent' onPress={() => setIsTDSDetailsModalVisible(true)}>
+                    <Icon as={Info} color="#059669" size={18} className="ml-2 mt-1"  />
+                    </Button>
+                    <TDSDetailsModal
+                    visible={isTDSDetailsModalVisible}
+                    onClose={() => setIsTDSDetailsModalVisible(false)}
+                    />
+                  </View>
+
+                  <View className='flex-row items-center'>
+                    <View>
+                    <Text className="text-gray-600">Turbidity</Text>
+                    <Text className="text-xl font-medium text-gray-800">{sensorData ? `${Math.round(sensorData.turbidity)} ` : '--'}</Text>
+                  </View>
+
+                    <Button className='bg-transparent' onPress={() => setIsTurbidityDetailsModalVisible(true)}>
+                    <Icon as={Info} color="#059669" size={18} className="ml-2 mt-1"  />
+                    </Button>
+                    <TurbidityDetailsModal
+                    visible={isTurbidityDetailsModalVisible}
+                    onClose={() => setIsTurbidityDetailsModalVisible(false)}
+                    />
+                  </View>
+
+                  
+                </View>
 
                   {/*  Button */}
                   <Button
@@ -169,6 +216,13 @@ export default function Monitor() {
                 </CardContent>
               </TabsContent>
 
+                  {/* "Safe for Plants" Badge */}
+                  <Badge variant="secondary" className="bg-blue-500 dark:bg-blue-600">
+                    <Icon as={BadgeCheckIcon} className="text-white" />
+                    <Text className="text-white">  {sensorData?.status ?? '--'}</Text>
+                  </Badge>
+                </View>
+              </View>
 
               {/* =========== Dirty Water card ==================== */}
               <TabsContent value="dirty">

@@ -7,6 +7,7 @@ interface ResetPasswordStore {
   setEmail: (email: string | null) => void;
   resetPassword: (email: string) => Promise<void>;
   verifyResetCode: (email: string, otp: string) => Promise<void>;
+  resendResetCode: (email: string) => Promise<void>;
   resetPasswordWithToken: (
     email: string,
     newPassword: string,
