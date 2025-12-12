@@ -8,10 +8,13 @@ import {
   ChartColumn,
   History,
   Leaf,
-
+  Settings,
+  ChevronRight,
 } from 'lucide-react-native';
 import { Card, CardContent } from '@/components/ui/card';
 import { Text } from '@/components/ui/text';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useFocusEffect } from 'expo-router';
 import { NotificationBadge } from '@/components/ui/notification-badge';
 
 import type { HomeProps } from '@/types/home';
@@ -25,6 +28,53 @@ import { onValue, ref } from 'firebase/database';
 interface SensorData {
   ph: number;
   
+}
+
+// Filtration Banner Component
+function FiltrationBanner() {
+  const router = useRouter();
+  const [status, setStatus] = useState<string | null>(null);
+
+  useFocusEffect(
+    React.useCallback(() => {
+      AsyncStorage.getItem('filtration_status')
+        .then(val => val && setStatus(val))
+        .catch(() => {});
+    }, [])
+  );
+
+  if (!status) return null;
+
+  let parsed;
+  try {
+    parsed = JSON.parse(status);
+  } catch {
+    return null;
+  }
+
+  const hasFailed = parsed.hasFailed || false;
+  const stage = parsed.currentStage || 'Stage 1';
+  const progress = parsed.progress || '25% Complete';
+
+  return (
+    <TouchableOpacity
+      onPress={() => router.push('/(tabs)/filtration')}
+      className="mt-5 rounded-xl p-4 flex-row items-center justify-between"
+      style={{ backgroundColor: hasFailed ? '#dc2626' : '#16a34a' }}
+      activeOpacity={0.8}
+    >
+      <View className="flex-row items-center flex-1">
+        <Settings size={20} color="#ffffff" strokeWidth={2.5} />
+        <Text className="ml-3 text-base font-bold text-white">
+          {hasFailed ? 'Filtration Failed' : 'Filtration Running'}
+        </Text>
+      </View>
+      <View className="flex-row items-center">
+        <Text className="text-sm text-white mr-2">{stage} - {progress}</Text>
+        <ChevronRight size={18} color="#ffffff" />
+      </View>
+    </TouchableOpacity>
+  );
 }
 
 export default function Home() {
@@ -191,6 +241,9 @@ export default function Home() {
                 </View>
               </TouchableOpacity>
             </View>
+
+            {/* ===== Filtration Running Banner ===== */}
+            <FiltrationBanner />
 
             {/* ===== Quick Actions ===== */}
             <View className="mt-6 sm:mt-7 md:mt-8">
