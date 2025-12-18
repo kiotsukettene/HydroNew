@@ -415,16 +415,16 @@ const onSubmit = async () => {
                   
                   {/* Recommended Harvest Range Guidance */}
                   {formData.cropName && (
-                    <View className="mt-3 p-4 bg-blue-50 rounded-xl border border-blue-200">
+                    <View className="mt-5 p-4 bg-muted-foreground/15 rounded-xl">
                       <View className="flex-row items-center gap-2 mb-2">
-                        <Icon as={Info} size={16} className="text-blue-600" />
-                        <Text className="text-sm font-semibold text-blue-800">Recommended Growth Period</Text>
+                        <Icon as={Info} size={16} className="text-primary" />
+                        <Text className="text-sm font-semibold text-primary">Recommended Growth Period</Text>
                       </View>
-                      <Text className="text-xs text-blue-700">
+                      <Text className="text-sm text-foreground">
                         {getCropHarvestInfo(formData.cropName)?.min}-{getCropHarvestInfo(formData.cropName)?.max} days
                       </Text>
                       {getRecommendedHarvestDateRange(formData.cropName, formData.setupDate) && (
-                        <Text className="text-xs text-blue-600 mt-1">
+                        <Text className="text-sm text-foreground mt-1">
                           Ideal harvest: {new Date(getRecommendedHarvestDateRange(formData.cropName, formData.setupDate)!.minDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} - {new Date(getRecommendedHarvestDateRange(formData.cropName, formData.setupDate)!.maxDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
                         </Text>
                       )}
@@ -434,7 +434,7 @@ const onSubmit = async () => {
 
                 {/* Harvest Date Selection */}
                 {formData.cropName && (
-                  <View>
+                  <View className='mt-4'>
                     <View className="flex-row items-center gap-2 mb-2">
                       <Text className="text-base font-medium">Target Harvest Date</Text>
                       <TouchableOpacity onPress={() => {
@@ -456,10 +456,10 @@ const onSubmit = async () => {
                     
                     {/* Date Validation Feedback */}
                     {formData.harvestDate && isDateInRecommendedRange(formData.harvestDate, formData.cropName, formData.setupDate) === false && (
-                      <View className="mt-2 p-3 bg-amber-50 rounded-xl border border-amber-200">
+                      <View className="mt-2 p-3 bg-red-100 rounded-xl">
                         <View className="flex-row items-center gap-2">
-                          <Icon as={Info} size={14} className="text-amber-600" />
-                          <Text className="text-xs text-amber-800 flex-1">
+                          <Icon as={Info} size={16} className="text-red-600" />
+                          <Text className="text-xs text-foreground flex-1">
                             Note: Selected date is outside the recommended range. Your crop may be under or over-mature at harvest.
                           </Text>
                         </View>
@@ -467,10 +467,10 @@ const onSubmit = async () => {
                     )}
                     
                     {formData.harvestDate && isDateInRecommendedRange(formData.harvestDate, formData.cropName, formData.setupDate) === true && (
-                      <View className="mt-2 p-3 bg-emerald-50 rounded-xl border border-emerald-200">
+                      <View className="mt-3 p-3  bg-muted-foreground/15 rounded-xl">
                         <View className="flex-row items-center gap-2">
-                          <Icon as={CheckCircle} size={14} className="text-emerald-600" />
-                          <Text className="text-xs text-emerald-800">
+                          <Icon as={CheckCircle} size={14} className="text-primary" />
+                          <Text className="text-sm text-foreground">
                             Perfect! This date is within the ideal harvest window.
                           </Text>
                         </View>
@@ -594,28 +594,28 @@ const onSubmit = async () => {
             {/* Target Parameters Card */} 
 
             <Card className="p-6 mb-6  shadow-sm border-0">
-              <View className="mb-6">
+              <View className="mb-4">
                 <Text className="text-lg font-semibold  mb-2">Ideal Growing Range</Text>
                 <View className="w-full h-1 bg-[#6ECF8B] rounded-full" />
               </View>
               
               {/* Recommended Range Info */}
               {formData.cropName && CROP_IDEAL_RANGES[formData.cropName as keyof typeof CROP_IDEAL_RANGES] && (
-                <View className="mb-4 p-4 bg-emerald-50 rounded-xl border border-emerald-200">
+                <View className="mb-4 p-4 bg-muted-foreground/15 rounded-xl">
                   <View className="flex-row items-center gap-2 mb-2">
-                    <Icon as={Info} size={16} className="text-emerald-600" />
-                    <Text className="text-sm font-semibold text-emerald-800">Recommended for {formData.cropName.charAt(0).toUpperCase() + formData.cropName.slice(1)}</Text>
+                    <Icon as={Info} size={16} className="text-primary" />
+                    <Text className="text-sm font-semibold text-primary">Recommended for {formData.cropName.charAt(0).toUpperCase() + formData.cropName.slice(1)}</Text>
                   </View>
                   <View className="flex-row gap-4">
                     <View className="flex-1">
-                      <Text className="text-xs text-emerald-700">pH Range</Text>
-                      <Text className="text-sm font-semibold text-emerald-900">
+                      <Text className="text-xs text-foreground">pH Range</Text>
+                      <Text className="text-sm font-semibold text-foreground">
                         {CROP_IDEAL_RANGES[formData.cropName as keyof typeof CROP_IDEAL_RANGES].ph.min} - {CROP_IDEAL_RANGES[formData.cropName as keyof typeof CROP_IDEAL_RANGES].ph.max}
                       </Text>
                     </View>
                     <View className="flex-1">
-                      <Text className="text-xs text-emerald-700">TDS Range (ppm)</Text>
-                      <Text className="text-sm font-semibold text-emerald-900">
+                      <Text className="text-xs text-foreground">TDS Range (ppm)</Text>
+                      <Text className="text-sm font-semibold text-foreground">
                         {CROP_IDEAL_RANGES[formData.cropName as keyof typeof CROP_IDEAL_RANGES].tds.min} - {CROP_IDEAL_RANGES[formData.cropName as keyof typeof CROP_IDEAL_RANGES].tds.max}
                       </Text>
                     </View>
@@ -744,8 +744,8 @@ const onSubmit = async () => {
         modalTitle="Confirm Setup"
         modalDescription="Are you sure you want to save this crop?"
         confirmText="Save"
-        iconBgColor="bg-[#4CAF50]"
-        confirmButtonColor="bg-[#4CAF50]"
+        iconBgColor="bg-[#66814b]"
+        confirmButtonColor="bg-[#66814b]"
         onConfirm={onSubmit}
         onCancel={() => setShowConfirmModal(false)}
       />

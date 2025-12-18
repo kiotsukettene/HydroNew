@@ -87,14 +87,14 @@ export default function Hydroponics() {
                             params: { id: item.id }
                           })}
                           className="mt-4">
-                          <Card className="relative items-center justify-center overflow-hidden border-muted-foreground/20 bg-lime-50/20 py-8 px-6 sm:p-6">
+                          <Card className="relative items-center justify-center overflow-hidden border-muted-foreground/30 bg-lime-50/20 py-8 px-6 sm:p-6">
                             <View className="relative flex w-full flex-row items-center justify-between">
                               <View className="flex-1 pr-4">
                                 <Text className="text-xl font-semibold sm:text-xl">Setup {item.id}: {item.crop_name.charAt(0).toUpperCase() + item.crop_name.slice(1)}</Text>
-                                <Label className="text-xs font-normal text-muted-foreground">
+                                <Label className="text-sm font-normal text-muted-foreground">
                                   {new Date(item.setup_date).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
                                 </Label>
-                                <Text className="mt-1 text-sm font-medium text-green-600">
+                                <Text className="mt-1 text-sm font-medium text-primary">
                                   Growth: {item.growth_percentage ? `${item.growth_percentage}%` : '45%'}
                                 </Text>
                               </View>
