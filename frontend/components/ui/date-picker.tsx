@@ -3,7 +3,7 @@ import { View, TouchableOpacity, Modal, Pressable } from 'react-native';
 import { Calendar } from 'react-native-calendars';
 import { Text } from './text';
 import { Icon } from './icon';
-import { Calendar as CalendarIcon, X } from 'lucide-react-native';
+import { Calendar as CalendarIcon, Check, X } from 'lucide-react-native';
 import { cn } from '@/lib/utils';
 
 interface DatePickerProps {
@@ -137,12 +137,11 @@ export function DatePicker({
             </View>
 
             {recommendedMinDate && recommendedMaxDate && (
-              <View className="mb-4 p-3 bg-blue-50 rounded-xl border border-blue-200">
+              <View className="mb-4 p-3 bg-primary/10 rounded-xl">
                 <View className="flex-row items-start gap-2">
-                  <View className="mt-0.5">
-                    <View className="w-4 h-4 bg-[#E8F5E9] rounded" />
-                  </View>
-                  <Text className="text-xs text-blue-700 flex-1">
+                 
+                  <Icon as={Check} size={16} className="text-primary" />
+                  <Text className="text-sm text-primary flex-1">
                     Highlighted dates are the recommended harvest window for optimal crop maturity
                   </Text>
                 </View>
