@@ -1,32 +1,24 @@
 import "@/global.css";
-import { NAV_THEME } from "@/lib/theme";
-import { ThemeProvider } from "@react-navigation/native";
 import { PortalHost } from "@rn-primitives/portal";
-import { Stack, router } from "expo-router";
-import { StatusBar } from "expo-status-bar";
-import { useColorScheme } from "nativewind";
+import { Stack } from "expo-router";
 import { useFonts } from "expo-font";
 import * as SplashScreen from "expo-splash-screen";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { Toaster } from "sonner-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
-import { useAuthStore } from '@/store/auth/authStore';
-import { useEchoSetup } from './hooks/useEchoSetup';
-
-
-export {
-  ErrorBoundary,
-} from 'expo-router';
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { initializeEcho } from "@/lib/echo";
+
+
+import { useAuthStore } from "@/store/auth/authStore";
 import { getMQTTClient } from "@/service/mqtt-client";
 
 SplashScreen.preventAutoHideAsync();
 
+export { ErrorBoundary } from "expo-router";
+
 export default function RootLayout() {
-  const { colorScheme } = useColorScheme();
-  const setToken = useAuthStore((state) => state.setToken);
-  const setUser = useAuthStore((state) => state.setUser);
-  const [appReady, setAppReady] = useState(false);
+  const { setToken, setUser, setHydrated, hydrated } = useAuthStore();
 
   const [fontsLoaded] = useFonts({
     "FingerPaint-Regular": require("@/assets/fonts/Finger_Paint/FingerPaint-Regular.ttf"),
@@ -34,40 +26,37 @@ export default function RootLayout() {
   });
 
   useEffect(() => {
-    async function prepareApp() {
+    async function bootstrap() {
+      if (!fontsLoaded) return;
+
       try {
-        if (!fontsLoaded) return;
+        const storedToken = await AsyncStorage.getItem("token");
+        const storedUser = await AsyncStorage.getItem("user");
 
-        const token = await AsyncStorage.getItem("token");
-        const userString = await AsyncStorage.getItem("user");
-
-        if (token && userString) {
-          setToken(token);
-          setUser(JSON.parse(userString));
-          router.replace("/(tabs)/home");
-        }
+        if (storedToken) setToken(storedToken);
+        if (storedUser) setUser(JSON.parse(storedUser));
+        if (storedToken) initializeEcho(storedToken);
       } catch (e) {
-        console.log("Error restoring session", e);
+        console.log("Auth bootstrap failed:", e);
       } finally {
-        setAppReady(true);
+        setHydrated(true);
         SplashScreen.hideAsync();
       }
     }
 
-    prepareApp();
+    bootstrap();
   }, [fontsLoaded]);
 
   useEffect(() => {
-    const client = getMQTTClient();
-    return () => {};
+    getMQTTClient();
   }, []);
 
+  if (!hydrated) return null;
 
-  if (!appReady) return null;
- 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
-      <Stack screenOptions={{ headerShown: false }} />
+      <Stack screenOptions={{ headerShown: false }}>
+      </Stack>
       <PortalHost />
       <Toaster position="top-center" />
     </GestureHandlerRootView>

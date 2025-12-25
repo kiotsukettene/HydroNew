@@ -47,4 +47,6 @@ type AuthState = {
   setNeedsVerification: (value: boolean) => void;
   setUser: (user: User | null) => void;
   setToken: (token: string | null) => void;
+  hydrated: boolean;
+  setHydrated: (value: boolean) => void;
 };

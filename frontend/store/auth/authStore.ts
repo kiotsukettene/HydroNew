@@ -48,6 +48,8 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   setUserEmail: (email: string) => set({ userEmail: email }),
   setUser: (user) => set({ user }),
   setToken: (token) => set({ token }),
+  hydrated: false,
+  setHydrated: (value) => set({ hydrated: value }),
 
   resetErrors: () =>
     set({
@@ -196,26 +198,39 @@ signInWithGoogle: async (firebaseIdToken, first_name, last_name) => {
     }
   },
 
-  logout: async () => {
-     // Get user ID before clearing state
-    const user = get().user;
-    
-    // Stop listening to notifications
-    if (user?.id) {
-      useNotificationStore.getState().stopListening(user.id);
-    }
-    
-    // Disconnect Echo
-    disconnectEcho();
-    await storage.removeItem("token");
-    await GoogleSignin.signOut();
-    set({
-      user: null,
-      token: null,
-      error: null,
-      message: null,
-      fieldErrors: {},
-      needsVerification: false,
-    });
-  },
+logout: async () => {
+  const user = get().user;
+
+  // Stop listening safely
+  if (user?.id) {
+    useNotificationStore.getState().stopListening(user.id);
+  }
+
+  // Disconnect echo safely
+  disconnectEcho();
+
+  // Clear storage
+  await storage.removeItem("token");
+  await GoogleSignin.signOut();
+
+  // Reset auth state
+  set({
+    user: null,
+    token: null,
+    error: null,
+    message: null,
+    fieldErrors: {},
+    needsVerification: false,
+  });
+
+  // Reset notification store
+  useNotificationStore.setState({
+    notifications: [],
+    unreadCount: 0,
+    error: null,
+    loading: false,
+    isListening: false,
+  });
+},
+
 }));
