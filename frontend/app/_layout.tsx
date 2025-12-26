@@ -10,6 +10,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { initializeEcho } from "@/lib/echo";
 import NetInfo, { NetInfoState} from "@react-native-community/netinfo";
 import { useNetworkStore } from "@/store/network/networkStore";
+import { NetworkAlert } from "@/components/ui/network-alert";
 
 
 import { useAuthStore } from "@/store/auth/authStore";
@@ -54,7 +55,7 @@ export default function RootLayout() {
   }, []);
 
 useEffect(() => {
-  console.log("📡 Initializing NetInfo listener");
+  console.log("Initializing NetInfo listener");
 
   const setState = (state: NetInfoState) => {
     console.log("NetInfo event:", state.type, state.isConnected);
@@ -78,6 +79,7 @@ useEffect(() => {
 
   return (
       <GestureHandlerRootView style={{ flex: 1 }}>
+        <NetworkAlert />
         <Stack screenOptions={{ headerShown: false }}>
         </Stack>
         <PortalHost />
