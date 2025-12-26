@@ -84,12 +84,13 @@ const openPhoneWifiSettings = () => {
                 className="mb-4 bg-green-50 border border-green-200 text-black"
                 secureTextEntry={!showPassword}
               />
-
+            <View>
               <Button className="mt-6 bg-[#0D4E31]" onPress={handleConnect}>
-                <Text className="text-white text-lg font-semibold">
-                  Connect
+                <Text className="text-white text-lg font-semibold text-center">
+                  {loading ? "Connecting..." : "Connect"}
                 </Text>
               </Button>
+            </View>
 
               <Text className="text-center text-gray-500 text-xs mt-4 px-6">
                 Your WiFi credentials are used only for this connection and are not stored on external servers.

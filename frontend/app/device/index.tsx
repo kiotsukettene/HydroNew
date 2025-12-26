@@ -48,19 +48,27 @@ function publishTestMessage1() {
                             <Text className="text-secondary font-bold text-5xl">+</Text>
                         </View>
                     </ImageBackground>
-                    <ScrollView className="flex-1 bg-white/20 rounded-3xl p-4">
+                    <ScrollView className="flex-1 bg-white/20 rounded-3xl p-3">
 
 
                         <FolderBg>
-                            <View className="p-4">
-                                <Text className="text-white mb-2">Connected Device</Text>
+
+                            <Text className="text-white mb-2">Device Information</Text>
+                            <View className="p-2">
+                                <Text className="text-white">Device Name:</Text>
+                                <Text className="text-white">Device Name:</Text>
+                                <Text className="text-white">Device Name:</Text>
+                            </View>
+                            <View className="p-2">
+                                <Text className="text-white text-sm italic">SM Free Wifi</Text>
+                                <Text className="text-white text-sm italic">Connected</Text>
+
                             </View>
                         </FolderBg>
 
 
                     </ScrollView>
-                    <Button className="bg-[#155036] mt-3" onPress={publishTestMessage}> <Text className="text-white">Open</Text></Button>
-                    <Button className="bg-[#155036] mt-3" onPress={() => setWifiModal(true)}> <Text className="text-white">Close</Text></Button>
+                    <Button className="bg-[#155036] mt-3" onPress={() => setWifiModal(true)}> <Text className="text-white">Add Device</Text></Button>
                 </View>
 
                 <WifiModal

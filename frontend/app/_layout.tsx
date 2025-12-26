@@ -8,6 +8,7 @@ import { Toaster } from "sonner-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { initializeEcho } from "@/lib/echo";
+import { NetworkProvider } from "@/src/context/network-context";
 
 
 import { useAuthStore } from "@/store/auth/authStore";
@@ -54,11 +55,13 @@ export default function RootLayout() {
   if (!hydrated) return null;
 
   return (
-    <GestureHandlerRootView style={{ flex: 1 }}>
-      <Stack screenOptions={{ headerShown: false }}>
-      </Stack>
-      <PortalHost />
-      <Toaster position="top-center" />
-    </GestureHandlerRootView>
+    <NetworkProvider>
+      <GestureHandlerRootView style={{ flex: 1 }}>
+        <Stack screenOptions={{ headerShown: false }}>
+        </Stack>
+        <PortalHost />
+        <Toaster position="top-center" />
+      </GestureHandlerRootView>
+    </NetworkProvider>
   );
 }
