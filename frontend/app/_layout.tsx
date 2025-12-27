@@ -79,9 +79,8 @@ useEffect(() => {
 
   return (
       <GestureHandlerRootView style={{ flex: 1 }}>
+        <Stack screenOptions={{ headerShown: false }}/>
         <NetworkAlert />
-        <Stack screenOptions={{ headerShown: false }}>
-        </Stack>
         <PortalHost />
         <Toaster position="top-center" />
       </GestureHandlerRootView>
