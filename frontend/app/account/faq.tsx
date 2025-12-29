@@ -74,10 +74,10 @@ export default function FAQ() {
 
   return (
     <ScrollView>
-      <SafeAreaView className="p-4">
+      <SafeAreaView className="flex-1">
         <PageHeader title="Help Center" />
 
-        <View className="items-center">
+        <View className="items-center p-4">
           <Text className="text-2xl text-primary mt-7">How can we help you?</Text>
 
           {/* ✅ Search Bar with Clear Button */}
@@ -105,7 +105,7 @@ export default function FAQ() {
           </View>
         </View>
 
-        <View className="flex flex-row items-center justify-between mt-8">
+        <View className="flex flex-row items-center justify-between mt-8 px-4">
           <Text className="font-semibold text-primary text-lg">
             Frequently Asked Questions
           </Text>
@@ -124,7 +124,7 @@ export default function FAQ() {
         )}
 
         {!loading && !error && (
-          <View className="mt-4 space-y-3 gap-5">
+          <View className="mt-4 space-y-3 gap-5 p-4">
             {items.length === 0 ? (
               <Text className="text-center text-gray-500 mt-6">
                 No results found.
