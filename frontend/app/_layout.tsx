@@ -10,8 +10,14 @@ import * as SplashScreen from "expo-splash-screen";
 import { useEffect, useState } from "react";
 import { Toaster } from "sonner-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
+import { useAuthStore } from '@/store/auth/authStore';
+import { useEchoSetup } from './hooks/useEchoSetup';
+
+
+export {
+  ErrorBoundary,
+} from 'expo-router';
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { useAuthStore } from "@/store/auth/authStore";
 
 SplashScreen.preventAutoHideAsync();
 

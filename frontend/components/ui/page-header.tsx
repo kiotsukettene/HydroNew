@@ -5,7 +5,9 @@ import { Button } from '@/components/ui/button';
 import { Text } from '@/components/ui/text';
 import { useRouter } from 'expo-router';
 import { useAuthStore } from '@/store/auth/authStore';
+import { useNotificationStore } from '@/store/notification/notificationStore';
 import { ConfirmationModal } from '@/components/ui/confirmation-modal';
+import { NotificationBadge } from '@/components/ui/notification-badge';
 
 interface PageHeaderProps {
   title: string;
@@ -28,6 +30,7 @@ export function PageHeader({
 }: PageHeaderProps) {
   const router = useRouter();
   const logout = useAuthStore((s) => s.logout);
+  const unreadCount = useNotificationStore((s) => s.unreadCount);
   const [showLogoutModal, setShowLogoutModal] = useState(false);
 
   const handleNotificationPress = () => {
@@ -91,7 +94,7 @@ export function PageHeader({
             onPress={handleNotificationPress}
             className="w-10 h-10 p-0 bg-transparent"
           >
-            <BellIcon size={24} color="#445104" strokeWidth={3} />
+            <NotificationBadge count={unreadCount} size={24} color="#445104" strokeWidth={3} />
           </Button>
         )}
         {showEllipsisButton && (
