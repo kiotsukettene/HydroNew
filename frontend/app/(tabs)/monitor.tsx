@@ -348,12 +348,34 @@ export default function Monitor() {
             </Card>
           )}
 
+        
+          {/* ===== pH Level Scale ===== */}
+          <View className="mt-4 items-center gap-2">
+            <View className="flex w-full flex-row items-center justify-between px-2">
+              <Text className="text-lg font-semibold text-gray-900">Water pH Level</Text>
+              <Button
+                variant="link"
+                className="p-0"
+                onPress={() => setIsPHLevelDetailsModalVisible(true)}>
+                <Text className="text-sm font-medium text-secondary">See Details</Text>
+              </Button>
+              <PHLevelDetailsModal
+                visible={isPHLevelDetailsModalVisible}
+                onClose={() => setIsPHLevelDetailsModalVisible(false)}
+              />
+            </View>
+            <PhScale phValue={sensorData ? sensorData.ph : 0} />
+          </View>
+
+
+          
+
           {/* ===== Need Help Card ===== */}
           <Pressable
             onPress={() => {
               router.push('/tips');
             }}>
-            <View className="relative mt-2 w-full overflow-hidden">
+            <View className="relative mt-4 w-full overflow-hidden">
               <Image
                 source={require('@/assets/images/need-help-bg.png')}
                 className="h-auto min-h-24 w-full sm:min-h-28 md:min-h-32"
@@ -382,23 +404,6 @@ export default function Monitor() {
               </View>
             </View>
           </Pressable>
-
-          <View className="mt-4 items-center gap-2">
-            <View className="flex w-full flex-row items-center justify-between px-2">
-              <Text className="text-lg font-semibold text-gray-900">Water pH Level</Text>
-              <Button
-                variant="link"
-                className="p-0"
-                onPress={() => setIsPHLevelDetailsModalVisible(true)}>
-                <Text className="text-sm font-medium text-secondary">See Details</Text>
-              </Button>
-              <PHLevelDetailsModal
-                visible={isPHLevelDetailsModalVisible}
-                onClose={() => setIsPHLevelDetailsModalVisible(false)}
-              />
-            </View>
-            <PhScale phValue={sensorData ? sensorData.ph : 0} />
-          </View>
         </View>
       </SafeAreaView>
     </ScrollView>
