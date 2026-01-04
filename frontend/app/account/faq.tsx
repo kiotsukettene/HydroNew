@@ -1,16 +1,24 @@
-import { View, ScrollView, Pressable, ActivityIndicator, TextInput, TouchableOpacity } from "react-native";
-import React, { useEffect, useState } from "react";
-import { SafeAreaView } from "react-native-safe-area-context";
-import { PageHeader } from "@/components/ui/page-header";
-import { Text } from "@/components/ui/text";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { Minus, Plus, Search, X } from "lucide-react-native"; // ✅ Added X icon
-import { useHelpCenterStore } from "@/store/auth/helpCenterStore";
+import {
+  View,
+  ScrollView,
+  Pressable,
+  ActivityIndicator,
+  TextInput,
+  TouchableOpacity,
+} from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { PageHeader } from '@/components/ui/page-header';
+import { Text } from '@/components/ui/text';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import { Minus, Plus, Search, X, MessageCircle } from 'lucide-react-native'; // ✅ Added X icon
+import { useHelpCenterStore } from '@/store/auth/helpCenterStore';
+import { router } from 'expo-router';
 
 export default function FAQ() {
   const [expandedItems, setExpandedItems] = useState<number[]>([]);
-  const [searchTerm, setSearchTerm] = useState("");
+  const [searchTerm, setSearchTerm] = useState('');
 
   const {
     items,
@@ -33,35 +41,30 @@ export default function FAQ() {
   };
 
   const handleClearSearch = async () => {
-    setSearchTerm("");
-    await fetchHelpCenter(1); // ✅ Reset to page 1 and clear search filter
+    setSearchTerm('');
+    await fetchHelpCenter(1); // Reset to page 1 and clear search filter
   };
 
   const toggleExpanded = (index: number) => {
     setExpandedItems((prev) =>
-      prev.includes(index)
-        ? prev.filter((item) => item !== index)
-        : [...prev, index]
+      prev.includes(index) ? prev.filter((item) => item !== index) : [...prev, index]
     );
   };
 
-  // ✅ Helper to highlight matched text
+  // Helper to highlight matched text
   const highlightText = (text: string, keyword: string) => {
     if (!keyword) return <Text>{text}</Text>;
 
     // Escape regex special chars for safety
-    const escapedKeyword = keyword.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-    const regex = new RegExp(`(${escapedKeyword})`, "gi");
+    const escapedKeyword = keyword.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const regex = new RegExp(`(${escapedKeyword})`, 'gi');
     const parts = text.split(regex);
 
     return (
       <Text>
         {parts.map((part, index) =>
           regex.test(part) ? (
-            <Text
-              key={index}
-              className="text-primary font-semibold bg-yellow-100 rounded"
-            >
+            <Text key={index} className="rounded bg-yellow-100 font-semibold text-primary">
               {part}
             </Text>
           ) : (
@@ -103,7 +106,6 @@ export default function FAQ() {
               <Text>Search</Text>
             </Button>
           </View>
-        </View>
 
         <View className="flex flex-row items-center justify-between mt-8 px-4">
           <Text className="font-semibold text-primary text-lg">
@@ -115,13 +117,40 @@ export default function FAQ() {
           <View className="mt-6 items-center">
             <ActivityIndicator size="large" color="#445104" />
           </View>
-        )}
 
-        {error && (
-          <View className="mt-4">
-            <Text className="text-red-500 text-center">{error}</Text>
-          </View>
-        )}
+          {loading && (
+            <View className="mt-6 items-center">
+              <ActivityIndicator size="large" color="#445104" />
+            </View>
+          )}
+
+          {error && (
+            <View className="mt-4">
+              <Text className="text-center text-red-500">{error}</Text>
+            </View>
+          )}
+
+          {!loading && !error && (
+            <View className="mt-4 gap-5 space-y-3">
+              {items.length === 0 ? (
+                <Text className="mt-6 text-center text-gray-500">No results found.</Text>
+              ) : (
+                items.map((item, index) => {
+                  const isExpanded = expandedItems.includes(index);
+                  return (
+                    <Card key={item.id} className="rounded-xl border border-gray-200">
+                      <Pressable onPress={() => toggleExpanded(index)}>
+                        <CardContent className="p-4">
+                          <View className="flex-row items-center justify-between">
+                            <Text className="flex-1 pr-3 text-base font-semibold">
+                              {highlightText(item.question, searchTerm)}
+                            </Text>
+                            {isExpanded ? (
+                              <Minus size={20} color="#445104" />
+                            ) : (
+                              <Plus size={20} color="#445104" />
+                            )}
+                          </View>
 
         {!loading && !error && (
           <View className="mt-4 space-y-3 gap-5 p-4">
@@ -145,48 +174,44 @@ export default function FAQ() {
                           ) : (
                             <Plus size={20} color="#445104" />
                           )}
-                        </View>
+                        </CardContent>
+                      </Pressable>
+                    </Card>
+                  );
+                })
+              )}
+            </View>
+          )}
 
-                        {isExpanded && (
-                          <View className="mt-3 pt-3 border-t border-muted-foreground/20">
-                            <Text className="text-gray-700 text-sm leading-5">
-                              {highlightText(item.answer, searchTerm)}
-                            </Text>
-                          </View>
-                        )}
-                      </CardContent>
-                    </Pressable>
-                  </Card>
-                );
-              })
-            )}
-          </View>
-        )}
+          {!loading && !error && items.length > 0 && (
+            <View className="mt-6 flex flex-row items-center justify-between">
+              <Button variant="outline" onPress={prevPage} disabled={currentPage === 1}>
+                <Text>Prev</Text>
+              </Button>
 
-        {!loading && !error && items.length > 0 && (
-          <View className="flex flex-row items-center justify-between mt-6">
-            <Button
-              variant="outline"
-              onPress={prevPage}
-              disabled={currentPage === 1}
-            >
-              <Text>Prev</Text>
-            </Button>
+              <Text>
+                Page {currentPage} of {lastPage}
+              </Text>
 
-            <Text>
-              Page {currentPage} of {lastPage}
-            </Text>
+              <Button variant="outline" onPress={nextPage} disabled={currentPage === lastPage}>
+                <Text>Next</Text>
+              </Button>
+            </View>
+          )}
+        </SafeAreaView>
+      </ScrollView>
 
-            <Button
-              variant="outline"
-              onPress={nextPage}
-              disabled={currentPage === lastPage}
-            >
-              <Text>Next</Text>
-            </Button>
-          </View>
-        )}
-      </SafeAreaView>
-    </ScrollView>
+      {/* Ask a question Button */}
+
+      <Button
+      size='sm'
+        className="absolute bottom-6 right-6 bg-primary rounded-full "
+        onPress={() => router.replace('/ask-question')}>
+        <Text className='text-muted'>Ask a question</Text>
+        <MessageCircle size={18} color="#fff" />
+      </Button>
+
+
+    </View>
   );
 }
