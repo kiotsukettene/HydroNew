@@ -17,6 +17,7 @@ import { hydroponicSchema } from '@/validators/hydoponicSchema';
 import { ConfirmationModal } from '@/components/ui/confirmation-modal';
 import { StatusModal } from '@/components/ui/status-modal';
 import CropInfoModal from './crop-info-modal';
+import { DatePicker } from '@/components/ui/date-picker';
 
 
 interface HydroponicsSetupData {
@@ -30,12 +31,46 @@ interface HydroponicsSetupData {
   targetTdsMax: string;
   waterAmount: string;
   setupDate: string;
+  harvestDate: string;
   status: 'active';
 }
 
 interface HydroponicsSetupProps {
   onSetupComplete?: () => void;
 }
+
+// Crop harvest days mapping
+const CROP_HARVEST_DAYS = {
+  'olmetie': { min: 28, max: 35 },
+  'green-rapid': { min: 25, max: 30 },
+  'romaine': { min: 45, max: 55 },
+  'butterhead': { min: 35, max: 45 },
+  'loose-leaf': { min: 30, max: 40 },
+} as const;
+
+// Crop ideal growing range (pH and TDS)
+const CROP_IDEAL_RANGES = {
+  'olmetie': { 
+    ph: { min: 5.5, max: 6.5 }, 
+    tds: { min: 560, max: 840 } 
+  },
+  'green-rapid': { 
+    ph: { min: 5.5, max: 6.5 }, 
+    tds: { min: 560, max: 840 } 
+  },
+  'romaine': { 
+    ph: { min: 6.0, max: 7.0 }, 
+    tds: { min: 1050, max: 1400 } 
+  },
+  'butterhead': { 
+    ph: { min: 6.0, max: 7.0 }, 
+    tds: { min: 700, max: 1050 } 
+  },
+  'loose-leaf': { 
+    ph: { min: 6.0, max: 6.8 }, 
+    tds: { min: 560, max: 980 } 
+  },
+} as const;
 
 export default function HydroponicsSetup({ onSetupComplete }: HydroponicsSetupProps) {
   const router = useRouter();
@@ -52,6 +87,7 @@ export default function HydroponicsSetup({ onSetupComplete }: HydroponicsSetupPr
     targetTdsMax: '150',
     waterAmount: '5',
     setupDate: new Date().toISOString().split('T')[0], 
+    harvestDate: '',
     status: 'active',
   });
 
@@ -79,6 +115,7 @@ export default function HydroponicsSetup({ onSetupComplete }: HydroponicsSetupPr
     targetTdsMax: '150',
     waterAmount: '5',
     setupDate: new Date().toISOString().split('T')[0], 
+    harvestDate: '',
     status: 'active',
   };
 
@@ -90,6 +127,62 @@ export default function HydroponicsSetup({ onSetupComplete }: HydroponicsSetupPr
     toast.success("Form reset successfully");
   };
 
+  // Helper function to calculate recommended harvest date range
+  const getRecommendedHarvestDateRange = (cropName: string, setupDate: string) => {
+    const cropKey = cropName as keyof typeof CROP_HARVEST_DAYS;
+    if (!cropKey || !CROP_HARVEST_DAYS[cropKey]) return null;
+    
+    const { min, max } = CROP_HARVEST_DAYS[cropKey];
+    const setup = new Date(setupDate);
+    
+    const minDate = new Date(setup);
+    minDate.setDate(minDate.getDate() + min);
+    
+    const maxDate = new Date(setup);
+    maxDate.setDate(maxDate.getDate() + max);
+    
+    return {
+      min,
+      max,
+      minDate: minDate.toISOString().split('T')[0],
+      maxDate: maxDate.toISOString().split('T')[0],
+    };
+  };
+
+  // Helper function to calculate suggested harvest date (using max days)
+  const calculateSuggestedHarvestDate = (cropName: string, setupDate: string): string => {
+    const cropKey = cropName as keyof typeof CROP_HARVEST_DAYS;
+    if (!cropKey || !CROP_HARVEST_DAYS[cropKey]) return '';
+    
+    const { max } = CROP_HARVEST_DAYS[cropKey];
+    const setup = new Date(setupDate);
+    const harvest = new Date(setup);
+    harvest.setDate(harvest.getDate() + max);
+    
+    return harvest.toISOString().split('T')[0];
+  };
+
+  // Helper function to get crop harvest range info
+  const getCropHarvestInfo = (cropName: string) => {
+    const cropKey = cropName as keyof typeof CROP_HARVEST_DAYS;
+    if (!cropKey || !CROP_HARVEST_DAYS[cropKey]) return null;
+    return CROP_HARVEST_DAYS[cropKey];
+  };
+
+  // Helper function to check if selected date is within recommended range
+  const isDateInRecommendedRange = (selectedDate: string, cropName: string, setupDate: string): boolean | null => {
+    if (!selectedDate || !cropName) return null;
+    
+    const range = getRecommendedHarvestDateRange(cropName, setupDate);
+    if (!range) return null;
+    
+    const selected = new Date(selectedDate);
+    const min = new Date(range.minDate);
+    const max = new Date(range.maxDate);
+    
+    return selected >= min && selected <= max;
+  };
+
   const handleInputChange = (field: keyof HydroponicsSetupData, value: string) => {
     setFormData(prev => ({
       ...prev,
@@ -98,7 +191,7 @@ export default function HydroponicsSetup({ onSetupComplete }: HydroponicsSetupPr
     resetErrors();
   };
 
-  const isSaveDisabled = !formData.cropName || !formData.bedSize || isSubmitting;
+  const isSaveDisabled = !formData.cropName || !formData.bedSize || !formData.harvestDate || isSubmitting;
 
   const handleStepperChange = (field: 'numberOfCrops', delta: number) => {
     // gagana lang yung stepper kung custom bed size
@@ -109,18 +202,89 @@ export default function HydroponicsSetup({ onSetupComplete }: HydroponicsSetupPr
     handleInputChange(field, newValue.toString());
   };
 
+  const handleCropChange = (cropName: string) => {
+    // Update crop name and suggest harvest date, pH, and TDS values
+    setFormData(prev => {
+      const suggestedDate = calculateSuggestedHarvestDate(cropName, prev.setupDate);
+      const cropKey = cropName as keyof typeof CROP_IDEAL_RANGES;
+      const idealRange = CROP_IDEAL_RANGES[cropKey];
+      
+      return {
+        ...prev,
+        cropName,
+        harvestDate: suggestedDate,
+        // Set recommended pH and TDS ranges
+        targetPh: idealRange?.ph.min.toString() || prev.targetPh,
+        targetPhMax: idealRange?.ph.max.toString() || prev.targetPhMax,
+        targetTdsMin: idealRange?.tds.min.toString() || prev.targetTdsMin,
+        targetTdsMax: idealRange?.tds.max.toString() || prev.targetTdsMax,
+      };
+    });
+    resetErrors();
+  };
+
+  const handleHarvestDateChange = (date: string) => {
+    handleInputChange('harvestDate', date);
+  };
+
+  const handleWaterAmountChange = (value: string) => {
+    // Only allow numbers and decimal point
+    const numericValue = value.replace(/[^0-9.]/g, '');
+    
+    // Prevent multiple decimal points
+    const parts = numericValue.split('.');
+    const sanitizedValue = parts.length > 2 
+      ? parts[0] + '.' + parts.slice(1).join('') 
+      : numericValue;
+    
+    handleInputChange('waterAmount', sanitizedValue);
+  };
+
+  const handleNumberOfCropsChange = (value: string) => {
+    // Only allow whole numbers (no decimals, letters, or special characters)
+    const numericValue = value.replace(/[^0-9]/g, '');
+    handleInputChange('numberOfCrops', numericValue);
+  };
+
+  const handleNumericInput = (field: keyof HydroponicsSetupData, value: string) => {
+    // Only allow numbers and decimal point
+    const numericValue = value.replace(/[^0-9.]/g, '');
+    
+    // Prevent multiple decimal points
+    const parts = numericValue.split('.');
+    const sanitizedValue = parts.length > 2 
+      ? parts[0] + '.' + parts.slice(1).join('') 
+      : numericValue;
+    
+    handleInputChange(field, sanitizedValue);
+  };
+
   const handleBedSizeChange = (value: string) => {
-    handleInputChange('bedSize', value);
-    
-    //set number of crops based on bed size
-    if (value === 'small') {
-      handleInputChange('numberOfCrops', '3');
-    } else if (value === 'medium') {
-      handleInputChange('numberOfCrops', '9');
-    } else if (value === 'large') {
-      handleInputChange('numberOfCrops', '12');
-    }
-    
+    setFormData(prev => {
+      let numberOfCrops = prev.numberOfCrops;
+      let waterAmount = prev.waterAmount;
+      
+      // Set number of crops and water amount based on bed size
+      if (value === 'small') {
+        numberOfCrops = '3';
+        waterAmount = '5';
+      } else if (value === 'medium') {
+        numberOfCrops = '9';
+        waterAmount = '10';
+      } else if (value === 'large') {
+        numberOfCrops = '12';
+        waterAmount = '15';
+      }
+      // For custom, keep current values (user can edit)
+      
+      return {
+        ...prev,
+        bedSize: value,
+        numberOfCrops,
+        waterAmount,
+      };
+    });
+    resetErrors();
   };
 
 const handleSaveClick = () => {
@@ -143,6 +307,7 @@ const onSubmit = async () => {
       target_tds_min: parseInt(formData.targetTdsMin, 10),
       target_tds_max: parseInt(formData.targetTdsMax, 10),
       water_amount: `${formData.waterAmount}L`,
+      harvest_date: formData.harvestDate,
       pump_config: null,
     };
 
@@ -238,7 +403,7 @@ const onSubmit = async () => {
                           key={option.value}
                           className="px-3 py-4 border-b border-[#F0F8F0] last:border-b-0"
                           onPress={() => {
-                            handleInputChange('cropName', option.value as 'olmetie' | 'green-rapid' | 'romaine' | 'butterhead' | 'loose-leaf');
+                            handleCropChange(option.value);
                             setShowCropDropdown(false);
                           }}
                         >
@@ -247,7 +412,72 @@ const onSubmit = async () => {
                       ))}
                     </View>
                   )}
+                  
+                  {/* Recommended Harvest Range Guidance */}
+                  {formData.cropName && (
+                    <View className="mt-5 p-4 bg-muted-foreground/15 rounded-xl">
+                      <View className="flex-row items-center gap-2 mb-2">
+                        <Icon as={Info} size={16} className="text-primary" />
+                        <Text className="text-sm font-semibold text-primary">Recommended Growth Period</Text>
+                      </View>
+                      <Text className="text-sm text-foreground">
+                        {getCropHarvestInfo(formData.cropName)?.min}-{getCropHarvestInfo(formData.cropName)?.max} days
+                      </Text>
+                      {getRecommendedHarvestDateRange(formData.cropName, formData.setupDate) && (
+                        <Text className="text-sm text-foreground mt-1">
+                          Ideal harvest: {new Date(getRecommendedHarvestDateRange(formData.cropName, formData.setupDate)!.minDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} - {new Date(getRecommendedHarvestDateRange(formData.cropName, formData.setupDate)!.maxDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                        </Text>
+                      )}
+                    </View>
+                  )}
                 </View>
+
+                {/* Harvest Date Selection */}
+                {formData.cropName && (
+                  <View className='mt-4'>
+                    <View className="flex-row items-center gap-2 mb-2">
+                      <Text className="text-base font-medium">Target Harvest Date</Text>
+                      <TouchableOpacity onPress={() => {
+                        const suggested = calculateSuggestedHarvestDate(formData.cropName, formData.setupDate);
+                        handleHarvestDateChange(suggested);
+                        toast.success("Date set to recommended");
+                      }}>
+                        <Icon as={RotateCcw} size={14} className="text-[#7F8C8D]" />
+                      </TouchableOpacity>
+                    </View>
+                    <DatePicker
+                      value={formData.harvestDate}
+                      onDateChange={handleHarvestDateChange}
+                      placeholder="Select harvest date"
+                      minDate={formData.setupDate}
+                      recommendedMinDate={getRecommendedHarvestDateRange(formData.cropName, formData.setupDate)?.minDate}
+                      recommendedMaxDate={getRecommendedHarvestDateRange(formData.cropName, formData.setupDate)?.maxDate}
+                    />
+                    
+                    {/* Date Validation Feedback */}
+                    {formData.harvestDate && isDateInRecommendedRange(formData.harvestDate, formData.cropName, formData.setupDate) === false && (
+                      <View className="mt-2 p-3 bg-red-100 rounded-xl">
+                        <View className="flex-row items-center gap-2">
+                          <Icon as={Info} size={16} className="text-red-600" />
+                          <Text className="text-xs text-foreground flex-1">
+                            Note: Selected date is outside the recommended range. Your crop may be under or over-mature at harvest.
+                          </Text>
+                        </View>
+                      </View>
+                    )}
+                    
+                    {formData.harvestDate && isDateInRecommendedRange(formData.harvestDate, formData.cropName, formData.setupDate) === true && (
+                      <View className="mt-3 p-3  bg-muted-foreground/15 rounded-xl">
+                        <View className="flex-row items-center gap-2">
+                          <Icon as={CheckCircle} size={14} className="text-primary" />
+                          <Text className="text-sm text-foreground">
+                            Perfect! This date is within the ideal harvest window.
+                          </Text>
+                        </View>
+                      </View>
+                    )}
+                  </View>
+                )}
 
 
                 {/* Bed Size Dropdown */}
@@ -300,7 +530,7 @@ const onSubmit = async () => {
                       {formData.bedSize === 'custom' ? (
                         <Input
                           value={formData.numberOfCrops}
-                          onChangeText={(value) => handleInputChange('numberOfCrops', value)}
+                          onChangeText={handleNumberOfCropsChange}
                           keyboardType="numeric"
                           className="text-center text-lg font-semibold border-0 bg-transparent"
                           placeholderTextColor="#95A5A6"
@@ -329,11 +559,19 @@ const onSubmit = async () => {
                   <Text className="text-base font-medium text-[#34495E] mb-2">Water Amount (Liters)</Text>
                   <Input
                     value={formData.waterAmount}
-                    editable={false}
+                    onChangeText={handleWaterAmountChange}
+                    editable={formData.bedSize === 'custom'}
                     keyboardType="numeric"
-                    className="border border-muted-foreground/50 rounded-xl px-3 py-4 bg-gray-100 text-[#2C3E50] text-base"
+                    className={`border border-muted-foreground/50 rounded-xl px-3 py-4 text-[#2C3E50] text-base ${
+                      formData.bedSize === 'custom' ? 'bg-[#FAFFFA]' : 'bg-gray-100'
+                    }`}
                     placeholderTextColor="#95A5A6"
                   />
+                  {formData.bedSize !== 'custom' && (
+                    <Text className="text-xs text-muted-foreground mt-1">
+                      Water amount is set based on bed size. Select "Custom" to edit.
+                    </Text>
+                  )}
                 </View>
 
                 {/* Nutrient Solution */}
@@ -356,38 +594,116 @@ const onSubmit = async () => {
             {/* Target Parameters Card */} 
 
             <Card className="p-6 mb-6  shadow-sm border-0">
-              <View className="mb-6">
+              <View className="mb-4">
                 <Text className="text-lg font-semibold  mb-2">Ideal Growing Range</Text>
                 <View className="w-full h-1 bg-[#6ECF8B] rounded-full" />
               </View>
               
+              {/* Recommended Range Info */}
+              {formData.cropName && CROP_IDEAL_RANGES[formData.cropName as keyof typeof CROP_IDEAL_RANGES] && (
+                <View className="mb-4 p-4 bg-muted-foreground/15 rounded-xl">
+                  <View className="flex-row items-center gap-2 mb-2">
+                    <Icon as={Info} size={16} className="text-primary" />
+                    <Text className="text-sm font-semibold text-primary">Recommended for {formData.cropName.charAt(0).toUpperCase() + formData.cropName.slice(1)}</Text>
+                  </View>
+                  <View className="flex-row gap-4">
+                    <View className="flex-1">
+                      <Text className="text-xs text-foreground">pH Range</Text>
+                      <Text className="text-sm font-semibold text-foreground">
+                        {CROP_IDEAL_RANGES[formData.cropName as keyof typeof CROP_IDEAL_RANGES].ph.min} - {CROP_IDEAL_RANGES[formData.cropName as keyof typeof CROP_IDEAL_RANGES].ph.max}
+                      </Text>
+                    </View>
+                    <View className="flex-1">
+                      <Text className="text-xs text-foreground">TDS Range (ppm)</Text>
+                      <Text className="text-sm font-semibold text-foreground">
+                        {CROP_IDEAL_RANGES[formData.cropName as keyof typeof CROP_IDEAL_RANGES].tds.min} - {CROP_IDEAL_RANGES[formData.cropName as keyof typeof CROP_IDEAL_RANGES].tds.max}
+                      </Text>
+                    </View>
+                  </View>
+                </View>
+              )}
+              
               <View className="space-y-5 gap-6">
                 {/* pH Range */}
                 <View>
-                  <Text className="text-base font-medium  mb-3 bg-lime-50">Target pH Range</Text>
+                  <View className="flex-row items-center justify-between mb-3">
+                    <Text className="text-base font-medium">Target pH Range</Text>
+                    <TouchableOpacity onPress={() => {
+                      if (formData.cropName && CROP_IDEAL_RANGES[formData.cropName as keyof typeof CROP_IDEAL_RANGES]) {
+                        const range = CROP_IDEAL_RANGES[formData.cropName as keyof typeof CROP_IDEAL_RANGES];
+                        setFormData(prev => ({
+                          ...prev,
+                          targetPh: range.ph.min.toString(),
+                          targetPhMax: range.ph.max.toString(),
+                        }));
+                        toast.success("pH set to recommended");
+                      }
+                    }}>
+                      <Icon as={RotateCcw} size={14} className="text-[#7F8C8D]" />
+                    </TouchableOpacity>
+                  </View>
                   <View className="flex-row space-x-3 gap-4">
                     <View className="flex-1">
                       <Text className="text-xs text-[#7F8C8D] mb-2">Minimum</Text>
-                      <Text>{formData.targetPh}</Text>
+                      <Input
+                        value={formData.targetPh}
+                        onChangeText={(value) => handleNumericInput('targetPh', value)}
+                        keyboardType="numeric"
+                        className="border border-muted-foreground/50 rounded-xl px-3 py-3 bg-[#FAFFFA] text-[#2C3E50]"
+                        placeholderTextColor="#95A5A6"
+                      />
                     </View>
                      <View className="flex-1">
                       <Text className="text-xs text-[#7F8C8D] mb-2">Maximum</Text>
-                      <Text>{formData.targetPhMax}</Text>
+                      <Input
+                        value={formData.targetPhMax}
+                        onChangeText={(value) => handleNumericInput('targetPhMax', value)}
+                        keyboardType="numeric"
+                        className="border border-muted-foreground/50 rounded-xl px-3 py-3 bg-[#FAFFFA] text-[#2C3E50]"
+                        placeholderTextColor="#95A5A6"
+                      />
                     </View>
                   </View>
                 </View>
 
                 {/* TDS Range */}
                 <View>
-                  <Text className="text-base font-medium bg-lime-50 mb-3">Target TDS Range (ppm)</Text>
+                  <View className="flex-row items-center justify-between mb-3">
+                    <Text className="text-base font-medium">Target TDS Range (ppm)</Text>
+                    <TouchableOpacity onPress={() => {
+                      if (formData.cropName && CROP_IDEAL_RANGES[formData.cropName as keyof typeof CROP_IDEAL_RANGES]) {
+                        const range = CROP_IDEAL_RANGES[formData.cropName as keyof typeof CROP_IDEAL_RANGES];
+                        setFormData(prev => ({
+                          ...prev,
+                          targetTdsMin: range.tds.min.toString(),
+                          targetTdsMax: range.tds.max.toString(),
+                        }));
+                        toast.success("TDS set to recommended");
+                      }
+                    }}>
+                      <Icon as={RotateCcw} size={14} className="text-[#7F8C8D]" />
+                    </TouchableOpacity>
+                  </View>
                   <View className="flex-row space-x-3 gap-4">
                     <View className="flex-1">
                       <Text className="text-xs text-[#7F8C8D] mb-2">Minimum</Text>
-                      <Text>{formData.targetTdsMin}</Text>
+                      <Input
+                        value={formData.targetTdsMin}
+                        onChangeText={(value) => handleNumericInput('targetTdsMin', value)}
+                        keyboardType="numeric"
+                        className="border border-muted-foreground/50 rounded-xl px-3 py-3 bg-[#FAFFFA] text-[#2C3E50]"
+                        placeholderTextColor="#95A5A6"
+                      />
                     </View>
                     <View className="flex-1">
                       <Text className="text-xs text-[#7F8C8D] mb-2">Maximum</Text>
-                      <Text>{formData.targetTdsMax}</Text>
+                      <Input
+                        value={formData.targetTdsMax}
+                        onChangeText={(value) => handleNumericInput('targetTdsMax', value)}
+                        keyboardType="numeric"
+                        className="border border-muted-foreground/50 rounded-xl px-3 py-3 bg-[#FAFFFA] text-[#2C3E50]"
+                        placeholderTextColor="#95A5A6"
+                      />
                     </View>
                   </View>
                 </View>
@@ -428,8 +744,8 @@ const onSubmit = async () => {
         modalTitle="Confirm Setup"
         modalDescription="Are you sure you want to save this crop?"
         confirmText="Save"
-        iconBgColor="bg-[#4CAF50]"
-        confirmButtonColor="bg-[#4CAF50]"
+        iconBgColor="bg-[#66814b]"
+        confirmButtonColor="bg-[#66814b]"
         onConfirm={onSubmit}
         onCancel={() => setShowConfirmModal(false)}
       />
