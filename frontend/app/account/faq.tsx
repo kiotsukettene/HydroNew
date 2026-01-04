@@ -76,41 +76,46 @@ export default function FAQ() {
   };
 
   return (
-    <View className="flex-1">
-      <ScrollView>
-        <SafeAreaView className="p-4">
-          <PageHeader title="Help Center" />
+    <ScrollView>
+      <SafeAreaView className="flex-1">
+        <PageHeader title="Help Center" />
 
-          <View className="items-center">
-            <Text className="mt-7 text-2xl text-primary">How can we help you?</Text>
+        <View className="items-center p-4">
+          <Text className="text-2xl text-primary mt-7">How can we help you?</Text>
 
-            {/* Search Bar with Clear Button */}
-            <View className="mt-3 flex-row items-center rounded-xl border border-muted-foreground/30 px-3 py-1">
-              <Search size={18} color="#888" />
-              <TextInput
-                placeholder="Type your question here..."
-                value={searchTerm}
-                onChangeText={setSearchTerm}
-                onSubmitEditing={handleSearch}
-                className="ml-2 flex-1 text-base"
-                returnKeyType="search"
-              />
+          {/* ✅ Search Bar with Clear Button */}
+          <View className="flex-row items-center border border-muted-foreground/30 rounded-xl mt-3 px-3 py-1">
+            <Search size={18} color="#888" />
+            <TextInput
+              placeholder="Type your question here..."
+              value={searchTerm}
+              onChangeText={setSearchTerm}
+              onSubmitEditing={handleSearch}
+              className="flex-1 ml-2 text-base"
+              returnKeyType="search"
+            />
 
-              {/*  Show clear (X) only when text exists */}
-              {searchTerm.length > 0 && (
-                <TouchableOpacity onPress={handleClearSearch} className="px-1">
-                  <X size={18} color="#888" />
-                </TouchableOpacity>
-              )}
+            {/* ✅ Show clear (X) only when text exists */}
+            {searchTerm.length > 0 && (
+              <TouchableOpacity onPress={handleClearSearch} className="px-1">
+                <X size={18} color="#888" />
+              </TouchableOpacity>
+            )}
 
-              <Button variant="ghost" onPress={handleSearch}>
-                <Text>Search</Text>
-              </Button>
-            </View>
+            <Button variant="ghost" onPress={handleSearch}>
+              <Text>Search</Text>
+            </Button>
           </View>
 
-          <View className="mt-8 flex flex-row items-center justify-between">
-            <Text className="text-lg font-semibold text-primary">Frequently Asked Questions</Text>
+        <View className="flex flex-row items-center justify-between mt-8 px-4">
+          <Text className="font-semibold text-primary text-lg">
+            Frequently Asked Questions
+          </Text>
+        </View>
+
+        {loading && (
+          <View className="mt-6 items-center">
+            <ActivityIndicator size="large" color="#445104" />
           </View>
 
           {loading && (
@@ -147,12 +152,27 @@ export default function FAQ() {
                             )}
                           </View>
 
-                          {isExpanded && (
-                            <View className="mt-3 border-t border-muted-foreground/20 pt-3">
-                              <Text className="text-sm leading-5 text-gray-700">
-                                {highlightText(item.answer, searchTerm)}
-                              </Text>
-                            </View>
+        {!loading && !error && (
+          <View className="mt-4 space-y-3 gap-5 p-4">
+            {items.length === 0 ? (
+              <Text className="text-center text-gray-500 mt-6">
+                No results found.
+              </Text>
+            ) : (
+              items.map((item, index) => {
+                const isExpanded = expandedItems.includes(index);
+                return (
+                  <Card key={item.id} className="border border-gray-200 rounded-xl">
+                    <Pressable onPress={() => toggleExpanded(index)}>
+                      <CardContent className="p-4">
+                        <View className="flex-row items-center justify-between">
+                          <Text className="flex-1 font-semibold text-base pr-3">
+                            {highlightText(item.question, searchTerm)}
+                          </Text>
+                          {isExpanded ? (
+                            <Minus size={20} color="#445104" />
+                          ) : (
+                            <Plus size={20} color="#445104" />
                           )}
                         </CardContent>
                       </Pressable>

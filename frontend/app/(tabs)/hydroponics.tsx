@@ -1,5 +1,5 @@
-import { View, Image, Pressable, ScrollView } from 'react-native';
-import React, { useEffect } from 'react';
+import { View, Image, Pressable, ScrollView, ActivityIndicator } from 'react-native';
+import React, { useCallback } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { PageHeader } from '@/components/ui/page-header';
 import { Dimensions } from 'react-native';
@@ -9,6 +9,7 @@ import { Label } from '@/components/ui/label';
 import { useRouter } from 'expo-router';
 import { Button } from '@/components/ui/button';
 import NoSetup from '@/app/hydroponics-monitoring/no-setup';
+import { useFocusEffect } from '@react-navigation/native';
 
 import { useHydroponicSetupStore } from '@/store/hydroponics/hydroponicSetupStore';
 
@@ -16,15 +17,32 @@ const { height: screenHeight } = Dimensions.get('window');
 
 export default function Hydroponics() {
   const router = useRouter();
-  const { hydroponicSetups, fetchHydroponicSetups, loading } = useHydroponicSetupStore();
+  const { 
+    hydroponicSetups, 
+    fetchHydroponicSetups, 
+    loading, 
+    currentPage, 
+    lastPage,
+    nextPage,
+    prevPage 
+  } = useHydroponicSetupStore();
 
-  useEffect(() => {
-    fetchHydroponicSetups(); 
-  }, []);
+  useFocusEffect(
+    useCallback(() => {
+      // Fetch data (uses cache if available)
+      fetchHydroponicSetups(1);
+    }, [fetchHydroponicSetups])
+  );
 
 
-  if (loading) return <Text>Loading...</Text>;
-  if (!hydroponicSetups || hydroponicSetups.length === 0) return <NoSetup />;
+  if (loading && hydroponicSetups.length === 0) return (
+    <SafeAreaView className="flex-1 bg-white items-center justify-center">
+       <ActivityIndicator size="large" color="#2D7D7D" />
+      <Text>Loading...</Text>
+    </SafeAreaView>
+  );
+  
+  if (!loading && hydroponicSetups.length === 0) return <NoSetup />;
 
   return (
     <SafeAreaView className="relative flex-1 bg-white">
@@ -69,14 +87,14 @@ export default function Hydroponics() {
                             params: { id: item.id }
                           })}
                           className="mt-4">
-                          <Card className="relative items-center justify-center overflow-hidden border-muted-foreground/20 bg-lime-50/20 py-8 px-6 sm:p-6">
+                          <Card className="relative items-center justify-center overflow-hidden border-muted-foreground/30 bg-lime-50/20 py-8 px-6 sm:p-6">
                             <View className="relative flex w-full flex-row items-center justify-between">
                               <View className="flex-1 pr-4">
-                                <Text className="text-xl font-semibold sm:text-xl">{item.crop_name}</Text>
-                                <Label className="text-xs font-normal text-muted-foreground">
+                                <Text className="text-xl font-semibold sm:text-xl">Setup {item.id}: {item.crop_name.charAt(0).toUpperCase() + item.crop_name.slice(1)}</Text>
+                                <Label className="text-sm font-normal text-muted-foreground">
                                   {new Date(item.setup_date).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
                                 </Label>
-                                <Text className="mt-1 text-sm font-medium text-green-600">
+                                <Text className="mt-1 text-sm font-medium text-primary">
                                   Growth: {item.growth_percentage ? `${item.growth_percentage}%` : '45%'}
                                 </Text>
                               </View>
@@ -91,6 +109,35 @@ export default function Hydroponics() {
                       </View>
                     ))}
                   </View>
+
+                  {/* Pagination Controls */}
+                  {lastPage > 1 && (
+                    <View className="flex-row items-center justify-between mt-6 px-6">
+                      <Button 
+                        variant="outline" 
+                        onPress={prevPage}
+                        disabled={currentPage === 1 || loading}
+                        className="flex-1 mr-2"
+                      >
+                        <Text>Previous</Text>
+                      </Button>
+                      
+                      <View className="px-4">
+                        <Text className="text-sm text-muted-foreground">
+                          Page {currentPage} of {lastPage}
+                        </Text>
+                      </View>
+                      
+                      <Button 
+                        variant="outline" 
+                        onPress={nextPage}
+                        disabled={currentPage === lastPage || loading}
+                        className="flex-1 ml-2"
+                      >
+                        <Text>Next</Text>
+                      </Button>
+                    </View>
+                  )}
               </View>
             </Card>
           </View>

@@ -119,8 +119,8 @@ export function PageHeader({
       modalTitle="Logout"
       modalDescription="Are you sure you want to logout?"
       confirmText="Logout"
-      iconBgColor="bg-red-500"
-      confirmButtonColor="bg-red-500 active:bg-red-600"
+      iconBgColor="bg-destructive"
+      confirmButtonColor="bg-destructive"
       onCancel={() => setShowLogoutModal(false)}
       onConfirm={confirmLogout}
     />
