@@ -338,13 +338,15 @@ export default function Filtration() {
               <Text className="text-xl sm:text-2xl font-bold mb-1">Water Filtration Process</Text>
               <Text className="text-foreground/80 text-sm sm:text-base">Real-time purification monitoring</Text>
             </View>
-            <Button 
-              onPress={handleButtonClick}
-              disabled={(isProcessStarted && !isProcessFailed) || buttonText === "Process Complete"}
-              className={(isProcessStarted && !isProcessFailed) || buttonText === "Process Complete" ? "opacity-50" : ""}
-            >
-              <Text>{buttonText}</Text>
-            </Button>
+            {!isProcessFailed && (
+              <Button 
+                onPress={handleButtonClick}
+                disabled={(isProcessStarted && !isProcessFailed) || buttonText === "Process Complete"}
+                className={(isProcessStarted && !isProcessFailed) || buttonText === "Process Complete" ? "opacity-50" : ""}
+              >
+                <Text>{buttonText}</Text>
+              </Button>
+            )}
             
           <View className='-mt-3'>
           <Button 
@@ -472,6 +474,17 @@ export default function Filtration() {
               })}
             </View>
           </Card>
+          
+          {/* Re-start Process Button - appears below main content card when process fails */}
+          {isProcessFailed && (
+            <Button 
+              onPress={handleButtonClick}
+              className="mt-4"
+            >
+              <Text>Re-start Process</Text>
+            </Button>
+          )}
+          
           </Card>
           </View>
           </ScrollView>
