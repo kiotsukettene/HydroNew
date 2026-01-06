@@ -1,4 +1,4 @@
-import { ScrollView, View, Pressable, ActivityIndicator } from 'react-native'
+import { ScrollView, View, Pressable, ActivityIndicator, TextInput, TouchableOpacity } from 'react-native'
 import React, { useState, useEffect } from 'react'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { PageHeader } from '@/components/ui/page-header'
@@ -7,7 +7,7 @@ import { Card } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import { useFocusEffect } from '@react-navigation/native'
-import { CheckCircle2, Droplets, Sun, ShieldCheck } from 'lucide-react-native'
+import { CheckCircle2, Search, Filter } from 'lucide-react-native'
 import { router } from 'expo-router'
 
 interface FiltrationRecord {
@@ -100,6 +100,24 @@ export default function FiltrationList() {
                 </View>
               </View>
             </Card>
+
+            {/* Search + Filter */}
+            <View className="mt-1 mb-3 flex-row items-center gap-2">
+              <View className="flex-1 flex-row items-center rounded-xl border border-muted-foreground/30 px-3 py-2">
+                <Search size={18} color="#888" />
+                <TextInput
+                  placeholder="Search here…"
+                  placeholderTextColor="#9CA3AF"
+                  className="ml-2 flex-1 text-base "
+                  returnKeyType="search"
+                />
+              </View>
+              <TouchableOpacity
+                accessibilityRole="button"
+                className="h-12 w-12 items-center justify-center rounded-xl border border-muted-foreground/30 bg-white">
+                <Filter size={20} />
+              </TouchableOpacity>
+            </View>
 
             {/* ===== Filtration List ===== */}
             {loading ? (
