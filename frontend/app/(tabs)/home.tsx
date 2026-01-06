@@ -164,7 +164,7 @@ export default function Home() {
               {/* pH Level */}
               <View className="absolute left-6 top-9 z-10">
                 <Text className="text-5xl font-bold text-[#2D7D7D]">
-                  {waterQuality.pHLevel.toFixed(2)}
+                  {waterQuality.pHLevel != null && !isNaN(waterQuality.pHLevel) ? waterQuality.pHLevel.toFixed(2) : '0.00'}
                 </Text>
                 <Text className="text-lg font-semibold text-foreground/70">pH Level</Text>
               </View>
