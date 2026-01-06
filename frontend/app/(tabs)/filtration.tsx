@@ -312,6 +312,16 @@ export default function Filtration() {
             >
               <Text>{buttonText}</Text>
             </Button>
+            
+          <View className='-mt-3'>
+          <Button 
+              variant="outline"
+              onPress={() => router.push('/filtration/filtration-details')}
+              className=""
+            >
+              <Text>View All Filtration</Text>
+            </Button>
+          </View>
           
 
           <Card className="mt-0 flex-row items-center justify-between border-0 bg-emerald-50 p-3 sm:p-4">
