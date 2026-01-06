@@ -81,16 +81,6 @@ export default function Home() {
 
   const router = useRouter()
   
-  // //  Temporary mock data 
-  // waterQuality = waterQuality || {
-  //   pHLevel: 6.5,
-  //   status: 'Good',
-  //   level: 'Low',
-  // };
-
-  // growth = growth || {
-  //   percentage: 45,
-  // };
 
   const { data, loading, error, fetchDashboard } = useDashboardStore();
   const unreadCount = useNotificationStore((s) => s.unreadCount);
@@ -174,11 +164,10 @@ export default function Home() {
               {/* pH Level */}
               <View className="absolute left-6 top-9 z-10">
                 <Text className="text-5xl font-bold text-[#2D7D7D]">
-                  {sensorData ? sensorData.ph : '--'}
+                  {waterQuality.pHLevel.toFixed(2)}
                 </Text>
                 <Text className="text-lg font-semibold text-foreground/70">pH Level</Text>
               </View>
-
               {/* Water Info */}
               <CardContent className="absolute bottom-4 left-9 z-10 rounded-lg bg-primary/20 px-10 py-3">
                 <View className="flex-row gap-16">
