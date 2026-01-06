@@ -21,6 +21,7 @@ import type { HomeProps } from '@/types/home';
 import { useRouter } from 'expo-router';
 import { useDashboardStore } from '@/store/auth/dashboardStore';
 import { useNotificationStore } from '@/store/notification/notificationStore';
+import { useSensorStore } from '@/store/sensor/sensorStore';
 
 import { db } from '@/src/firebase';
 import { onValue, ref } from 'firebase/database';
@@ -84,6 +85,9 @@ export default function Home() {
 
   const { data, loading, error, fetchDashboard } = useDashboardStore();
   const unreadCount = useNotificationStore((s) => s.unreadCount);
+  
+  // Real-time sensor data - read directly from store (subscription is in _layout.tsx via useEchoSetup)
+  const cleanWater = useSensorStore((state) => state.cleanWater);
   //firebase data fetching
    const [sensorData, setSensorData] = useState<SensorData | null>(null);
   const [latestKey, setLatestKey] = useState<string | null>(null);
@@ -127,9 +131,14 @@ export default function Home() {
     );
   }
 
-   const waterQuality = data
-    ? { pHLevel: data.pHLevel, status: data.status, unit: data.unit }
-    : { pHLevel: 0, status: 'Unknown', unit: '' };
+  // Use real-time pH from clean water sensor, fallback to dashboard data
+  const realTimePH = cleanWater?.ph != null && !isNaN(cleanWater.ph) ? cleanWater.ph : null;
+  
+  const waterQuality = {
+    pHLevel: realTimePH ?? data?.pHLevel ?? 0,
+    status: data?.status ?? 'Unknown',
+    unit: data?.unit ?? ''
+  };
 
   const userName = data?.user || 'User';
   const growth = { percentage: 45 }; // Still mock data for now
