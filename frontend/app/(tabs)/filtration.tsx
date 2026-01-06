@@ -131,10 +131,22 @@ export default function Filtration() {
       saveStatus(2, 25);
       
       setTimeout(() => {
-        updateStageStatus(2, "failed", "Failed", "bg-red-500", "bg-red-50", "border-red-200", "bg-red-400");
-        setIsProcessFailed(true);
-        setButtonText("Re-start Process");
-        saveStatus(2, 50, true);
+        updateStageStatus(2, "completed", "Completed", "bg-green-300", "bg-green-50", "border-green-100", "bg-green-500");
+        setCurrentStage(3);
+        saveStatus(3, 50);
+        
+        setTimeout(() => {
+          updateStageStatus(3, "completed", "Completed", "bg-green-300", "bg-green-50", "border-green-100", "bg-green-500");
+          setCurrentStage(4);
+          saveStatus(4, 75);
+          
+          setTimeout(() => {
+            updateStageStatus(4, "failed", "Failed", "bg-red-500", "bg-red-50", "border-red-200", "bg-red-400");
+            setIsProcessFailed(true);
+            setButtonText("Re-start Process");
+            saveStatus(4, 75, true);
+          }, 2000);
+        }, 2000);
       }, 2000);
     }, 2000);
   };
@@ -143,23 +155,44 @@ export default function Filtration() {
   const restartProcess = () => {
     setIsProcessFailed(false);
     setButtonText("On process...");
-    saveStatus(2, 25);
+    setCurrentStage(0);
+    
+    // Reset all stages back to pending
+    setFiltrationStages(prev => prev.map(stage => ({
+      ...stage,
+      status: "pending",
+      statusText: "Pending",
+      bgColor: "bg-gray-300",
+      cardBgColor: "bg-gray-50",
+      borderColor: "border-gray-200",
+      statusBgColor: "bg-gray-400"
+    })));
+    
+    // Start from stage 1
+    setCurrentStage(1);
+    saveStatus(1, 0);
     
     setTimeout(() => {
-      updateStageStatus(2, "completed", "Completed", "bg-green-300", "bg-green-50", "border-green-100", "bg-green-500");
-      setCurrentStage(3);
-      saveStatus(3, 50);
+      updateStageStatus(1, "completed", "Completed", "bg-green-300", "bg-green-50", "border-green-100", "bg-green-500");
+      setCurrentStage(2);
+      saveStatus(2, 25);
       
       setTimeout(() => {
-        updateStageStatus(3, "completed", "Completed", "bg-green-300", "bg-green-50", "border-green-100", "bg-green-500");
-        setCurrentStage(4);
-        saveStatus(4, 75);
+        updateStageStatus(2, "completed", "Completed", "bg-green-300", "bg-green-50", "border-green-100", "bg-green-500");
+        setCurrentStage(3);
+        saveStatus(3, 50);
         
         setTimeout(() => {
-          updateStageStatus(4, "completed", "Completed", "bg-green-300", "bg-green-50", "border-green-100", "bg-green-500");
-          setButtonText("Process Complete");
-          saveStatus(4, 100);
-          setTimeout(() => setShowSuccessModal(true), 500);
+          updateStageStatus(3, "completed", "Completed", "bg-green-300", "bg-green-50", "border-green-100", "bg-green-500");
+          setCurrentStage(4);
+          saveStatus(4, 75);
+          
+          setTimeout(() => {
+            updateStageStatus(4, "completed", "Completed", "bg-green-300", "bg-green-50", "border-green-100", "bg-green-500");
+            setButtonText("Process Complete");
+            saveStatus(4, 100);
+            setTimeout(() => setShowSuccessModal(true), 500);
+          }, 2000);
         }, 2000);
       }, 2000);
     }, 2000);
