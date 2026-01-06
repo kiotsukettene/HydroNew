@@ -7,11 +7,12 @@ import { Button } from "@/components/ui/button";
 import { Wifi } from "lucide-react-native";
 import { useDeviceStore } from "@/store/device/deviceStore";
 import * as IntentLauncher from 'expo-intent-launcher';
+import { Device } from "@/types/device";
 
 interface WifiModalProps {
   visible: boolean;
   onClose: () => void;
-  onConnect: (data: { ssid: string; password: string }) => void;
+  onConnect: (data: { ssid: string; password: string; device: Device }) => void;
 }
 
 export default function WifiModal({ visible, onClose, onConnect }: WifiModalProps) {
@@ -19,15 +20,37 @@ export default function WifiModal({ visible, onClose, onConnect }: WifiModalProp
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [showPhoneWifiPrompt, setShowPhoneWifiPrompt] = useState(false);
-  const { connectDevicetoWifi, loading, error } = useDeviceStore();
+  const { connectDeviceToWifi, loading, error } = useDeviceStore();
 
-  const handleConnect = async () => {
-    const result = await connectDevicetoWifi(ssid, password);
-    if (result) {
-      onConnect({ ssid, password }); 
-      setShowPhoneWifiPrompt(true);
+const handleConnect = async () => {
+  if (!ssid.trim() || !password.trim()) {
+    console.error("SSID and password are required");
+    return;
+  }
+
+  try {
+    const device = await connectDeviceToWifi(ssid, password);
+
+    if (!device) {
+      console.error("Device pairing failed");
+      return;
     }
-  };
+
+    console.log("Paired device info:", device);
+
+  if (!device?.id) {
+  console.error("Invalid device returned from backend");
+  return;
+  }
+    onConnect({ ssid, password, device });
+
+    setShowPhoneWifiPrompt(true);
+
+  } catch (error) {
+    console.error("Error connecting device:", error);
+  }
+};
+
 
 const resetWifiModal = () => {
   setSsid("");
@@ -85,7 +108,7 @@ const openPhoneWifiSettings = () => {
                 secureTextEntry={!showPassword}
               />
             <View>
-              <Button className="mt-6 bg-[#0D4E31]" onPress={handleConnect}>
+              <Button className="mt-6 bg-[#0D4E31]" onPress={handleConnect} disabled={loading}>
                 <Text className="text-white text-lg font-semibold text-center">
                   {loading ? "Connecting..." : "Connect"}
                 </Text>

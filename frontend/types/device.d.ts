@@ -3,10 +3,22 @@ export interface WifiNetwork {
   password?: string;
 }
 
-
-interface DeviceStore {
+export interface DeviceStore {
   devices: any[];
   loading: boolean;
   error: string | null;
-  connectDevicetoWifi: (ssid: string, password?: string) => Promise<any>;
+
+  connectDeviceToWifi: (ssid: string, password?: string) => Promise<any>;
+  getPairingToken: () => Promise<string | undefined>;
 }
+
+
+export type Device = {
+  id: number;
+  device_name: string;
+  serial_number: string;
+  model: string;
+  firmware_version: string;
+  status: string;
+};
+

@@ -24,6 +24,7 @@ import { getMQTTClient, publishMessage } from "@/service/mqtt-client";
 
 export default function DeviceConnection () {
 const [wifiModal, setWifiModal] = useState(false);
+const [pairedDevice, setPairedDevice] = useState<any>(null);
 
 function publishTestMessage() {
     publishMessage('iot/valve', 'OPEN', 0);
@@ -74,8 +75,9 @@ function publishTestMessage1() {
                 <WifiModal
                     visible={wifiModal}
                     onClose={() => setWifiModal(false)}
-                    onConnect={({ ssid, password }) => {
-                        console.log("Connecting with:", ssid, password);
+                    onConnect={({ ssid, password, device }) => {
+                        console.log("Connecting with:", ssid, password, device);
+                        setPairedDevice(device);
                         setWifiModal(false); 
                     }}
                 />
