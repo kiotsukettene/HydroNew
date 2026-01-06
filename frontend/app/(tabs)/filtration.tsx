@@ -237,9 +237,39 @@ export default function Filtration() {
   };
 
   // Function to handle Save Process button click
-  const handleSaveProcess = () => {
-    toast.success("Mark successfully");
-    resetProcess();
+  const handleSaveProcess = async () => {
+    try {
+      // Create filtration record
+      const filtrationRecord = {
+        id: Date.now().toString(),
+        date: new Date().toISOString(),
+        stages: filtrationStages.map(stage => ({
+          id: stage.id,
+          title: stage.title,
+          name: stage.name,
+          description: stage.description,
+          status: stage.status,
+          statusText: stage.statusText,
+        })),
+        completedAt: new Date().toISOString(),
+      };
+
+      // Get existing filtrations
+      const existingData = await AsyncStorage.getItem('filtration_list');
+      const filtrations = existingData ? JSON.parse(existingData) : [];
+      
+      // Add new filtration
+      filtrations.unshift(filtrationRecord);
+      
+      // Save back to AsyncStorage
+      await AsyncStorage.setItem('filtration_list', JSON.stringify(filtrations));
+      
+      toast.success("Mark successfully");
+      resetProcess();
+    } catch (error) {
+      console.error('Error saving filtration:', error);
+      toast.error("Failed to save filtration");
+    }
   };
 
   // Function to reset the entire process
@@ -360,7 +390,7 @@ export default function Filtration() {
           <View className='-mt-3'>
           <Button 
               variant="outline"
-              onPress={() => router.push('/filtration/filtration-details')}
+              onPress={() => router.push('/filtration/filtration-list')}
               className=""
             >
               <Text>View All Filtration</Text>
@@ -518,7 +548,7 @@ export default function Filtration() {
           }}
           onViewDetails={() => {
             setShowSuccessModal(false);
-            router.push('/filtration/filtration-details');
+            router.push('/filtration/filtration-list');
             setIsProcessCompleted(true);
           }}
         />
