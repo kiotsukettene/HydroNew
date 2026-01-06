@@ -24,7 +24,7 @@ export default function Index() {
   }
 
   return (
-    <SafeAreaView className="flex-1" style={{ backgroundColor: '#F1F2EE' }}>
+    <SafeAreaView className="flex-1 bg-white" >
       <ScrollView 
         contentContainerStyle={{ flexGrow: 1 }}
         showsVerticalScrollIndicator={false}
