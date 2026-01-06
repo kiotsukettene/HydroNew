@@ -18,6 +18,7 @@ import {
 import FailedDetailsModal from '../hydroponics-monitoring/failed-details';
 import { router } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { toast } from 'sonner-native';
 
 // Types 
 interface FiltrationStage {
@@ -43,6 +44,7 @@ export default function Filtration() {
   // Process control states
   const [isProcessStarted, setIsProcessStarted] = useState(false);
   const [isProcessFailed, setIsProcessFailed] = useState(false);
+  const [isProcessCompleted, setIsProcessCompleted] = useState(false);
   const [currentStage, setCurrentStage] = useState(0);
   const [buttonText, setButtonText] = useState("Start Process");
   const [showSuccessModal, setShowSuccessModal] = useState(false);
@@ -234,10 +236,17 @@ export default function Filtration() {
     }
   };
 
+  // Function to handle Save Process button click
+  const handleSaveProcess = () => {
+    toast.success("Mark successfully");
+    resetProcess();
+  };
+
   // Function to reset the entire process
   const resetProcess = () => {
     setIsProcessStarted(false);
     setIsProcessFailed(false);
+    setIsProcessCompleted(false);
     setCurrentStage(0);
     setButtonText("Start Process");
     setShowSuccessModal(false);
@@ -338,7 +347,7 @@ export default function Filtration() {
               <Text className="text-xl sm:text-2xl font-bold mb-1">Water Filtration Process</Text>
               <Text className="text-foreground/80 text-sm sm:text-base">Real-time purification monitoring</Text>
             </View>
-            {!isProcessFailed && (
+            {!isProcessFailed && !isProcessCompleted && (
               <Button 
                 onPress={handleButtonClick}
                 disabled={(isProcessStarted && !isProcessFailed) || buttonText === "Process Complete"}
@@ -485,6 +494,16 @@ export default function Filtration() {
             </Button>
           )}
           
+          {/* Save Process Button - appears below main content card after success modal */}
+          {isProcessCompleted && (
+            <Button 
+              onPress={handleSaveProcess}
+              className="mt-4"
+            >
+              <Text>Mark as Complete</Text>
+            </Button>
+          )}
+          
           </Card>
           </View>
           </ScrollView>
@@ -495,12 +514,12 @@ export default function Filtration() {
           visible={showSuccessModal}
           onClose={() => {
             setShowSuccessModal(false);
-            resetProcess();
+            setIsProcessCompleted(true);
           }}
           onViewDetails={() => {
             setShowSuccessModal(false);
             router.push('/filtration/filtration-details');
-            resetProcess();
+            setIsProcessCompleted(true);
           }}
         />
       </SafeAreaView>
