@@ -35,6 +35,12 @@ export function GrowthStageBadge({ stage, size = 'md' }: GrowthStageBadgeProps) 
           textColor: 'text-orange-700',
           text: 'Harvest Ready',
         };
+      default:
+        return {
+          bg: 'bg-gray-100',
+          textColor: 'text-gray-700',
+          text: 'Unknown',
+        };
     }
   };
 

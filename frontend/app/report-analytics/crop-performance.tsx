@@ -10,7 +10,9 @@ import { ChartContainer } from '@/components/reports/ChartContainer';
 import { HealthStatusBadge } from '@/components/reports/HealthStatusBadge';
 import { GrowthStageBadge } from '@/components/reports/GrowthStageBadge';
 import { PieChart } from 'react-native-gifted-charts';
-import { DateRangePicker } from '@/components/reports/DateRangePicker';
+import { FilterDropdown } from '@/components/reports/FilterDropdown';
+import { DateRangeFilter } from '@/components/reports/filters/DateRangeFilter';
+import { StatusFilter } from '@/components/reports/filters/StatusFilter';
 
 export default function CropPerformance() {
   const [refreshing, setRefreshing] = useState(false);
@@ -20,18 +22,19 @@ export default function CropPerformance() {
     return date.toISOString().split('T')[0];
   });
   const [endDate, setEndDate] = useState(() => new Date().toISOString().split('T')[0]);
+  const [status, setStatus] = useState<string>('active');
 
   const { cropPerformance, loading, fetchCropPerformance } = useReportsStore();
 
   useFocusEffect(
     useCallback(() => {
       loadData();
-    }, [startDate, endDate])
+    }, [startDate, endDate, status])
   );
 
   const loadData = async () => {
     await fetchCropPerformance({
-      status: 'active',
+      status: status === 'all' ? undefined : status,
       start_date: startDate,
       end_date: endDate,
     });
@@ -90,11 +93,17 @@ export default function CropPerformance() {
         />
         <View className="p-4">
           {/* Filters */}
-          <DateRangePicker
-            startDate={startDate}
-            endDate={endDate}
-            onDateRangeChange={handleDateRangeChange}
-          />
+          <FilterDropdown filterCount={status !== 'all' ? 1 : 0}>
+            <DateRangeFilter
+              startDate={startDate}
+              endDate={endDate}
+              onDateRangeChange={handleDateRangeChange}
+            />
+            <StatusFilter
+              value={status}
+              onChange={setStatus}
+            />
+          </FilterDropdown>
 
           {/* Growth Stage Distribution */}
           <ChartContainer 
@@ -219,19 +228,25 @@ export default function CropPerformance() {
                     </View>
                     <View className="flex-row justify-between mt-2">
                       <View>
-                        <Text className="text-xs text-muted-foreground">pH: {item.current_parameters.ph.toFixed(2)}</Text>
+                        <Text className="text-xs text-muted-foreground">
+                          pH: {item.current_parameters.ph !== null ? item.current_parameters.ph.toFixed(2) : 'N/A'}
+                        </Text>
                         <Text className="text-xs text-gray-500">
                           Target: {item.target_parameters.ph_min} - {item.target_parameters.ph_max}
                         </Text>
                       </View>
                       <View>
-                        <Text className="text-xs text-muted-foreground">TDS: {item.current_parameters.tds.toFixed(0)}</Text>
+                        <Text className="text-xs text-muted-foreground">
+                          TDS: {item.current_parameters.tds !== null ? item.current_parameters.tds.toFixed(0) : 'N/A'}
+                        </Text>
                         <Text className="text-xs text-gray-500">
                           Target: {item.target_parameters.tds_min} - {item.target_parameters.tds_max}
                         </Text>
                       </View>
                       <View>
-                        <Text className="text-xs text-muted-foreground">EC: {item.current_parameters.ec.toFixed(2)}</Text>
+                        <Text className="text-xs text-muted-foreground">
+                          EC: {item.current_parameters.ec !== null ? item.current_parameters.ec.toFixed(2) : 'N/A'}
+                        </Text>
                       </View>
                     </View>
                   </View>

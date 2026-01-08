@@ -1,3 +1,9 @@
+/**
+ * @deprecated This component has been replaced by the dropdown-based filter system.
+ * Use `FilterDropdown` with `SystemTypeFilter` from `@/components/reports/filters/SystemTypeFilter` instead.
+ * This file is kept for backwards compatibility and will be removed in a future version.
+ */
+
 import { View, TouchableOpacity } from 'react-native';
 import React from 'react';
 import { Text } from '@/components/ui/text';

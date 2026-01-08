@@ -8,6 +8,8 @@ import { useFocusEffect } from '@react-navigation/native';
 import { useReportsStore } from '@/store/reports/reportsStore';
 import { ChartContainer } from '@/components/reports/ChartContainer';
 import { StatCard } from '@/components/reports/StatCard';
+import { FilterDropdown } from '@/components/reports/FilterDropdown';
+import { DaysFilter } from '@/components/reports/filters/DaysFilter';
 import { TrendIndicator } from '@/components/reports/TrendIndicator';
 import { RecommendationAlert } from '@/components/reports/RecommendationAlert';
 import { LineChart } from 'react-native-gifted-charts';
@@ -35,8 +37,6 @@ export default function TreatmentEfficiency() {
     await loadData();
     setRefreshing(false);
   };
-
-  const daysOptions = [7, 30, 90];
 
   // Prepare chart data
   const cycleCountData = treatmentEfficiency?.cycle_trends
@@ -67,24 +67,14 @@ export default function TreatmentEfficiency() {
           showNotificationButton={false}
         />
         <View className="p-4">
-          {/* Days Selector */}
-          <View className="mb-4">
-            <Text className="text-sm font-medium text-gray-700 mb-2">Time Period</Text>
-            <View className="flex-row bg-gray-100 rounded-xl p-1">
-              {daysOptions.map((option) => (
-                <TouchableOpacity
-                  key={option}
-                  activeOpacity={0.7}
-                  className={`flex-1 py-2.5 rounded-lg ${days === option ? 'bg-primary' : 'bg-transparent'}`}
-                  onPress={() => setDays(option)}
-                >
-                  <Text className={`text-center text-sm font-semibold ${days === option ? 'text-white' : 'text-muted-foreground'}`}>
-                    {option} Days
-                  </Text>
-                </TouchableOpacity>
-              ))}
-            </View>
-          </View>
+          {/* Filters */}
+          <FilterDropdown>
+            <DaysFilter
+              value={days}
+              onChange={setDays}
+              options={[7, 30, 90]}
+            />
+          </FilterDropdown>
 
           {/* Summary Stats */}
           <View className="gap-3 mb-4">

@@ -9,7 +9,8 @@ import { useReportsStore } from '@/store/reports/reportsStore';
 import { ChartContainer } from '@/components/reports/ChartContainer';
 import { PerformanceGauge } from '@/components/reports/PerformanceGauge';
 import { StatCard } from '@/components/reports/StatCard';
-import { DateRangePicker } from '@/components/reports/DateRangePicker';
+import { FilterDropdown } from '@/components/reports/FilterDropdown';
+import { DateRangeFilter } from '@/components/reports/filters/DateRangeFilter';
 import { PieChart } from 'react-native-gifted-charts';
 import { Clock, CheckCircle, XCircle, Droplet, TrendingDown } from 'lucide-react-native';
 
@@ -79,12 +80,14 @@ export default function TreatmentPerformance() {
           showNotificationButton={false}
         />
         <View className="p-4">
-          {/* Date Range */}
-          <DateRangePicker
-            startDate={startDate}
-            endDate={endDate}
-            onDateRangeChange={handleDateRangeChange}
-          />
+          {/* Filters */}
+          <FilterDropdown>
+            <DateRangeFilter
+              startDate={startDate}
+              endDate={endDate}
+              onDateRangeChange={handleDateRangeChange}
+            />
+          </FilterDropdown>
 
           {/* Summary Stats */}
           <View className="gap-3 mb-4">

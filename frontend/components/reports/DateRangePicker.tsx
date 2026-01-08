@@ -1,3 +1,9 @@
+/**
+ * @deprecated This component has been replaced by the dropdown-based filter system.
+ * Use `FilterDropdown` with `DateRangeFilter` from `@/components/reports/filters/DateRangeFilter` instead.
+ * This file is kept for backwards compatibility and will be removed in a future version.
+ */
+
 import { View, TouchableOpacity } from 'react-native';
 import React, { useState } from 'react';
 import { Text } from '@/components/ui/text';

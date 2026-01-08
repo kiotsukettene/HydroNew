@@ -7,8 +7,10 @@ import { Card } from '@/components/ui/card';
 import { useFocusEffect } from '@react-navigation/native';
 import { useReportsStore } from '@/store/reports/reportsStore';
 import { ChartContainer } from '@/components/reports/ChartContainer';
-import { SystemTypeSelector } from '@/components/reports/SystemTypeSelector';
-import { ParameterSelector } from '@/components/reports/ParameterSelector';
+import { FilterDropdown } from '@/components/reports/FilterDropdown';
+import { SystemTypeFilter } from '@/components/reports/filters/SystemTypeFilter';
+import { ParameterFilter } from '@/components/reports/filters/ParameterFilter';
+import { DaysFilter } from '@/components/reports/filters/DaysFilter';
 import { TrendIndicator } from '@/components/reports/TrendIndicator';
 import { RecommendationAlert } from '@/components/reports/RecommendationAlert';
 import { LineChart } from 'react-native-gifted-charts';
@@ -38,8 +40,6 @@ export default function WaterQualityTrends() {
     setRefreshing(false);
   };
 
-  const daysOptions = [7, 30, 90];
-
   // Prepare chart data
   const chartData = waterQualityTrends?.trend_data
     ? waterQualityTrends.trend_data.map((item, index) => ({
@@ -62,36 +62,22 @@ export default function WaterQualityTrends() {
           showNotificationButton={false}
         />
         <View className="p-4">
-          {/* System Type Selector */}
-          <SystemTypeSelector
-            value={systemType}
-            onChange={setSystemType}
-          />
-
-          {/* Parameter Selector */}
-          <ParameterSelector
-            value={parameter}
-            onChange={setParameter}
-          />
-
-          {/* Days Selector */}
-          <View className="mb-4">
-            <Text className="text-sm font-medium text-gray-700 mb-2">Time Period</Text>
-            <View className="flex-row bg-gray-100 rounded-xl p-1">
-              {daysOptions.map((option) => (
-                <TouchableOpacity
-                  key={option}
-                  activeOpacity={0.7}
-                  className={`flex-1 py-2.5 rounded-lg ${days === option ? 'bg-primary' : 'bg-transparent'}`}
-                  onPress={() => setDays(option)}
-                >
-                  <Text className={`text-center text-sm font-semibold ${days === option ? 'text-white' : 'text-muted-foreground'}`}>
-                    {option} Days
-                  </Text>
-                </TouchableOpacity>
-              ))}
-            </View>
-          </View>
+          {/* Filters */}
+          <FilterDropdown filterCount={2}>
+            <SystemTypeFilter
+              value={systemType}
+              onChange={setSystemType}
+            />
+            <ParameterFilter
+              value={parameter}
+              onChange={setParameter}
+            />
+            <DaysFilter
+              value={days}
+              onChange={setDays}
+              options={[7, 30, 90]}
+            />
+          </FilterDropdown>
 
           {/* Trend Analysis Card */}
           {waterQualityTrends?.analysis && (

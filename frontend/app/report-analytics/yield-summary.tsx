@@ -8,7 +8,8 @@ import { useReportsStore } from '@/store/reports/reportsStore';
 import { ChartContainer } from '@/components/reports/ChartContainer';
 import { StatCard } from '@/components/reports/StatCard';
 import { BarChart, PieChart } from 'react-native-gifted-charts';
-import { DateRangePicker } from '@/components/reports/DateRangePicker';
+import { FilterDropdown } from '@/components/reports/FilterDropdown';
+import { DateRangeFilter } from '@/components/reports/filters/DateRangeFilter';
 import { Package, Scale, TrendingUp } from 'lucide-react-native';
 
 export default function YieldSummary() {
@@ -90,11 +91,13 @@ export default function YieldSummary() {
         />
         <View className="p-4">
           {/* Filters */}
-          <DateRangePicker
-            startDate={startDate}
-            endDate={endDate}
-            onDateRangeChange={handleDateRangeChange}
-          />
+          <FilterDropdown>
+            <DateRangeFilter
+              startDate={startDate}
+              endDate={endDate}
+              onDateRangeChange={handleDateRangeChange}
+            />
+          </FilterDropdown>
 
           {/* Summary Stats */}
           <View className="gap-3 mb-4">

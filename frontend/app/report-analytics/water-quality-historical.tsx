@@ -7,8 +7,10 @@ import { Card } from '@/components/ui/card';
 import { useFocusEffect } from '@react-navigation/native';
 import { useReportsStore } from '@/store/reports/reportsStore';
 import { ChartContainer } from '@/components/reports/ChartContainer';
-import { SystemTypeSelector } from '@/components/reports/SystemTypeSelector';
-import { DateRangePicker } from '@/components/reports/DateRangePicker';
+import { FilterDropdown } from '@/components/reports/FilterDropdown';
+import { SystemTypeFilter } from '@/components/reports/filters/SystemTypeFilter';
+import { DateRangeFilter } from '@/components/reports/filters/DateRangeFilter';
+import { IntervalFilter } from '@/components/reports/filters/IntervalFilter';
 import { LineChart } from 'react-native-gifted-charts';
 import type { SystemType } from '@/types/reports';
 import { AlertCircle } from 'lucide-react-native';
@@ -52,12 +54,6 @@ export default function WaterQualityHistorical() {
     setEndDate(end);
   };
 
-  const intervalOptions: Array<{ value: 'hourly' | 'daily' | 'weekly'; label: string }> = [
-    { value: 'hourly', label: 'Hourly' },
-    { value: 'daily', label: 'Daily' },
-    { value: 'weekly', label: 'Weekly' },
-  ];
-
   // Prepare chart data
   const prepareChartData = (parameter: 'ph' | 'tds' | 'ec' | 'turbidity' | 'temperature' | 'humidity') => {
     if (!waterQualityHistorical?.readings) return [];
@@ -87,37 +83,22 @@ export default function WaterQualityHistorical() {
           showNotificationButton={false}
         />
         <View className="p-4">
-          {/* System Type Selector */}
-          <SystemTypeSelector
-            value={systemType}
-            onChange={setSystemType}
-          />
-
-          {/* Interval Selector */}
-          <View className="mb-4">
-            <Text className="text-sm font-medium text-gray-700 mb-2">Interval</Text>
-            <View className="flex-row bg-gray-100 rounded-xl p-1">
-              {intervalOptions.map((option) => (
-                <TouchableOpacity
-                  key={option.value}
-                  activeOpacity={0.7}
-                  className={`flex-1 py-2.5 rounded-lg ${interval === option.value ? 'bg-primary' : 'bg-transparent'}`}
-                  onPress={() => setInterval(option.value)}
-                >
-                  <Text className={`text-center text-sm font-semibold ${interval === option.value ? 'text-white' : 'text-muted-foreground'}`}>
-                    {option.label}
-                  </Text>
-                </TouchableOpacity>
-              ))}
-            </View>
-          </View>
-
-          {/* Date Range */}
-          <DateRangePicker
-            startDate={startDate}
-            endDate={endDate}
-            onDateRangeChange={handleDateRangeChange}
-          />
+          {/* Filters */}
+          <FilterDropdown filterCount={2}>
+            <SystemTypeFilter
+              value={systemType}
+              onChange={setSystemType}
+            />
+            <IntervalFilter
+              value={interval}
+              onChange={setInterval}
+            />
+            <DateRangeFilter
+              startDate={startDate}
+              endDate={endDate}
+              onDateRangeChange={handleDateRangeChange}
+            />
+          </FilterDropdown>
 
           {/* Statistical Summary */}
           {waterQualityHistorical?.statistics && (

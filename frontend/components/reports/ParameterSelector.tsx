@@ -1,3 +1,9 @@
+/**
+ * @deprecated This component has been replaced by the dropdown-based filter system.
+ * Use `FilterDropdown` with `ParameterFilter` from `@/components/reports/filters/ParameterFilter` instead.
+ * This file is kept for backwards compatibility and will be removed in a future version.
+ */
+
 import { View, TouchableOpacity, ScrollView } from 'react-native';
 import React from 'react';
 import { Text } from '@/components/ui/text';

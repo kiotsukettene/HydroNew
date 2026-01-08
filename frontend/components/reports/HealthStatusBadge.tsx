@@ -26,6 +26,11 @@ export function HealthStatusBadge({ status, size = 'md' }: HealthStatusBadgeProp
           bg: 'bg-red-500',
           text: 'Poor',
         };
+      default:
+        return {
+          bg: 'bg-gray-500',
+          text: 'Unknown',
+        };
     }
   };
 

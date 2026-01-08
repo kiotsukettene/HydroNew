@@ -7,7 +7,8 @@ import { Card } from '@/components/ui/card';
 import { useFocusEffect } from '@react-navigation/native';
 import { useReportsStore } from '@/store/reports/reportsStore';
 import { ChartContainer } from '@/components/reports/ChartContainer';
-import { CropMultiSelect } from '@/components/reports/CropMultiSelect';
+import { FilterDropdown } from '@/components/reports/FilterDropdown';
+import { CropFilter } from '@/components/reports/filters/CropFilter';
 import { BarChart } from 'react-native-gifted-charts';
 import { Trophy } from 'lucide-react-native';
 import { Icon } from '@/components/ui/icon';
@@ -88,12 +89,14 @@ export default function CropComparison() {
         />
         <View className="p-4">
           {/* Crop Selection */}
-          <CropMultiSelect
-            selectedCrops={selectedCrops}
-            onSelectionChange={setSelectedCrops}
-            minSelection={2}
-            maxSelection={4}
-          />
+          <FilterDropdown filterCount={selectedCrops.length}>
+            <CropFilter
+              selectedCrops={selectedCrops}
+              onSelectionChange={setSelectedCrops}
+              minSelection={2}
+              maxSelection={4}
+            />
+          </FilterDropdown>
 
           {/* Metric Selection */}
           <View className="mb-4">
