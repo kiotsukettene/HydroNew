@@ -9,45 +9,29 @@ import { useReportsStore } from '@/store/reports/reportsStore';
 import { ChartContainer } from '@/components/reports/ChartContainer';
 import { PerformanceGauge } from '@/components/reports/PerformanceGauge';
 import { StatCard } from '@/components/reports/StatCard';
-import { FilterDropdown } from '@/components/reports/FilterDropdown';
-import { DateRangeFilter } from '@/components/reports/filters/DateRangeFilter';
 import { PieChart } from 'react-native-gifted-charts';
-import { Clock, CheckCircle, XCircle, Droplet, TrendingDown } from 'lucide-react-native';
+import { Clock, CheckCircle, Droplet, TrendingDown } from 'lucide-react-native';
 
 export default function TreatmentPerformance() {
   const [refreshing, setRefreshing] = useState(false);
   const [deviceId] = useState(1); // TODO: Add device selector if multiple devices
-  const [startDate, setStartDate] = useState(() => {
-    const date = new Date();
-    date.setDate(date.getDate() - 30);
-    return date.toISOString().split('T')[0];
-  });
-  const [endDate, setEndDate] = useState(() => new Date().toISOString().split('T')[0]);
 
   const { treatmentPerformance, loading, fetchTreatmentPerformance } = useReportsStore();
 
   useFocusEffect(
     useCallback(() => {
       loadData();
-    }, [deviceId, startDate, endDate])
+    }, [deviceId])
   );
 
   const loadData = async () => {
-    await fetchTreatmentPerformance(deviceId, {
-      start_date: startDate,
-      end_date: endDate,
-    });
+    await fetchTreatmentPerformance(deviceId, {});
   };
 
   const onRefresh = async () => {
     setRefreshing(true);
     await loadData();
     setRefreshing(false);
-  };
-
-  const handleDateRangeChange = (start: string, end: string) => {
-    setStartDate(start);
-    setEndDate(end);
   };
 
   // Prepare success/failure chart data
@@ -80,15 +64,6 @@ export default function TreatmentPerformance() {
           showNotificationButton={false}
         />
         <View className="p-4">
-          {/* Filters */}
-          <FilterDropdown>
-            <DateRangeFilter
-              startDate={startDate}
-              endDate={endDate}
-              onDateRangeChange={handleDateRangeChange}
-            />
-          </FilterDropdown>
-
           {/* Summary Stats */}
           <View className="gap-3 mb-4">
             <View className="flex-row gap-3">

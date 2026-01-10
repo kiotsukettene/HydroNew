@@ -1,4 +1,4 @@
-import { View, ScrollView, RefreshControl, TouchableOpacity } from 'react-native';
+import { View, ScrollView, RefreshControl } from 'react-native';
 import React, { useCallback, useState } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Text } from '@/components/ui/text';
@@ -8,8 +8,6 @@ import { useFocusEffect } from '@react-navigation/native';
 import { useReportsStore } from '@/store/reports/reportsStore';
 import { ChartContainer } from '@/components/reports/ChartContainer';
 import { StatCard } from '@/components/reports/StatCard';
-import { FilterDropdown } from '@/components/reports/FilterDropdown';
-import { DaysFilter } from '@/components/reports/filters/DaysFilter';
 import { TrendIndicator } from '@/components/reports/TrendIndicator';
 import { RecommendationAlert } from '@/components/reports/RecommendationAlert';
 import { LineChart } from 'react-native-gifted-charts';
@@ -18,18 +16,17 @@ import { Activity, Target, TrendingUp } from 'lucide-react-native';
 export default function TreatmentEfficiency() {
   const [refreshing, setRefreshing] = useState(false);
   const [deviceId] = useState(1); // TODO: Add device selector if multiple devices
-  const [days, setDays] = useState(30);
 
   const { treatmentEfficiency, loading, fetchTreatmentEfficiency } = useReportsStore();
 
   useFocusEffect(
     useCallback(() => {
       loadData();
-    }, [deviceId, days])
+    }, [deviceId])
   );
 
   const loadData = async () => {
-    await fetchTreatmentEfficiency(deviceId, days);
+    await fetchTreatmentEfficiency(deviceId, 30);
   };
 
   const onRefresh = async () => {
@@ -67,15 +64,6 @@ export default function TreatmentEfficiency() {
           showNotificationButton={false}
         />
         <View className="p-4">
-          {/* Filters */}
-          <FilterDropdown>
-            <DaysFilter
-              value={days}
-              onChange={setDays}
-              options={[7, 30, 90]}
-            />
-          </FilterDropdown>
-
           {/* Summary Stats */}
           <View className="gap-3 mb-4">
             <View className="flex-row gap-3">
@@ -156,7 +144,7 @@ export default function TreatmentEfficiency() {
           {/* Daily Cycle Count Chart */}
           <ChartContainer 
             title="Daily Cycle Count" 
-            subtitle={`Last ${days} days`}
+            subtitle="Last 30 days"
             loading={loading}
           >
             <View className="px-4 py-4">
@@ -191,7 +179,7 @@ export default function TreatmentEfficiency() {
           {/* Success Rate Trend Chart */}
           <ChartContainer 
             title="Success Rate Trend" 
-            subtitle={`Daily success rate over ${days} days`}
+            subtitle="Daily success rate over 30 days"
             loading={loading}
           >
             <View className="px-4 py-4">
