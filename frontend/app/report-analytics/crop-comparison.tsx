@@ -7,29 +7,24 @@ import { Card } from '@/components/ui/card';
 import { useFocusEffect } from '@react-navigation/native';
 import { useReportsStore } from '@/store/reports/reportsStore';
 import { ChartContainer } from '@/components/reports/ChartContainer';
-import { FilterDropdown } from '@/components/reports/FilterDropdown';
-import { CropFilter } from '@/components/reports/filters/CropFilter';
 import { BarChart } from 'react-native-gifted-charts';
 import { Trophy } from 'lucide-react-native';
 import { Icon } from '@/components/ui/icon';
 
 export default function CropComparison() {
   const [refreshing, setRefreshing] = useState(false);
-  const [selectedCrops, setSelectedCrops] = useState<string[]>(['lettuce', 'tomato']);
   const [selectedMetric, setSelectedMetric] = useState<'weight' | 'duration' | 'quality'>('weight');
 
   const { cropComparison, loading, fetchCropComparison } = useReportsStore();
 
   useFocusEffect(
     useCallback(() => {
-      if (selectedCrops.length >= 2) {
-        loadData();
-      }
-    }, [selectedCrops, selectedMetric])
+      loadData();
+    }, [selectedMetric])
   );
 
   const loadData = async () => {
-    await fetchCropComparison(selectedCrops, selectedMetric);
+    await fetchCropComparison(['lettuce', 'tomato'], selectedMetric);
   };
 
   const onRefresh = async () => {
@@ -88,16 +83,6 @@ export default function CropComparison() {
           showNotificationButton={false}
         />
         <View className="p-4">
-          {/* Crop Selection */}
-          <FilterDropdown filterCount={selectedCrops.length}>
-            <CropFilter
-              selectedCrops={selectedCrops}
-              onSelectionChange={setSelectedCrops}
-              minSelection={2}
-              maxSelection={4}
-            />
-          </FilterDropdown>
-
           {/* Metric Selection */}
           <View className="mb-4">
             <Text className="text-sm font-medium text-gray-700 mb-2">Compare By</Text>
@@ -236,15 +221,9 @@ export default function CropComparison() {
             </View>
           )}
 
-          {selectedCrops.length < 2 && (
+          {!loading && (!cropComparison || !cropComparison.crops || cropComparison.crops.length === 0) && (
             <Card className="p-6 items-center">
-              <Text className="text-muted-foreground">Please select at least 2 crops to compare</Text>
-            </Card>
-          )}
-
-          {!loading && selectedCrops.length >= 2 && (!cropComparison || !cropComparison.crops || cropComparison.crops.length === 0) && (
-            <Card className="p-6 items-center">
-              <Text className="text-muted-foreground">No comparison data available for selected crops</Text>
+              <Text className="text-muted-foreground">No comparison data available</Text>
             </Card>
           )}
         </View>
