@@ -8,43 +8,27 @@ import { useReportsStore } from '@/store/reports/reportsStore';
 import { ChartContainer } from '@/components/reports/ChartContainer';
 import { StatCard } from '@/components/reports/StatCard';
 import { BarChart, PieChart } from 'react-native-gifted-charts';
-import { FilterDropdown } from '@/components/reports/FilterDropdown';
-import { DateRangeFilter } from '@/components/reports/filters/DateRangeFilter';
 import { Package, Scale, TrendingUp } from 'lucide-react-native';
 
 export default function YieldSummary() {
   const [refreshing, setRefreshing] = useState(false);
-  const [startDate, setStartDate] = useState(() => {
-    const date = new Date();
-    date.setDate(date.getDate() - 30);
-    return date.toISOString().split('T')[0];
-  });
-  const [endDate, setEndDate] = useState(() => new Date().toISOString().split('T')[0]);
 
   const { yieldSummary, loading, fetchYieldSummary } = useReportsStore();
 
   useFocusEffect(
     useCallback(() => {
       loadData();
-    }, [startDate, endDate])
+    }, [])
   );
 
   const loadData = async () => {
-    await fetchYieldSummary({
-      start_date: startDate,
-      end_date: endDate,
-    });
+    await fetchYieldSummary({});
   };
 
   const onRefresh = async () => {
     setRefreshing(true);
     await loadData();
     setRefreshing(false);
-  };
-
-  const handleDateRangeChange = (start: string, end: string) => {
-    setStartDate(start);
-    setEndDate(end);
   };
 
   // Prepare chart data
@@ -90,15 +74,6 @@ export default function YieldSummary() {
           showNotificationButton={false}
         />
         <View className="p-4">
-          {/* Filters */}
-          <FilterDropdown>
-            <DateRangeFilter
-              startDate={startDate}
-              endDate={endDate}
-              onDateRangeChange={handleDateRangeChange}
-            />
-          </FilterDropdown>
-
           {/* Summary Stats */}
           <View className="gap-3 mb-4">
             <StatCard
@@ -200,7 +175,7 @@ export default function YieldSummary() {
                       return (
                         <View className="items-center">
                           <Text className="text-2xl font-bold">{total}</Text>
-                          <Text className="text-xs text-muted-foreground">kg Total</Text>
+                          <Text className="text-xs text-muted-foreground">pcs Total</Text>
                         </View>
                       );
                     }}
@@ -211,7 +186,7 @@ export default function YieldSummary() {
                     {gradeDistributionData.map((item, index) => (
                       <View key={index} className="flex-row items-center gap-1">
                         <View style={{ width: 12, height: 12, backgroundColor: item.color, borderRadius: 2 }} />
-                        <Text className="text-xs text-gray-600">{item.text}: {item.value} kg</Text>
+                        <Text className="text-xs text-gray-600">{item.text}: {item.value}</Text>
                       </View>
                     ))}
                   </View>
