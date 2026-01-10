@@ -151,8 +151,8 @@ export default function ReportAnalytics() {
                 <View className="w-px bg-muted-foreground/20" />
                 <View className="flex-1 items-center">
                   <Text className="text-3xl font-bold text-blue-600">
-                    {yieldSummary?.sellable_percentage 
-                      ? `${yieldSummary.sellable_percentage.toFixed(0)}%` 
+                    {yieldSummary?.sellable_yield_percentage 
+                      ? `${yieldSummary.sellable_yield_percentage.toFixed(0)}%` 
                       : '0%'}
                   </Text>
                   <Text className="text-xs text-muted-foreground mt-1">Sellable</Text>
