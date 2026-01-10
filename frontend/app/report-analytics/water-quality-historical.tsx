@@ -1,4 +1,4 @@
-import { View, ScrollView, RefreshControl, TouchableOpacity } from 'react-native';
+import { View, ScrollView, RefreshControl } from 'react-native';
 import React, { useCallback, useState } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Text } from '@/components/ui/text';
@@ -7,39 +7,24 @@ import { Card } from '@/components/ui/card';
 import { useFocusEffect } from '@react-navigation/native';
 import { useReportsStore } from '@/store/reports/reportsStore';
 import { ChartContainer } from '@/components/reports/ChartContainer';
-import { FilterDropdown } from '@/components/reports/FilterDropdown';
-import { SystemTypeFilter } from '@/components/reports/filters/SystemTypeFilter';
-import { DateRangeFilter } from '@/components/reports/filters/DateRangeFilter';
-import { IntervalFilter } from '@/components/reports/filters/IntervalFilter';
 import { LineChart } from 'react-native-gifted-charts';
-import type { SystemType } from '@/types/reports';
 import { AlertCircle } from 'lucide-react-native';
 import { Icon } from '@/components/ui/icon';
 
 export default function WaterQualityHistorical() {
   const [refreshing, setRefreshing] = useState(false);
-  const [systemType, setSystemType] = useState<SystemType>('hydroponics_water');
-  const [interval, setInterval] = useState<'hourly' | 'daily' | 'weekly'>('daily');
-  const [startDate, setStartDate] = useState(() => {
-    const date = new Date();
-    date.setDate(date.getDate() - 7);
-    return date.toISOString().split('T')[0];
-  });
-  const [endDate, setEndDate] = useState(() => new Date().toISOString().split('T')[0]);
 
   const { waterQualityHistorical, loading, fetchWaterQualityHistorical } = useReportsStore();
 
   useFocusEffect(
     useCallback(() => {
       loadData();
-    }, [systemType, interval, startDate, endDate])
+    }, [])
   );
 
   const loadData = async () => {
-    await fetchWaterQualityHistorical(systemType, {
-      interval,
-      start_date: startDate,
-      end_date: endDate,
+    await fetchWaterQualityHistorical('hydroponics_water', {
+      interval: 'daily',
     });
   };
 
@@ -47,11 +32,6 @@ export default function WaterQualityHistorical() {
     setRefreshing(true);
     await loadData();
     setRefreshing(false);
-  };
-
-  const handleDateRangeChange = (start: string, end: string) => {
-    setStartDate(start);
-    setEndDate(end);
   };
 
   // Prepare chart data
@@ -83,23 +63,6 @@ export default function WaterQualityHistorical() {
           showNotificationButton={false}
         />
         <View className="p-4">
-          {/* Filters */}
-          <FilterDropdown filterCount={2}>
-            <SystemTypeFilter
-              value={systemType}
-              onChange={setSystemType}
-            />
-            <IntervalFilter
-              value={interval}
-              onChange={setInterval}
-            />
-            <DateRangeFilter
-              startDate={startDate}
-              endDate={endDate}
-              onDateRangeChange={handleDateRangeChange}
-            />
-          </FilterDropdown>
-
           {/* Statistical Summary */}
           {waterQualityHistorical?.statistics && (
             <Card className="border-muted-foreground/30 p-4 mb-4">
@@ -132,7 +95,7 @@ export default function WaterQualityHistorical() {
           )}
 
           {/* Out of Range Alert */}
-          {systemType === 'hydroponics_water' && waterQualityHistorical?.out_of_range_count !== undefined && waterQualityHistorical.out_of_range_count > 0 && (
+          {waterQualityHistorical?.out_of_range_count !== undefined && waterQualityHistorical.out_of_range_count > 0 && (
             <Card className="p-4 bg-red-50 border border-red-200 mb-4">
               <View className="flex-row items-center gap-2">
                 <Icon as={AlertCircle} size={20} className="text-red-600" />
@@ -149,7 +112,7 @@ export default function WaterQualityHistorical() {
           {/* pH Chart */}
           <ChartContainer 
             title="pH Levels" 
-            subtitle={`${interval} readings`}
+            subtitle="Daily readings"
             loading={loading}
           >
             <View className="px-4 py-4">
@@ -189,7 +152,7 @@ export default function WaterQualityHistorical() {
           {/* TDS Chart */}
           <ChartContainer 
             title="TDS (Total Dissolved Solids)" 
-            subtitle={`${interval} readings in ppm`}
+            subtitle="Daily readings in ppm"
             loading={loading}
           >
             <View className="px-4 py-4">

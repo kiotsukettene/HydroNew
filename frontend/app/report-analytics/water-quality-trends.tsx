@@ -1,4 +1,4 @@
-import { View, ScrollView, RefreshControl, TouchableOpacity } from 'react-native';
+import { View, ScrollView, RefreshControl } from 'react-native';
 import React, { useCallback, useState } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Text } from '@/components/ui/text';
@@ -7,31 +7,23 @@ import { Card } from '@/components/ui/card';
 import { useFocusEffect } from '@react-navigation/native';
 import { useReportsStore } from '@/store/reports/reportsStore';
 import { ChartContainer } from '@/components/reports/ChartContainer';
-import { FilterDropdown } from '@/components/reports/FilterDropdown';
-import { SystemTypeFilter } from '@/components/reports/filters/SystemTypeFilter';
-import { ParameterFilter } from '@/components/reports/filters/ParameterFilter';
-import { DaysFilter } from '@/components/reports/filters/DaysFilter';
 import { TrendIndicator } from '@/components/reports/TrendIndicator';
 import { RecommendationAlert } from '@/components/reports/RecommendationAlert';
 import { LineChart } from 'react-native-gifted-charts';
-import type { SystemType, WaterParameter } from '@/types/reports';
 
 export default function WaterQualityTrends() {
   const [refreshing, setRefreshing] = useState(false);
-  const [systemType, setSystemType] = useState<SystemType>('hydroponics_water');
-  const [parameter, setParameter] = useState<WaterParameter>('ph');
-  const [days, setDays] = useState(30);
 
   const { waterQualityTrends, loading, fetchWaterQualityTrends } = useReportsStore();
 
   useFocusEffect(
     useCallback(() => {
       loadData();
-    }, [systemType, parameter, days])
+    }, [])
   );
 
   const loadData = async () => {
-    await fetchWaterQualityTrends(systemType, parameter, days);
+    await fetchWaterQualityTrends('hydroponics_water', 'ph', 30);
   };
 
   const onRefresh = async () => {
@@ -62,23 +54,6 @@ export default function WaterQualityTrends() {
           showNotificationButton={false}
         />
         <View className="p-4">
-          {/* Filters */}
-          <FilterDropdown filterCount={2}>
-            <SystemTypeFilter
-              value={systemType}
-              onChange={setSystemType}
-            />
-            <ParameterFilter
-              value={parameter}
-              onChange={setParameter}
-            />
-            <DaysFilter
-              value={days}
-              onChange={setDays}
-              options={[7, 30, 90]}
-            />
-          </FilterDropdown>
-
           {/* Trend Analysis Card */}
           {waterQualityTrends?.analysis && (
             <Card className="border-muted-foreground/30 p-4 mb-4">
@@ -141,8 +116,8 @@ export default function WaterQualityTrends() {
 
           {/* Trend Chart */}
           <ChartContainer 
-            title={`${parameter.toUpperCase()} Trend`}
-            subtitle={`Last ${days} days`}
+            title="pH Trend"
+            subtitle="Last 30 days"
             loading={loading}
           >
             <View className="px-4 py-4">
