@@ -2,13 +2,6 @@ import { create } from "zustand";
 import axiosInstance from "@/api/axiosInstance";
 import { handleAxiosError } from "@/api/handleAxiosError";
 import {
-  CropPerformanceData,
-  YieldSummaryData,
-  CropComparisonData,
-  WaterQualityHistoricalData,
-  WaterQualityTrendsData,
-  TreatmentPerformanceData,
-  TreatmentEfficiencyData,
   ReportsStore,
 } from "@/types/reports";
 
