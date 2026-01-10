@@ -10,45 +10,26 @@ import { ChartContainer } from '@/components/reports/ChartContainer';
 import { HealthStatusBadge } from '@/components/reports/HealthStatusBadge';
 import { GrowthStageBadge } from '@/components/reports/GrowthStageBadge';
 import { PieChart } from 'react-native-gifted-charts';
-import { FilterDropdown } from '@/components/reports/FilterDropdown';
-import { DateRangeFilter } from '@/components/reports/filters/DateRangeFilter';
-import { StatusFilter } from '@/components/reports/filters/StatusFilter';
 
 export default function CropPerformance() {
   const [refreshing, setRefreshing] = useState(false);
-  const [startDate, setStartDate] = useState(() => {
-    const date = new Date();
-    date.setDate(date.getDate() - 30);
-    return date.toISOString().split('T')[0];
-  });
-  const [endDate, setEndDate] = useState(() => new Date().toISOString().split('T')[0]);
-  const [status, setStatus] = useState<string>('active');
 
   const { cropPerformance, loading, fetchCropPerformance } = useReportsStore();
 
   useFocusEffect(
     useCallback(() => {
       loadData();
-    }, [startDate, endDate, status])
+    }, [])
   );
 
   const loadData = async () => {
-    await fetchCropPerformance({
-      status: status === 'all' ? undefined : status,
-      start_date: startDate,
-      end_date: endDate,
-    });
+    await fetchCropPerformance({});
   };
 
   const onRefresh = async () => {
     setRefreshing(true);
     await loadData();
     setRefreshing(false);
-  };
-
-  const handleDateRangeChange = (start: string, end: string) => {
-    setStartDate(start);
-    setEndDate(end);
   };
 
   // Prepare chart data
@@ -92,19 +73,6 @@ export default function CropPerformance() {
           showNotificationButton={false}
         />
         <View className="p-4">
-          {/* Filters */}
-          <FilterDropdown filterCount={status !== 'all' ? 1 : 0}>
-            <DateRangeFilter
-              startDate={startDate}
-              endDate={endDate}
-              onDateRangeChange={handleDateRangeChange}
-            />
-            <StatusFilter
-              value={status}
-              onChange={setStatus}
-            />
-          </FilterDropdown>
-
           {/* Growth Stage Distribution */}
           <ChartContainer 
             title="Growth Stage Distribution" 
@@ -229,7 +197,7 @@ export default function CropPerformance() {
                     <View className="flex-row justify-between mt-2">
                       <View>
                         <Text className="text-xs text-muted-foreground">
-                          pH: {item.current_parameters.ph !== null ? item.current_parameters.ph.toFixed(2) : 'N/A'}
+                          pH: {item.current_parameters.ph !== null ? item.current_parameters.ph : 'N/A'}
                         </Text>
                         <Text className="text-xs text-gray-500">
                           Target: {item.target_parameters.ph_min} - {item.target_parameters.ph_max}
@@ -237,7 +205,7 @@ export default function CropPerformance() {
                       </View>
                       <View>
                         <Text className="text-xs text-muted-foreground">
-                          TDS: {item.current_parameters.tds !== null ? item.current_parameters.tds.toFixed(0) : 'N/A'}
+                          TDS: {item.current_parameters.tds !== null ? item.current_parameters.tds : 'N/A'}
                         </Text>
                         <Text className="text-xs text-gray-500">
                           Target: {item.target_parameters.tds_min} - {item.target_parameters.tds_max}
@@ -245,7 +213,7 @@ export default function CropPerformance() {
                       </View>
                       <View>
                         <Text className="text-xs text-muted-foreground">
-                          EC: {item.current_parameters.ec !== null ? item.current_parameters.ec.toFixed(2) : 'N/A'}
+                          EC: {item.current_parameters.ec !== null ? item.current_parameters.ec : 'N/A'}
                         </Text>
                       </View>
                     </View>
