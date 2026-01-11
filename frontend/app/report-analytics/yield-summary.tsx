@@ -105,9 +105,9 @@ export default function YieldSummary() {
             <View className="flex-row gap-3">
               <View className="flex-1">
                 <StatCard
-                  title="Selling Grade"
-                  value={`${(yieldSummary?.grade_distribution?.selling?.count || 0)} items`}
-                  subtitle={`${(yieldSummary?.grade_distribution?.selling?.percentage || 0)}%`}
+                  title="Consumption"
+                  value={`${(yieldSummary?.grade_distribution?.consumption?.percentage || 0)}%`}
+                  subtitle={`${(yieldSummary?.grade_distribution?.consumption?.count || 0)} items`}
                   colorScheme="success"
                 />
               </View>
