@@ -2,6 +2,7 @@ import { create } from "zustand";
 import axiosInstance from "@/api/axiosInstance";
 import { handleAxiosError } from "@/api/handleAxiosError";
 import { useHydroponicSetupStore } from "./hydroponicSetupStore";
+import { useHarvestedStore } from "./harvestedStore";
 
 export const useYieldStore = create<YieldStore>((set) => ({
   loading: false,
@@ -38,6 +39,9 @@ export const useYieldStore = create<YieldStore>((set) => ({
       
       // Clear the hydroponic setups cache after marking as harvested
       useHydroponicSetupStore.getState().clearCache();
+      
+      // Clear the harvested store cache to refresh the harvested list
+      useHarvestedStore.getState().clearCache();
       
       set({ loading: false });
       return response.data;
