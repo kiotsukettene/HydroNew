@@ -18,6 +18,7 @@ import {
 import FailedDetailsModal from '../hydroponics-monitoring/failed-details';
 import { router } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { toast } from 'sonner-native';
 
 // Types 
 interface FiltrationStage {
@@ -43,6 +44,7 @@ export default function Filtration() {
   // Process control states
   const [isProcessStarted, setIsProcessStarted] = useState(false);
   const [isProcessFailed, setIsProcessFailed] = useState(false);
+  const [isProcessCompleted, setIsProcessCompleted] = useState(false);
   const [currentStage, setCurrentStage] = useState(0);
   const [buttonText, setButtonText] = useState("Start Process");
   const [showSuccessModal, setShowSuccessModal] = useState(false);
@@ -131,10 +133,22 @@ export default function Filtration() {
       saveStatus(2, 25);
       
       setTimeout(() => {
-        updateStageStatus(2, "failed", "Failed", "bg-red-500", "bg-red-50", "border-red-200", "bg-red-400");
-        setIsProcessFailed(true);
-        setButtonText("Re-start Process");
-        saveStatus(2, 50, true);
+        updateStageStatus(2, "completed", "Completed", "bg-green-300", "bg-green-50", "border-green-100", "bg-green-500");
+        setCurrentStage(3);
+        saveStatus(3, 50);
+        
+        setTimeout(() => {
+          updateStageStatus(3, "completed", "Completed", "bg-green-300", "bg-green-50", "border-green-100", "bg-green-500");
+          setCurrentStage(4);
+          saveStatus(4, 75);
+          
+          setTimeout(() => {
+            updateStageStatus(4, "failed", "Failed", "bg-red-500", "bg-red-50", "border-red-200", "bg-red-400");
+            setIsProcessFailed(true);
+            setButtonText("Re-start Process");
+            saveStatus(4, 75, true);
+          }, 2000);
+        }, 2000);
       }, 2000);
     }, 2000);
   };
@@ -143,23 +157,44 @@ export default function Filtration() {
   const restartProcess = () => {
     setIsProcessFailed(false);
     setButtonText("On process...");
-    saveStatus(2, 25);
+    setCurrentStage(0);
+    
+    // Reset all stages back to pending
+    setFiltrationStages(prev => prev.map(stage => ({
+      ...stage,
+      status: "pending",
+      statusText: "Pending",
+      bgColor: "bg-gray-300",
+      cardBgColor: "bg-gray-50",
+      borderColor: "border-gray-200",
+      statusBgColor: "bg-gray-400"
+    })));
+    
+    // Start from stage 1
+    setCurrentStage(1);
+    saveStatus(1, 0);
     
     setTimeout(() => {
-      updateStageStatus(2, "completed", "Completed", "bg-green-300", "bg-green-50", "border-green-100", "bg-green-500");
-      setCurrentStage(3);
-      saveStatus(3, 50);
+      updateStageStatus(1, "completed", "Completed", "bg-green-300", "bg-green-50", "border-green-100", "bg-green-500");
+      setCurrentStage(2);
+      saveStatus(2, 25);
       
       setTimeout(() => {
-        updateStageStatus(3, "completed", "Completed", "bg-green-300", "bg-green-50", "border-green-100", "bg-green-500");
-        setCurrentStage(4);
-        saveStatus(4, 75);
+        updateStageStatus(2, "completed", "Completed", "bg-green-300", "bg-green-50", "border-green-100", "bg-green-500");
+        setCurrentStage(3);
+        saveStatus(3, 50);
         
         setTimeout(() => {
-          updateStageStatus(4, "completed", "Completed", "bg-green-300", "bg-green-50", "border-green-100", "bg-green-500");
-          setButtonText("Process Complete");
-          saveStatus(4, 100);
-          setTimeout(() => setShowSuccessModal(true), 500);
+          updateStageStatus(3, "completed", "Completed", "bg-green-300", "bg-green-50", "border-green-100", "bg-green-500");
+          setCurrentStage(4);
+          saveStatus(4, 75);
+          
+          setTimeout(() => {
+            updateStageStatus(4, "completed", "Completed", "bg-green-300", "bg-green-50", "border-green-100", "bg-green-500");
+            setButtonText("Process Complete");
+            saveStatus(4, 100);
+            setTimeout(() => setShowSuccessModal(true), 500);
+          }, 2000);
         }, 2000);
       }, 2000);
     }, 2000);
@@ -201,10 +236,47 @@ export default function Filtration() {
     }
   };
 
+  // Function to handle Save Process button click
+  const handleSaveProcess = async () => {
+    try {
+      // Create filtration record
+      const filtrationRecord = {
+        id: Date.now().toString(),
+        date: new Date().toISOString(),
+        stages: filtrationStages.map(stage => ({
+          id: stage.id,
+          title: stage.title,
+          name: stage.name,
+          description: stage.description,
+          status: stage.status,
+          statusText: stage.statusText,
+        })),
+        completedAt: new Date().toISOString(),
+      };
+
+      // Get existing filtrations
+      const existingData = await AsyncStorage.getItem('filtration_list');
+      const filtrations = existingData ? JSON.parse(existingData) : [];
+      
+      // Add new filtration
+      filtrations.unshift(filtrationRecord);
+      
+      // Save back to AsyncStorage
+      await AsyncStorage.setItem('filtration_list', JSON.stringify(filtrations));
+      
+      toast.success("Mark successfully");
+      resetProcess();
+    } catch (error) {
+      console.error('Error saving filtration:', error);
+      toast.error("Failed to save filtration");
+    }
+  };
+
   // Function to reset the entire process
   const resetProcess = () => {
     setIsProcessStarted(false);
     setIsProcessFailed(false);
+    setIsProcessCompleted(false);
     setCurrentStage(0);
     setButtonText("Start Process");
     setShowSuccessModal(false);
@@ -305,13 +377,25 @@ export default function Filtration() {
               <Text className="text-xl sm:text-2xl font-bold mb-1">Water Filtration Process</Text>
               <Text className="text-foreground/80 text-sm sm:text-base">Real-time purification monitoring</Text>
             </View>
-            <Button 
-              onPress={handleButtonClick}
-              disabled={(isProcessStarted && !isProcessFailed) || buttonText === "Process Complete"}
-              className={(isProcessStarted && !isProcessFailed) || buttonText === "Process Complete" ? "opacity-50" : ""}
+            {!isProcessFailed && !isProcessCompleted && (
+              <Button 
+                onPress={handleButtonClick}
+                disabled={(isProcessStarted && !isProcessFailed) || buttonText === "Process Complete"}
+                className={(isProcessStarted && !isProcessFailed) || buttonText === "Process Complete" ? "opacity-50" : ""}
+              >
+                <Text>{buttonText}</Text>
+              </Button>
+            )}
+            
+          <View className='-mt-3'>
+          <Button 
+              variant="outline"
+              onPress={() => router.push('/filtration/filtration-list')}
+              className=""
             >
-              <Text>{buttonText}</Text>
+              <Text>View All Filtration</Text>
             </Button>
+          </View>
           
 
           <Card className="mt-0 flex-row items-center justify-between border-0 bg-emerald-50 p-3 sm:p-4">
@@ -429,6 +513,27 @@ export default function Filtration() {
               })}
             </View>
           </Card>
+          
+          {/* Re-start Process Button - appears below main content card when process fails */}
+          {isProcessFailed && (
+            <Button 
+              onPress={handleButtonClick}
+              className="mt-4"
+            >
+              <Text>Re-start Process</Text>
+            </Button>
+          )}
+          
+          {/* Save Process Button - appears below main content card after success modal */}
+          {isProcessCompleted && (
+            <Button 
+              onPress={handleSaveProcess}
+              className="mt-4"
+            >
+              <Text>Mark as Complete</Text>
+            </Button>
+          )}
+          
           </Card>
           </View>
           </ScrollView>
@@ -439,12 +544,12 @@ export default function Filtration() {
           visible={showSuccessModal}
           onClose={() => {
             setShowSuccessModal(false);
-            resetProcess();
+            setIsProcessCompleted(true);
           }}
           onViewDetails={() => {
             setShowSuccessModal(false);
-            router.push('/filtration/filtration-details');
-            resetProcess();
+            router.push('/filtration/filtration-list');
+            setIsProcessCompleted(true);
           }}
         />
       </SafeAreaView>
