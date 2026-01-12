@@ -12,7 +12,7 @@ import { PageHeader } from '@/components/ui/page-header';
 import { Text } from '@/components/ui/text';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { Minus, Plus, Search, X, MessageCircle } from 'lucide-react-native'; // ✅ Added X icon
+import { Minus, Plus, Search, X, MessageCircle } from 'lucide-react-native';
 import { useHelpCenterStore } from '@/store/auth/helpCenterStore';
 import { router } from 'expo-router';
 
@@ -42,20 +42,20 @@ export default function FAQ() {
 
   const handleClearSearch = async () => {
     setSearchTerm('');
-    await fetchHelpCenter(1); // Reset to page 1 and clear search filter
+    await fetchHelpCenter(1);
   };
 
   const toggleExpanded = (index: number) => {
     setExpandedItems((prev) =>
-      prev.includes(index) ? prev.filter((item) => item !== index) : [...prev, index]
+      prev.includes(index)
+        ? prev.filter((item) => item !== index)
+        : [...prev, index]
     );
   };
 
-  // Helper to highlight matched text
   const highlightText = (text: string, keyword: string) => {
     if (!keyword) return <Text>{text}</Text>;
 
-    // Escape regex special chars for safety
     const escapedKeyword = keyword.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
     const regex = new RegExp(`(${escapedKeyword})`, 'gi');
     const parts = text.split(regex);
@@ -64,7 +64,10 @@ export default function FAQ() {
       <Text>
         {parts.map((part, index) =>
           regex.test(part) ? (
-            <Text key={index} className="rounded bg-yellow-100 font-semibold text-primary">
+            <Text
+              key={index}
+              className="rounded bg-yellow-100 font-semibold text-primary"
+            >
               {part}
             </Text>
           ) : (
@@ -78,13 +81,14 @@ export default function FAQ() {
   return (
     <View className="flex-1">
       <ScrollView>
-        <SafeAreaView className="p-4">
+        <SafeAreaView className="flex-1">
           <PageHeader title="Help Center" />
 
-          <View className="items-center">
-            <Text className="mt-7 text-2xl text-primary">How can we help you?</Text>
+          <View className="items-center p-4">
+            <Text className="mt-7 text-2xl text-primary">
+              How can we help you?
+            </Text>
 
-            {/* Search Bar with Clear Button */}
             <View className="mt-3 flex-row items-center rounded-xl border border-muted-foreground/30 px-3 py-1">
               <Search size={18} color="#888" />
               <TextInput
@@ -96,9 +100,11 @@ export default function FAQ() {
                 returnKeyType="search"
               />
 
-              {/*  Show clear (X) only when text exists */}
               {searchTerm.length > 0 && (
-                <TouchableOpacity onPress={handleClearSearch} className="px-1">
+                <TouchableOpacity
+                  onPress={handleClearSearch}
+                  className="px-1"
+                >
                   <X size={18} color="#888" />
                 </TouchableOpacity>
               )}
@@ -109,8 +115,10 @@ export default function FAQ() {
             </View>
           </View>
 
-          <View className="mt-8 flex flex-row items-center justify-between">
-            <Text className="text-lg font-semibold text-primary">Frequently Asked Questions</Text>
+          <View className="mt-8 flex-row items-center justify-between px-4">
+            <Text className="text-lg font-semibold text-primary">
+              Frequently Asked Questions
+            </Text>
           </View>
 
           {loading && (
@@ -126,14 +134,19 @@ export default function FAQ() {
           )}
 
           {!loading && !error && (
-            <View className="mt-4 gap-5 space-y-3">
+            <View className="mt-4 gap-5 p-4">
               {items.length === 0 ? (
-                <Text className="mt-6 text-center text-gray-500">No results found.</Text>
+                <Text className="mt-6 text-center text-gray-500">
+                  No results found.
+                </Text>
               ) : (
                 items.map((item, index) => {
                   const isExpanded = expandedItems.includes(index);
                   return (
-                    <Card key={item.id} className="rounded-xl border border-gray-200">
+                    <Card
+                      key={item.id}
+                      className="rounded-xl border border-gray-200"
+                    >
                       <Pressable onPress={() => toggleExpanded(index)}>
                         <CardContent className="p-4">
                           <View className="flex-row items-center justify-between">
@@ -146,14 +159,6 @@ export default function FAQ() {
                               <Plus size={20} color="#445104" />
                             )}
                           </View>
-
-                          {isExpanded && (
-                            <View className="mt-3 border-t border-muted-foreground/20 pt-3">
-                              <Text className="text-sm leading-5 text-gray-700">
-                                {highlightText(item.answer, searchTerm)}
-                              </Text>
-                            </View>
-                          )}
                         </CardContent>
                       </Pressable>
                     </Card>
@@ -164,8 +169,12 @@ export default function FAQ() {
           )}
 
           {!loading && !error && items.length > 0 && (
-            <View className="mt-6 flex flex-row items-center justify-between">
-              <Button variant="outline" onPress={prevPage} disabled={currentPage === 1}>
+            <View className="mt-6 flex-row items-center justify-between px-4">
+              <Button
+                variant="outline"
+                onPress={prevPage}
+                disabled={currentPage === 1}
+              >
                 <Text>Prev</Text>
               </Button>
 
@@ -173,7 +182,11 @@ export default function FAQ() {
                 Page {currentPage} of {lastPage}
               </Text>
 
-              <Button variant="outline" onPress={nextPage} disabled={currentPage === lastPage}>
+              <Button
+                variant="outline"
+                onPress={nextPage}
+                disabled={currentPage === lastPage}
+              >
                 <Text>Next</Text>
               </Button>
             </View>
@@ -181,17 +194,14 @@ export default function FAQ() {
         </SafeAreaView>
       </ScrollView>
 
-      {/* Ask a question Button */}
-
       <Button
-      size='sm'
-        className="absolute bottom-6 right-6 bg-primary rounded-full "
-        onPress={() => router.replace('/ask-question')}>
-        <Text className='text-muted'>Ask a question</Text>
+        size="sm"
+        className="absolute bottom-6 right-6 rounded-full bg-primary"
+        onPress={() => router.replace('/ask-question')}
+      >
+        <Text className="text-muted">Ask a question</Text>
         <MessageCircle size={18} color="#fff" />
       </Button>
-
-
     </View>
   );
 }

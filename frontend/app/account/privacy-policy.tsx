@@ -7,12 +7,10 @@ import { PageHeader } from '@/components/ui/page-header';
 export default function PrivacyPolicy() {
   return (
      <SafeAreaView className='flex-1'>
-
-      {/* ================= Title  ==================== */}
       <PageHeader title="Privacy Policy" showNotificationButton={false} />
 
-      <View className='px-4 pt-2 flex-1'>
-        
+      <View className='px-4 pt-4 flex-1'>
+        {/* ================= Title  ==================== */}
         <ScrollView
           showsVerticalScrollIndicator={true}
           contentContainerStyle={{ flexGrow: 1 }}
