@@ -4,6 +4,8 @@ import { handleAxiosError } from "@/api/handleAxiosError";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useAccountStore } from "../account/accountStore";
 import { Platform } from "react-native";
+import { disconnectEcho } from "@/lib/echo";
+import { useNotificationStore } from "../notification/notificationStore";
 
 const isWeb = Platform.OS === "web";
 
@@ -39,6 +41,11 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   fieldErrors: {},
   message: null,
   needsVerification: false,
+  userEmail: "",
+  setNeedsVerification: (value: boolean) => set({ needsVerification: value }),
+  setUserEmail: (email: string) => set({ userEmail: email }),
+  setUser: (user) => set({ user }),
+  setToken: (token) => set({ token }),
 
   resetErrors: () =>
     set({
@@ -80,6 +87,11 @@ login: async (email, password) => {
     }
 
     await storage.setItem("token", token);
+    if (user) {
+      await AsyncStorage.setItem("user", JSON.stringify(user));
+    } else {
+      await AsyncStorage.removeItem("user");
+    }
 
     set({
       loading: false,
@@ -92,12 +104,10 @@ login: async (email, password) => {
     return response.data;
   } catch (err: any) {
     const { message, fieldErrors } = handleAxiosError(err);
-    console.error("Login error:", message);
     set({ loading: false, error: message, fieldErrors });
     return null;
   }
 },
-
 
 
   verifyOtp: async (otp: string) => {
@@ -148,7 +158,6 @@ login: async (email, password) => {
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
-      console.log("OTP resent:", response.data);
       set({
         loading: false,
         message: response.data.message,
@@ -160,6 +169,16 @@ login: async (email, password) => {
   },
 
   logout: async () => {
+     // Get user ID before clearing state
+    const user = get().user;
+    
+    // Stop listening to notifications
+    if (user?.id) {
+      useNotificationStore.getState().stopListening(user.id);
+    }
+    
+    // Disconnect Echo
+    disconnectEcho();
     await storage.removeItem("token");
     set({
       user: null,

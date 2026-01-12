@@ -8,11 +8,13 @@ export const hydroponicSchema = z
       .number()
       .min(1, "Number of crops must be a positive number"),
 
-    bed_size: z.enum(["small", "medium", "large"], {
+    bed_size: z.enum(["small", "medium", "large", "custom"], {
       required_error: "Bed size is required",
     }),
 
     nutrient_solution: z.string().nullable().optional(),
+    
+    harvest_date: z.string().min(1, "Harvest date is required"),
 
     target_ph_min: z.preprocess(
       (val) => (val === "" || val === null ? undefined : Number(val)),

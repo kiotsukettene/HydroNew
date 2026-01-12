@@ -45,7 +45,7 @@ export default function NoSetup({ onToggleSetup }: NoSetupProps) {
               No Hydroponics Setup
             </Text>
             
-            <Text className="text-center text-gray-600 dark:text-gray-300 mb-6 text-base md:text-lg leading-6 md:leading-7 px-4 md:px-8 max-w-lg">
+            <Text className="text-center text-muted-foreground mb-6 text-base md:text-lg leading-6 md:leading-7 px-4 md:px-8 max-w-lg">
               Connect your hydroponics device to start monitoring your plants
             </Text>
             
@@ -62,7 +62,7 @@ export default function NoSetup({ onToggleSetup }: NoSetupProps) {
              
           {/* =========== Setup Instructions =========== */}
           <Card className="px-4 md:px-8 py-4 md:py-6 mx-0 md:mx-0 border-muted-foreground/50">
-            <Text className="text-lg md:text-xl font-semibold text-gray-800 dark:text-gray-200 mb-4">
+            <Text className="text-lg md:text-xl font-semibold  mb-2">
               How to Get Started
             </Text>
             
@@ -75,10 +75,10 @@ export default function NoSetup({ onToggleSetup }: NoSetupProps) {
                   </Text>
                 </View>
                 <View className="flex-1">
-                  <Text className="text-gray-800 dark:text-gray-200 font-medium mb-1 text-base md:text-lg">
+                  <Text className=" font-medium mb-1 text-base md:text-lg">
                     Connect Your Device
                   </Text>
-                  <Text className="text-gray-600 dark:text-gray-400 text-sm md:text-base">
+                  <Text className="text-muted-foreground text-sm md:text-base">
                     Make sure your hydroponics device is powered on and connected to WiFi
                   </Text>
                 </View>
@@ -90,17 +90,17 @@ export default function NoSetup({ onToggleSetup }: NoSetupProps) {
               </View>
 
               {/* Step 2 */}
-              <View className="flex-row items-start">
+              <View className="flex-row items-start mt-3">
                 <View className="w-6 h-6 md:w-8 md:h-8 rounded-full bg-primary items-center justify-center mr-3 mt-1">
                   <Text className="text-white font-bold text-xs md:text-sm">
                     2
                   </Text>
                 </View>
                 <View className="flex-1">
-                  <Text className="text-gray-800 dark:text-gray-200 font-medium mb-1 text-base md:text-lg">
+                  <Text className=" font-medium mb-1 text-base md:text-lg">
                     Pair with App
                   </Text>
-                  <Text className="text-gray-600 dark:text-gray-400 text-sm md:text-base">
+                  <Text className="text-muted-foreground text-sm md:text-base">
                     Use the device's QR code or manual pairing to connect
                   </Text>
                 </View>
