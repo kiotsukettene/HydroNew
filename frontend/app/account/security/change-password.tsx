@@ -182,15 +182,19 @@ export default function SecuritySettings() {
               )}
             </View>
 
+            <View className="mt-2">
             <PasswordStrengthMeter password={newPassword} />
+            </View>
+
+            
           </View>
 
-          <View className="w-full px-4 mb-4">
+          <View className="w-full px-4 mt-4">
             <Button
               className="bg-primary py-3 rounded-full"
               onPress={() => setShowModal(true)}
             >
-              <Text className="text-white text-center font-poppins-medium">
+              <Text className="text-center font-poppins-medium">
                 Change Password
               </Text>
             </Button>

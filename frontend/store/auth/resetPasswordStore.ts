@@ -7,18 +7,20 @@ export const useResetPasswordStore = create<ResetPasswordStore>((set) => ({
   message: null,
   email: null,
   resetToken: null,
-
+  resetTimer: 0,
   setEmail: (email) => set({ email }),
 
   resetPassword: async (email) => {
     set({ loading: true, error: null, message: null });
     try {
       await axiosInstance.post('/forgot-password', { email });
-      set({ message: 'Password reset code sent successfully.', email });
+      set({ message: 'Password reset code sent successfully.', email, loading: false });
+
     } catch (error: any) {
       const message =
         error?.response?.data?.message ?? error?.message ?? String(error);
-      set({ error: message });
+        set({ error: message, loading: false });
+        throw error;
     } finally {
       set({ loading: false });
     }
@@ -36,11 +38,12 @@ export const useResetPasswordStore = create<ResetPasswordStore>((set) => ({
       set({
         message: 'Code verified successfully.',
         resetToken: token,
+        loading: false,
       });
     } catch (error: any) {
       const message =
         error?.response?.data?.message ?? error?.message ?? String(error);
-      set({ error: message });
+      set({ error: message, loading: false });
       throw error;
     } finally {
       set({ loading: false });
@@ -56,14 +59,31 @@ export const useResetPasswordStore = create<ResetPasswordStore>((set) => ({
         reset_token: resetToken,
         password_confirmation: confirm_password,
       });
-      set({ message: 'Password reset successfully.', email: null, resetToken: null });
+      set({ message: 'Password reset successfully.', email: null, resetToken: null, loading: false });
     } catch (error: any) {
       const message =
         error?.response?.data?.message ?? error?.message ?? String(error);
-      set({ error: message });
+      set({ error: message, loading: false });
+      throw error;
     } finally {
       set({ loading: false });
     }
   },
+
+  resendResetCode: async (email) => {
+    set({ loading: false, error: null, message: null });
+    try {
+      await axiosInstance.post('/resend-reset-code', { email });
+      set({ message: 'Reset code resent successfully.' });
+    } catch (error: any) {
+      const message =
+        error?.response?.data?.message ?? error?.message ?? String(error);
+      set({ error: message });
+      throw error;
+    } finally {
+      set({ loading: false });
+    }
+  },
+
 
 }));

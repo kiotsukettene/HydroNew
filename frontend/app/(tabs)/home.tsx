@@ -1,5 +1,5 @@
 import { View, Image, TouchableOpacity, ScrollView, Pressable, ActivityIndicator } from 'react-native';
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Button } from '@/components/ui/button';
 import {
@@ -8,14 +8,74 @@ import {
   ChartColumn,
   History,
   Leaf,
-
+  Settings,
+  ChevronRight,
 } from 'lucide-react-native';
 import { Card, CardContent } from '@/components/ui/card';
 import { Text } from '@/components/ui/text';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useFocusEffect } from 'expo-router';
+import { NotificationBadge } from '@/components/ui/notification-badge';
 
 import type { HomeProps } from '@/types/home';
 import { useRouter } from 'expo-router';
 import { useDashboardStore } from '@/store/auth/dashboardStore';
+import { useNotificationStore } from '@/store/notification/notificationStore';
+
+import { db } from '@/src/firebase';
+import { onValue, ref } from 'firebase/database';
+
+interface SensorData {
+  ph: number;
+  
+}
+
+// Filtration Banner Component
+function FiltrationBanner() {
+  const router = useRouter();
+  const [status, setStatus] = useState<string | null>(null);
+
+  useFocusEffect(
+    React.useCallback(() => {
+      AsyncStorage.getItem('filtration_status')
+        .then(val => val && setStatus(val))
+        .catch(() => {});
+    }, [])
+  );
+
+  if (!status) return null;
+
+  let parsed;
+  try {
+    parsed = JSON.parse(status);
+  } catch {
+    return null;
+  }
+
+  const hasFailed = parsed.hasFailed || false;
+  const stage = parsed.currentStage || 'Stage 1';
+  const progress = parsed.progress || '25% Complete';
+
+  return (
+    <TouchableOpacity
+      onPress={() => router.push('/(tabs)/filtration')}
+      className="mt-5 rounded-xl p-4 flex-row items-center justify-between"
+      style={{ backgroundColor: hasFailed ? '#dc2626' : '#16a34a' }}
+      activeOpacity={0.8}
+    >
+      <View className="flex-row items-center flex-1">
+        <Settings size={20} color="#ffffff" strokeWidth={2.5} />
+        <Text className="ml-3 text-base font-bold text-white">
+          {hasFailed ? 'Filtration Failed' : 'Filtration Running'}
+        </Text>
+      </View>
+      <View className="flex-row items-center">
+        <Text className="text-sm text-white mr-2">{stage} - {progress}</Text>
+        <ChevronRight size={18} color="#ffffff" />
+      </View>
+    </TouchableOpacity>
+  );
+}
 
 export default function Home() {
 
@@ -33,7 +93,28 @@ export default function Home() {
   // };
 
   const { data, loading, error, fetchDashboard } = useDashboardStore();
+  const unreadCount = useNotificationStore((s) => s.unreadCount);
+  //firebase data fetching
+   const [sensorData, setSensorData] = useState<SensorData | null>(null);
+  const [latestKey, setLatestKey] = useState<string | null>(null);
+    useEffect(() => {
+      const sensorRef = ref(db, 'sensorData/');
+      const unsubscribe = onValue(sensorRef, (snapshot) => {
+        const data = snapshot.val();
+        if (!data) return;
   
+        // Get the latest entry (Firebase push key)
+        const keys = Object.keys(data);
+        const newKey = keys[keys.length - 1];
+        const latestData = data[newKey];
+  
+         setLatestKey(newKey);
+        setSensorData(latestData);
+      });
+
+      return () => unsubscribe();
+    }, [latestKey]);
+
   useEffect(() => {
     fetchDashboard();
   }, []);
@@ -76,7 +157,7 @@ export default function Home() {
               <Text className="text-2xl font-semibold ">{userName}!</Text>
             </View>
             <Button variant={'ghost'} onPress={() => router.push('/notifications')}>
-              <BellIcon size={22} strokeWidth={3} color={'#445104'} />
+              <NotificationBadge count={unreadCount} size={22} color={'#445104'} strokeWidth={3} />
             </Button>
           </View>
 
@@ -93,7 +174,7 @@ export default function Home() {
               {/* pH Level */}
               <View className="absolute left-6 top-9 z-10">
                 <Text className="text-5xl font-bold text-[#2D7D7D]">
-                  {waterQuality.pHLevel}
+                  {sensorData ? sensorData.ph : '--'}
                 </Text>
                 <Text className="text-lg font-semibold text-foreground/70">pH Level</Text>
               </View>
@@ -160,6 +241,9 @@ export default function Home() {
                 </View>
               </TouchableOpacity>
             </View>
+
+            {/* ===== Filtration Running Banner ===== */}
+            <FiltrationBanner />
 
             {/* ===== Quick Actions ===== */}
             <View className="mt-6 sm:mt-7 md:mt-8">
