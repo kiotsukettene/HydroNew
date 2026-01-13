@@ -23,7 +23,7 @@ export default function WaterQualityHistorical() {
   );
 
   const loadData = async () => {
-    await fetchWaterQualityHistorical('hydroponics_water', {
+    await fetchWaterQualityHistorical('dirty_water', {
       interval: 'daily',
     });
   };
@@ -80,7 +80,7 @@ export default function WaterQualityHistorical() {
                         </View>
                         <View>
                           <Text className="text-xs text-muted-foreground">Avg</Text>
-                          <Text className="text-sm font-semibold text-primary">{(stats.avg || 0).toFixed(2)}</Text>
+                          <Text className="text-sm font-semibold text-primary">{(stats.average || 0).toFixed(2)}</Text>
                         </View>
                         <View>
                           <Text className="text-xs text-muted-foreground">Max</Text>

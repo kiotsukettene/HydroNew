@@ -110,7 +110,7 @@ interface WaterQualityReading {
 interface StatisticalSummary {
   min: number;
   max: number;
-  avg: number;
+  average: number;
 }
 
 export interface WaterQualityHistoricalData {
