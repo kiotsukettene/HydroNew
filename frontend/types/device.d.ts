@@ -8,7 +8,7 @@ export interface DeviceStore {
   loading: boolean;
   error: string | null;
 
-  connectDeviceToWifi: (ssid: string, password?: string) => Promise<any>;
+  connectDeviceToWifi: (ssid: string, password?: string, pairingToken?: string) => Promise<any>;
   getPairingToken: () => Promise<string | undefined>;
 }
 

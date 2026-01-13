@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Modal, View, TouchableOpacity, Platform, Linking} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Text } from "@/components/ui/text";
@@ -20,7 +20,20 @@ export default function WifiModal({ visible, onClose, onConnect }: WifiModalProp
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [showPhoneWifiPrompt, setShowPhoneWifiPrompt] = useState(false);
-  const { connectDeviceToWifi, loading, error } = useDeviceStore();
+  const { connectDeviceToWifi, loading, error, getPairingToken } = useDeviceStore();
+  const [pairingToken, setPairingToken] = useState<string | undefined>(undefined);
+
+  useEffect(() => {
+    if (visible) {
+      // Prefetch the token when modal opens
+      getPairingToken().then(token => {
+        if (token) setPairingToken(token);
+        console.log("Fetched pairing token:", token);
+      });
+    } else {
+      setPairingToken(undefined);
+    }
+  }, [visible]);
 
 const handleConnect = async () => {
   if (!ssid.trim() || !password.trim()) {
@@ -29,27 +42,22 @@ const handleConnect = async () => {
   }
 
   try {
-    const device = await connectDeviceToWifi(ssid, password);
-
-    if (!device) {
-      console.error("Device pairing failed");
+    const device = await connectDeviceToWifi(ssid, password, pairingToken);
+    console.log("credentials:", ssid, password);
+    if (!device || device.status === "error") {
+      console.error("Device failed to connect to WiFi:", device?.message || "Unknown error");
       return;
     }
 
-    console.log("Paired device info:", device);
-
-  if (!device?.id) {
-  console.error("Invalid device returned from backend");
-  return;
-  }
-    onConnect({ ssid, password, device });
-
+    console.log("Device connected to WiFi successfully:", device);
     setShowPhoneWifiPrompt(true);
 
-  } catch (error) {
-    console.error("Error connecting device:", error);
+  } catch (error: any) {
+    console.error("Error connecting device:", error.message || error);
   }
 };
+
+
 
 
 const resetWifiModal = () => {

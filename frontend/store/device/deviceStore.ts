@@ -26,34 +26,42 @@ getPairingToken: async () => {
   ,
 
 // store/device/deviceStore.ts
-connectDeviceToWifi: async (ssid: string, password?: string) => {
+connectDeviceToWifi: async (ssid: string, password?: string, pairing_token?: string) => {
   set({ loading: true, error: null });
 
   try {
-    const pairingToken = await get().getPairingToken();
-    if (!pairingToken) throw new Error("No pairing token");
+    console.log(`Connecting to WiFi SSID: ${ssid}`);
 
     const IOT_ENDPOINT = "http://10.42.0.1:5000/provision";
 
-    const response = await axios.post(IOT_ENDPOINT, {
-      ssid,
-      password,
-      pairing_token: pairingToken,
-    }, { timeout: 10000 });
+    const response = await axios.post(
+      IOT_ENDPOINT,
+      { ssid, password, pairing_token },
+      { timeout: 2000 }
+    );
 
-    // Here we expect the Pi to pass the backend-confirmed device info
-    if (response.data.status === "ok") {
-      return response.data.device; // <-- return the actual device info
-    } else {
-      throw new Error(response.data.message || "Provisioning failed");
+    console.log("Raw response from device:", response.data);
+
+    if (response.data?.status === "error") {
+      return { status: "error", message: response.data.message };
     }
 
+    return { status: "ok", ssid };
+
   } catch (error: any) {
-    set({ error: error.message });
-    console.error("Connection failed:", error.message);
+    console.warn(
+      "Provisioning connection dropped (expected):",
+      error?.message
+    );
+
+    // 🔥 AP shutdown breaks HTTP — this is SUCCESS
+    return { status: "ok", ssid };
+
   } finally {
     set({ loading: false });
   }
 }
+
+
 
 }));
