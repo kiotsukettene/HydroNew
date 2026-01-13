@@ -28,16 +28,16 @@ export default function SecuritySetting() {
     // {
     //   icon:LogIn, title: 'Login History', link: ''
     // },
-    {
-      icon:Trash, title: 'Delete Account', link: '/account/security/delete-account'
-    }
+    // {
+    //   icon:Trash, title: 'Delete Account', link: '/account/security/delete-account'
+    // }
   ];
 
   return (
     <SafeAreaView className='flex-1 bg-background'>
       <View className='px-4 flex-1 items-center'>
           <PageHeader title="Security Settings" showNotificationButton={false} />
-        <View className='size-24 bg-[#BFF1CC] rounded-full justify-center items-center mt-6'>
+        <View className='size-24 bg-primary/20 rounded-full justify-center items-center mt-6'>
           <ShieldCheck size={60} color="#166534" />
         </View>
         <View className="w-full flex-1 mt-6">
