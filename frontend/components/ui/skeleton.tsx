@@ -1,11 +1,19 @@
 import { cn } from '@/lib/utils';
+import React from 'react';
 import { View } from 'react-native';
 
-function Skeleton({
-  className,
-  ...props
-}: React.ComponentProps<typeof View> & React.RefAttributes<View>) {
-  return <View className={cn('bg-accent animate-pulse rounded-md', className)} {...props} />;
-}
+const Skeleton = React.forwardRef<View, React.ComponentProps<typeof View>>(
+  ({ className, ...props }, ref) => {
+    return (
+      <View
+        ref={ref}
+        className={cn('bg-gray-200 rounded-md', className)}
+        {...props}
+      />
+    );
+  }
+);
+
+Skeleton.displayName = 'Skeleton';
 
 export { Skeleton };
