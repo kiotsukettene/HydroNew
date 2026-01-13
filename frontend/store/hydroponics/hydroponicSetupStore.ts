@@ -42,6 +42,27 @@ export const useHydroponicSetupStore = create<HydroponicSetupStore>((set, get) =
     }
   },
 
+  updateHydroponicSetup: async (setupId, data) => {
+    set({ loading: true, error: null });
+    try {
+      const response = await axiosInstance.put(`/hydroponic-setups/${setupId}`, data);
+      // Clear cache after updating setup to force fresh data fetch
+      set({ cache: {} });
+      // Update currentSetup if it matches the updated setup
+      const { currentSetup } = get();
+      if (currentSetup && currentSetup.id === setupId) {
+        set({ currentSetup: response.data.data });
+      }
+      console.log("Hydroponic setup updated:", response.data);
+    } catch (err: any) {
+      const { message } = handleAxiosError(err);
+      console.error("Hydroponic setup update failed:", message);
+      set({ error: message });
+    } finally {
+      set({ loading: false });
+    }
+  },
+
   fetchHydroponicSetups: async (page = 1, forceRefresh = false) => {
     const cacheKey = `${page}`;
     const { cache } = get();
