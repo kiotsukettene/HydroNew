@@ -164,12 +164,14 @@ export default function WaterQualityTrends() {
           {waterQualityTrends?.datasets && Object.entries(waterQualityTrends.datasets).map(([paramKey, dataset]) => {
             const chartData = prepareChartData(paramKey);
             const color = PARAMETER_COLORS[paramKey] || 'hsl(173 58% 39%)';
+            const trend = waterQualityTrends.trends[paramKey];
+            const trendText = trend ? trend.charAt(0).toUpperCase() + trend.slice(1) : 'No Data';
             
             return (
               <View key={paramKey} className="mb-4">
                 <ChartContainer 
                   title={dataset.label}
-                  subtitle={`Last ${days} days • Unit: ${dataset.unit}`}
+                  subtitle={`Last ${days} days • Trend: ${trendText}`}
                   loading={loading}
                 >
                 <View className="px-4 py-4">

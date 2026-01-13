@@ -122,46 +122,13 @@ export default function YieldSummary() {
             </View>
           </View>
 
-          {/* Weight by Crop Chart */}
-          <ChartContainer 
-            title="Weight by Crop Type" 
-            subtitle="Total harvest weight per crop"
-            loading={loading}
-          >
-            <View className="px-4 py-4">
-              {weightByCropData.length > 0 ? (
-                <BarChart
-                  data={weightByCropData}
-                  height={250}
-                  barWidth={40}
-                  spacing={30}
-                  initialSpacing={20}
-                  endSpacing={20}
-                  noOfSections={5}
-                  yAxisThickness={1}
-                  xAxisThickness={1}
-                  xAxisColor="hsl(0 0% 89.8%)"
-                  yAxisColor="hsl(0 0% 89.8%)"
-                  yAxisTextStyle={{ color: 'hsl(0 0% 45.1%)', fontSize: 12 }}
-                  xAxisLabelTextStyle={{ color: 'hsl(0 0% 45.1%)', fontSize: 12 }}
-                  rulesColor="hsl(0 0% 89.8%)"
-                  rulesType="solid"
-                  showVerticalLines
-                  verticalLinesColor="hsl(0 0% 89.8%)"
-                  adjustToWidth={true}
-                />
-              ) : (
-                <Text className="text-center text-muted-foreground py-8">No data available</Text>
-              )}
-            </View>
-          </ChartContainer>
-
           {/* Grade Distribution */}
-          <ChartContainer 
-            title="Grade Distribution" 
-            subtitle="Quality breakdown of harvests"
-            loading={loading}
-          >
+          <View className="mb-4">
+            <ChartContainer 
+              title="Grade Distribution" 
+              subtitle="Quality breakdown of harvests"
+              loading={loading}
+            >
             <View className="items-center py-4">
               {gradeDistributionData.length > 0 ? (
                 <>
@@ -195,7 +162,44 @@ export default function YieldSummary() {
                 <Text className="text-muted-foreground">No data available</Text>
               )}
             </View>
-          </ChartContainer>
+            </ChartContainer>
+          </View>
+
+          {/* Weight by Crop Chart */}
+          <View className="mb-4">
+            <ChartContainer 
+              title="Weight by Crop Type" 
+              subtitle="Total harvest weight per crop"
+              loading={loading}
+            >
+            <View className="px-4 py-4">
+              {weightByCropData.length > 0 ? (
+                <BarChart
+                  data={weightByCropData}
+                  height={250}
+                  barWidth={40}
+                  spacing={30}
+                  initialSpacing={20}
+                  endSpacing={20}
+                  noOfSections={5}
+                  yAxisThickness={1}
+                  xAxisThickness={1}
+                  xAxisColor="hsl(0 0% 89.8%)"
+                  yAxisColor="hsl(0 0% 89.8%)"
+                  yAxisTextStyle={{ color: 'hsl(0 0% 45.1%)', fontSize: 12 }}
+                  xAxisLabelTextStyle={{ color: 'hsl(0 0% 45.1%)', fontSize: 12 }}
+                  rulesColor="hsl(0 0% 89.8%)"
+                  rulesType="solid"
+                  showVerticalLines
+                  verticalLinesColor="hsl(0 0% 89.8%)"
+                  adjustToWidth={true}
+                />
+              ) : (
+                <Text className="text-center text-muted-foreground py-8">No data available</Text>
+              )}
+            </View>
+            </ChartContainer>
+          </View>
 
           {!loading && !yieldSummary && (
             <View className="p-6 items-center">
