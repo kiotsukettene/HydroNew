@@ -136,7 +136,40 @@ interface TrendAnalysis {
   percentage_change: number;
 }
 
+interface ParameterDataset {
+  label: string;
+  data: number[];
+  target_min: number | null;
+  target_max: number | null;
+  unit: string;
+  current_reading: string;
+  historical_average: number;
+  deviation_count: number;
+}
+
+interface ParameterStatistics {
+  min: number;
+  max: number;
+  average: number;
+  median: number;
+}
+
 export interface WaterQualityTrendsData {
+  labels: string[];
+  datasets: {
+    [key: string]: ParameterDataset;
+  };
+  statistics: {
+    [key: string]: ParameterStatistics;
+  };
+  trends: {
+    [key: string]: 'improving' | 'stable' | 'declining';
+  };
+  recommendations: string[];
+}
+
+// Legacy type for backwards compatibility
+export interface WaterQualityTrendsDataLegacy {
   system_type: 'dirty_water' | 'clean_water' | 'hydroponics_water';
   parameter: 'ph' | 'tds' | 'ec' | 'turbidity' | 'temperature' | 'humidity';
   days: number;
@@ -260,7 +293,7 @@ export interface ReportsStore {
   
   fetchWaterQualityTrends: (
     systemType: 'dirty_water' | 'clean_water' | 'hydroponics_water',
-    parameter: 'ph' | 'tds' | 'ec' | 'turbidity' | 'temperature' | 'humidity',
+    parameter: 'ph' | 'tds' | 'ec' | 'turbidity' | 'temperature' | 'humidity' | '',
     days: number
   ) => Promise<void>;
   
@@ -291,7 +324,7 @@ export interface DateRangeFilter {
 
 export type SystemType = 'dirty_water' | 'clean_water' | 'hydroponics_water';
 export type WaterParameter = 'ph' | 'tds' | 'ec' | 'turbidity' | 'temperature' | 'humidity';
-export type TrendDirection = 'improving' | 'stable' | 'declining';
+export type TrendDirection = 'improving' | 'stable' | 'declining' | 'insufficient_data';
 export type HealthStatus = 'good' | 'moderate' | 'poor';
 export type GrowthStage = 'seedling' | 'vegetative' | 'flowering' | 'harvest-ready';
 
