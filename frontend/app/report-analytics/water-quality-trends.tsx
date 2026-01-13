@@ -127,12 +127,6 @@ export default function WaterQualityTrends() {
                       </View>
                       <View className="flex-row gap-4">
                         <View className="flex-1">
-                          <Text className="text-xs text-muted-foreground">Current</Text>
-                          <Text className="text-lg font-bold text-primary">
-                            {dataset.current_reading} {dataset.unit}
-                          </Text>
-                        </View>
-                        <View className="flex-1">
                           <Text className="text-xs text-muted-foreground">Average</Text>
                           <Text className="text-lg font-semibold text-gray-700">
                             {stats.average.toFixed(2)} {dataset.unit}
@@ -155,7 +149,7 @@ export default function WaterQualityTrends() {
                       {dataset.deviation_count > 0 && (
                         <View className="mt-2 bg-yellow-50 rounded-lg p-2">
                           <Text className="text-xs text-yellow-800">
-                            {dataset.deviation_count} deviation{dataset.deviation_count > 1 ? 's' : ''} detected
+                            {dataset.deviation_count} out of range{dataset.deviation_count > 1} readings
                           </Text>
                         </View>
                       )}
