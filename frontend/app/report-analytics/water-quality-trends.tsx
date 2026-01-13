@@ -79,7 +79,7 @@ export default function WaterQualityTrends() {
         <View className="p-4">
           {/* System Type Filter */}
           <Card className="border-muted-foreground/30 p-3 mb-4">
-            <Text className="text-sm font-semibold text-gray-700 mb-2">System Type</Text>
+            <Text className="text-sm font-semibold text-gray-700 mb-0">System Type</Text>
             <View className="flex-row gap-2">
               {SYSTEM_TYPES.map((type) => (
                 <TouchableOpacity
@@ -92,7 +92,7 @@ export default function WaterQualityTrends() {
                   }`}
                 >
                   <Text
-                    className={`text-center text-sm font-medium ${
+                    className={`text-center text-xs font-medium ${
                       systemType === type.value ? 'text-white' : 'text-gray-700'
                     }`}
                   >
@@ -113,7 +113,7 @@ export default function WaterQualityTrends() {
                   if (!stats || !dataset) return null;
                   
                   return (
-                    <View key={param} className="border-b border-muted-foreground/20 pb-3 last:border-b-0 last:pb-0">
+                    <View key={param} className="border-b border-muted-foreground/20 pb-3 last:border-b-0">
                       <View className="flex-row items-center justify-between mb-2">
                         <Text className="text-sm font-semibold text-gray-800 uppercase">
                           {dataset.label}
@@ -172,12 +172,12 @@ export default function WaterQualityTrends() {
             const color = PARAMETER_COLORS[paramKey] || 'hsl(173 58% 39%)';
             
             return (
-              <ChartContainer 
-                key={paramKey}
-                title={dataset.label}
-                subtitle={`Last ${days} days • Unit: ${dataset.unit}`}
-                loading={loading}
-              >
+              <View key={paramKey} className="mb-4">
+                <ChartContainer 
+                  title={dataset.label}
+                  subtitle={`Last ${days} days • Unit: ${dataset.unit}`}
+                  loading={loading}
+                >
                 <View className="px-4 py-4">
                   {chartData.length > 0 ? (
                     <LineChart
@@ -213,6 +213,7 @@ export default function WaterQualityTrends() {
                   )}
                 </View>
               </ChartContainer>
+              </View>
             );
           })}
 
