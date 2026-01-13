@@ -28,9 +28,9 @@ export default function SecuritySetting() {
     // {
     //   icon:LogIn, title: 'Login History', link: ''
     // },
-    {
-      icon:Trash, title: 'Delete Account', link: '/account/security/delete-account'
-    }
+    // {
+    //   icon:Trash, title: 'Delete Account', link: '/account/security/delete-account'
+    // }
   ];
 
   return (
