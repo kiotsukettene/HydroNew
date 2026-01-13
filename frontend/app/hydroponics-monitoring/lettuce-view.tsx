@@ -162,7 +162,6 @@ export default function LettuceView() {
           <View className="px-4 pb-5">
             <View className="mb-4">
               <Text className="text-lg font-semibold">Real-Time Monitoring</Text>
-              <Text className="text-xs text-muted-foreground mt-1">Updated just now</Text>
             </View>
 
             {/* Monitoring Cards Grid */}
