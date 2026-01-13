@@ -6,6 +6,7 @@ import { useAccountStore } from "../account/accountStore";
 import { Platform } from "react-native";
 import { disconnectEcho } from "@/lib/echo";
 import { useNotificationStore } from "../notification/notificationStore";
+import { GoogleSignin } from "@react-native-google-signin/google-signin";
 
 const isWeb = Platform.OS === "web";
 
