@@ -141,7 +141,11 @@ export default function Home() {
   };
 
   const userName = data?.user || 'User';
-  const growth = { percentage: 45 }; // Still mock data for now
+  const nearestToHarvest = data?.nearest_to_harvest || null;
+  const growth = { 
+    cropName: nearestToHarvest?.crop_name || 'No Active Crops',
+    percentage: nearestToHarvest?.growth_percentage ?? 0
+  };
 
   return (
     <ScrollView className='bg-white'>
@@ -207,7 +211,11 @@ export default function Home() {
 
             {/* ===== Growth Card ===== */}
             <View className="mt-5">
-              <TouchableOpacity className="relative min-h-40 overflow-hidden rounded-2xl bg-primary p-6" onPress={() => router.push('/(tabs)/hydroponics')}>
+              <TouchableOpacity 
+                className="relative min-h-40 overflow-hidden rounded-2xl bg-primary p-6" 
+                onPress={() => router.push('/(tabs)/hydroponics')}
+                disabled={!nearestToHarvest}
+              >
                 <Image
                   source={require('@/assets/images/growth-bg.png')}
                   className="absolute -right-16 -top-10 h-64 w-64 opacity-70"
@@ -219,23 +227,25 @@ export default function Home() {
                   <View>
                     <View className="mb-1 self-start rounded-full bg-lime-400/20 px-3 py-1">
                       <Text className="text-xs font-semibold uppercase tracking-wide text-lime-200">
-                        Nearest to Harvest
+                        {nearestToHarvest ? 'Nearest to Harvest' : 'No Active Crops'}
                       </Text>
                     </View>
                     <Text className="text-lg font-medium text-muted px-2">
-                      Lettuce A
+                      Setup # {nearestToHarvest?.setup_id} - {growth.cropName}
                     </Text>
                   </View>
                   
                   {/* Growth Percentage */}
-                  <View className="flex-row items-center px-2">
-                    <Text className="text-5xl font-bold text-white">
-                      {growth.percentage}%
-                    </Text>
-                    <View className="ml-2">
-                      <ArrowRightIcon size={24} color="#D9F99D" />
+                  {nearestToHarvest && (
+                    <View className="flex-row items-center px-2">
+                      <Text className="text-5xl font-bold text-white">
+                        {growth.percentage}%
+                      </Text>
+                      <View className="ml-2">
+                        <ArrowRightIcon size={24} color="#D9F99D" />
+                      </View>
                     </View>
-                  </View>
+                  )}
                 </View>
               </TouchableOpacity>
             </View>

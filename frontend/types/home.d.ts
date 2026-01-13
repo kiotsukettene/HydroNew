@@ -14,11 +14,18 @@ export type HomeProps = {
   growth: GrowthProgress;
 };
 
+interface NearestToHarvest {
+  setup_id: number;
+  crop_name: string;
+  growth_percentage: number;
+}
+
 interface DashboardData {
   user: string;
   pHLevel: number;
   unit: string;
   status: string;
+  nearest_to_harvest: NearestToHarvest | null;
 }
 
 interface DashboardState {

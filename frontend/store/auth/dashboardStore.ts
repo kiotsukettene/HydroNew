@@ -16,7 +16,7 @@ export const useDashboardStore = create<DashboardState>((set) => ({
 
       console.log('Dashboard API Response:', JSON.stringify(response.data, null, 2));
 
-      const { user, ph_levels } = response.data;
+      const { user, ph_levels, nearest_to_harvest } = response.data;
 
       // Check if ph_levels exists and has clean_water data
       if (!ph_levels || !ph_levels.clean_water) {
@@ -34,6 +34,7 @@ export const useDashboardStore = create<DashboardState>((set) => ({
           pHLevel: parseFloat(ph_levels.clean_water.value),
           unit: ph_levels.clean_water.unit,
           status: ph_levels.clean_water.status,
+          nearest_to_harvest: nearest_to_harvest || null,
         },
         loading: false,
       });
