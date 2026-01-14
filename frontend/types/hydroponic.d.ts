@@ -31,6 +31,7 @@ interface HydroponicSetup extends HydroponicSetupPayload {
   plant_age: number;
   days_left: number;
   growth_percentage?: number;
+  growth_stage?: string;
 }
 
 interface PaginationLinks {
