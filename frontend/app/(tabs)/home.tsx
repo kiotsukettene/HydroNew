@@ -213,7 +213,13 @@ export default function Home() {
             <View className="mt-5">
               <TouchableOpacity 
                 className="relative min-h-40 overflow-hidden rounded-2xl bg-primary p-6" 
-                onPress={() => router.push('/(tabs)/hydroponics')}
+                onPress={() => {
+                  if (nearestToHarvest?.setup_id) {
+                    router.push(`/hydroponics-monitoring/lettuce-view?id=${nearestToHarvest.setup_id}`);
+                  } else {
+                    router.push('/(tabs)/hydroponics');
+                  }
+                }}
                 disabled={!nearestToHarvest}
               >
                 <Image
