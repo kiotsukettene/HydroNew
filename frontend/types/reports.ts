@@ -44,9 +44,15 @@ interface HarvestedSetup {
   disposal_grade_weight: number;
 }
 
+interface CropWeightData {
+  total_weight: number;
+  total_count: number;
+  harvested_setups: number;
+}
+
 export interface YieldSummaryData {
   total_harvested_setups: number;
-  weight_by_crop: Record<string, number>;
+  weight_by_crop: Record<string, CropWeightData>;
   grade_distribution: {
     selling: {
       count: number;
@@ -69,6 +75,7 @@ export interface YieldSummaryData {
   };
   sellable_yield_percentage: number;
   waste_percentage: number;
+  consumption_percentage: number;
   month_over_month: any;
 }
 

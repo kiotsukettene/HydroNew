@@ -33,12 +33,21 @@ export default function YieldSummary() {
 
   // Prepare chart data
   const weightByCropData = yieldSummary?.weight_by_crop
-    ? Object.entries(yieldSummary.weight_by_crop).map(([crop, weight]) => ({
-        value: weight,
-        label: crop.charAt(0).toUpperCase() + crop.slice(1, 3),
-        frontColor: 'hsl(173 58% 39%)',
+    ? Object.entries(yieldSummary.weight_by_crop).map(([crop, data]) => ({
+        value: data.total_weight || 0,
+        label: crop.length > 6 ? crop.substring(0, 3) : crop.substring(0, 4),
+        frontColor: '#16a085',
+        topLabelComponent: () => (
+          <Text style={{ fontSize: 10, color: '#4B5563', marginBottom: 2 }}>
+            {data.total_weight}g
+          </Text>
+        ),
       }))
     : [];
+
+  // Debug log
+  console.log('Weight by Crop Data:', weightByCropData);
+  console.log('Yield Summary:', yieldSummary);
 
   const gradeDistributionData = yieldSummary?.grade_distribution
     ? [
@@ -87,7 +96,7 @@ export default function YieldSummary() {
               <View className="flex-1">
                 <StatCard
                   title="Total Weight"
-                  value={`${(yieldSummary?.grade_distribution?.total_weight || 0)} kg`}
+                  value={`${((yieldSummary?.grade_distribution?.total_weight || 0) / 1000).toFixed(2)} g`}
                   icon={Scale}
                   colorScheme="success"
                 />
@@ -184,15 +193,15 @@ export default function YieldSummary() {
                   noOfSections={5}
                   yAxisThickness={1}
                   xAxisThickness={1}
-                  xAxisColor="hsl(0 0% 89.8%)"
-                  yAxisColor="hsl(0 0% 89.8%)"
-                  yAxisTextStyle={{ color: 'hsl(0 0% 45.1%)', fontSize: 12 }}
-                  xAxisLabelTextStyle={{ color: 'hsl(0 0% 45.1%)', fontSize: 12 }}
-                  rulesColor="hsl(0 0% 89.8%)"
+                  xAxisColor="#E5E5E5"
+                  yAxisColor="#E5E5E5"
+                  yAxisTextStyle={{ color: '#737373', fontSize: 12 }}
+                  xAxisLabelTextStyle={{ color: '#737373', fontSize: 12 }}
+                  rulesColor="#E5E5E5"
                   rulesType="solid"
                   showVerticalLines
-                  verticalLinesColor="hsl(0 0% 89.8%)"
-                  adjustToWidth={true}
+                  verticalLinesColor="#E5E5E5"
+                  isAnimated
                 />
               ) : (
                 <Text className="text-center text-muted-foreground py-8">No data available</Text>
