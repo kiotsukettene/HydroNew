@@ -78,7 +78,7 @@ export default function YieldSummary() {
     >
       <SafeAreaView>
         <PageHeader 
-          title="Yield Summary"
+          title="Yield Summary "
           showBackButton={true}
           showNotificationButton={false}
         />
