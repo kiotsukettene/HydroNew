@@ -114,6 +114,22 @@ interface WaterQualityReading {
   humidity: number | null;
 }
 
+interface TimeSerieParameter {
+  min: number;
+  max: number;
+  average: number;
+}
+
+interface TimeSerieEntry {
+  timestamp: string;
+  ph?: TimeSerieParameter;
+  tds?: TimeSerieParameter;
+  ec?: TimeSerieParameter;
+  turbidity?: TimeSerieParameter;
+  temperature?: TimeSerieParameter;
+  humidity?: TimeSerieParameter;
+}
+
 interface StatisticalSummary {
   min: number;
   max: number;
@@ -121,18 +137,16 @@ interface StatisticalSummary {
 }
 
 export interface WaterQualityHistoricalData {
-  system_type: 'dirty_water' | 'clean_water' | 'hydroponics_water';
-  interval: 'hourly' | 'daily' | 'weekly';
-  readings: WaterQualityReading[];
+  time_series: TimeSerieEntry[];
   statistics: {
-    ph: StatisticalSummary;
-    tds: StatisticalSummary;
-    ec: StatisticalSummary;
-    turbidity: StatisticalSummary;
-    temperature: StatisticalSummary;
-    humidity: StatisticalSummary;
+    ph?: ParameterStatistics;
+    tds?: ParameterStatistics;
+    ec?: ParameterStatistics;
+    turbidity?: ParameterStatistics;
+    temperature?: ParameterStatistics;
+    humidity?: ParameterStatistics;
   };
-  out_of_range_count?: number;
+  out_of_range_count?: Record<string, number> | any[];
 }
 
 interface TrendAnalysis {
