@@ -96,7 +96,7 @@ export default function YieldSummary() {
               <View className="flex-1">
                 <StatCard
                   title="Total Weight"
-                  value={`${((yieldSummary?.grade_distribution?.total_weight || 0) / 1000).toFixed(2)} g`}
+                  value={`${((yieldSummary?.grade_distribution?.total_weight || 0) / 1000).toFixed(2)} kg`}
                   icon={Scale}
                   colorScheme="success"
                 />
