@@ -16,7 +16,7 @@ import { Button } from "@/components/ui/button";
 import { Text } from "@/components/ui/text";
 import { Separator } from "@/components/ui/separator";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { WifiOff, Smartphone, X, Music, Lightbulb, Star, Film, Heart, Sofa, Settings } from "lucide-react-native"
+import { WifiOff, Smartphone, X, Settings, Star, Film, Heart, Sofa, Cpu, HardDrive } from "lucide-react-native"
 import WifiModal from "@/components/ui/wifi-connection";
 import FolderBg from "@/components/ui/folder-bg";
 import { getMQTTClient, publishMessage, subscribeMessage } from "@/service/mqtt.client";
@@ -27,6 +27,8 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export default function DeviceConnection () {
 const [wifiModal, setWifiModal] = useState(false);
+
+
 // Temporary: Set to show connected device UI for testing
 const [pairedDevice, setPairedDevice] = useState<any>({
   id: 'temp-device-1',
@@ -36,10 +38,7 @@ const [pairedDevice, setPairedDevice] = useState<any>({
   firmware: '28743/65FG'
 });
 
-// Control states
-const [soundOn, setSoundOn] = useState(true);
-const [lightOn, setLightOn] = useState(false);
-const [selectedPreset, setSelectedPreset] = useState('Movie');
+
 
 const userId = useAuthStore((state) => state.user?.id);
 
@@ -118,7 +117,7 @@ function publishTestMessage1() {
 }
 
     return (
-            <SafeAreaView className="flex-1 bg-green-900">
+            <SafeAreaView className="flex-1 bg-gray-50">
             <PageHeader title="Device Connection" showNotificationButton={false} />
                 <View className='flex-1 p-4'>
                   
@@ -126,23 +125,22 @@ function publishTestMessage1() {
                     {!pairedDevice ? (
                         <View className="flex-1 justify-between items-center px-6" style={{ paddingVertical: 40 }}>
                             <View className="items-center" style={{ flex: 1, justifyContent: 'center' }}>
-                                <View className="items-center justify-center " style={{ position: 'relative', width: 320, height: 320 }}>                    
+                                <View className="items-center justify-center mb-1" style={{ position: 'relative', width: 320, height: 320 }}>                    
                                     {/* Image */}
                                     <View style={{ zIndex: 1 }}>
                                         <Image 
                                             source={require('@/assets/images/no-connected.png')}
                                             resizeMode="contain"
-                                            className="opacity-55"
                                             style={{ width: 220, height: 220 }}
                                         />
                                     </View>
                                 </View>
 
                                 <View className="px-2 items-center">
-                                    <Text className="text-2xl font-bold mb-1 text-center" style={{ color: '#FFFFFF' }}>
+                                    <Text className="text-2xl text-muted-foreground font-bold mb-1 text-center" >
                                         No device connected
                                     </Text>
-                                    <Text className="text-base text-center leading-6" style={{ color: 'rgba(255, 255, 255, 0.8)' }}>
+                                    <Text className="text-base text-muted-foreground text-center leading-6" >
                                         Please connect your device to get started.
                                     </Text>
                                 </View>
@@ -151,62 +149,110 @@ function publishTestMessage1() {
                             {/* Pair Device Button at Bottom */}
                             <View className="w-full" style={{ paddingBottom: 20 }}>
                                 <Button 
-                                    variant={'ghost'}
-                                    className="" 
+                                    className="bg-[#155036]" 
                                     onPress={() => setWifiModal(true)}
                                 >
-                                    <Text className="text-lg font-semibold">Pair Device</Text>
+                                    <Text className="text-white text-lg font-semibold">Pair Device</Text>
                                 </Button>
                             </View>
                         </View>
                     ) : (
-                        <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
+                        <ScrollView className="flex-1 " showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 40 }}>
+                            {/* ============= IF DEVICE CONNECTED ============== */}
 
-                          {/* ============= IF DEVICE CONNECTED ============== */}
-
-                            {/* Machine Image */}
-                            <View className="items-center justify-center mb-6 mt-4">
-                                <Image 
-                                    source={require('@/assets/images/sample-machine.png')}
-                                    resizeMode="contain"
-                                    style={{ width: Dimensions.get('window').width - 60, height: 300 }}
-                                    className="rounded-2xl"
-                                />
+                            {/* Machine Image in Card with Shadow */}
+                            <View className="items-center justify-center mb-3 px-4">
+                                <Card
+                                    className=" overflow-hidden h-80 w-auto"
+                                    style={{
+                                        width: Dimensions.get('window').width - 32,
+                                        shadowColor: '#000',
+                                        shadowOffset: { width: 0, height: 4 },
+                                        shadowOpacity: 0.08,
+                                        shadowRadius: 20,
+                                        elevation: 8,
+                                        padding: 20
+                                    }}
+                                >
+                                    <Image 
+                                        source={require('@/assets/images/sample-machine.png')}
+                                        resizeMode="contain"
+                                        style={{ width: '100%', height: '100%' }}
+                                    />
+                                </Card>
                             </View>
 
-                            {/* Device Title */}
-                            <View className="mb-4 px-2">
-                                <Text className="text-white text-2xl font-bold text-center mb-1" style={{ textTransform: 'uppercase' }}>
+                            {/* Device Title with Better Hierarchy */}
+                            <View className="mb-4 px-6">
+                                <Text className="text-gray-900 text-4xl font-black text-left mb-2" >
                                     {pairedDevice.name || 'BIOTECH MACHINE'}
                                 </Text>
-                                <Text className="text-white/70 text-sm text-center">
+                                <Text className=" text-sm text-primary text-left font-medium" >
                                     {pairedDevice.model || 'MFC-1204328HD0B45'}
                                 </Text>
                             </View>
 
-                            {/* Detail */}
-                            <View className="flex-row gap-3 mb-4 px-2">
-                                <Card className="flex-1 p-4 rounded-2xl" style={{ backgroundColor: 'rgba(255, 255, 255, 0.15)' }}>
-                                    <Text className="text-white/80 text-xs mb-2">Model:</Text>
-                                    <Text className="text-white text-base font-semibold">
-                                        {pairedDevice.modelType || 'Raspberry Pi 5'}
-                                    </Text>
-                                </Card>
+                            {/* Detail Cards with Soft Shadows */}
+                            <View className="flex-row gap-4 mb-4 px-4">
+                                {/* Model Card - White with Yellow Accent Icon */}
+                                <Pressable className="flex-1">
+                                    <Card 
+                                        className=" rounded-3xl border-muted-foreground/20 px-4">
+                                        <View className="flex-row justify-between items-start">
+                                            <View className="flex-1 mr-3">
+                                                <Text className="text-muted-foreground text-xs font-medium mb-3" style={{ letterSpacing: 0.3 }}>
+                                                    Model
+                                                </Text>
+                                                <Text className=" text-lg font-bold" style={{ lineHeight: 24 }}>
+                                                    {pairedDevice.modelType || 'Raspberry Pi 5'}
+                                                </Text>
+                                            </View>
+                                            <View className="w-12 h-12 rounded-full bg-yellow-50 items-center justify-center">
+                                                <Cpu size={22} strokeWidth={1.5} color="#FBBF24" />
+                                            </View>
+                                        </View>
+                                    </Card>
+                                </Pressable>
 
-                                {/* Firmware Card */}
-                                <Card className="flex-1 p-4 rounded-2xl" style={{ backgroundColor: 'rgba(255, 255, 255, 0.15)' }}>
-                                    <Text className="text-white/80 text-xs mb-2">Firmware:</Text>
-                                    <Text className="text-white text-base font-semibold">
-                                        {pairedDevice.firmware || '28743/65FG'}
-                                    </Text>
+                                {/* Firmware Card - White */}
+                                <Pressable className="flex-1">
+                                    <Card 
+                                        className=" rounded-3xl border-muted-foreground/20 px-4" >
+                                        <View className="flex-row justify-between items-start">
+                                            <View className="flex-1 mr-3">
+                                                <Text className="text-muted-foreground text-xs font-medium mb-3" >
+                                                    Firmware
+                                                </Text>
+                                                <Text className="text-lg font-bold" >
+                                                    {pairedDevice.firmware || '28743/65FG'}
+                                                </Text>
+                                            </View>
+                                            <View className="w-12 h-12 rounded-full bg-gray-50 items-center justify-center">
+                                                <HardDrive size={22} strokeWidth={1.5} color="#6B7280" />
+                                            </View>
+                                        </View>
+                                    </Card>
+                                </Pressable>
+                            </View>
+
+                            {/* Status Card - Full Width with Soft Shadow */}
+                            <View className="mb-6 px-4">
+                                <Card 
+                                    className="rounded-3xl border-muted-foreground/20 px-6 py-4"    
+                                >
+                                    <View className="flex-row justify-between items-center">
+                                        <View>
+                                            <Text className="text-gray-500 text-xs font-medium mb-3" style={{ letterSpacing: 0.3 }}>
+                                                Status
+                                            </Text>
+                                            <Text className="text-gray-900 text-lg font-bold">
+                                                Connected
+                                            </Text>
+                                        </View>
+                                    </View>
                                 </Card>
                             </View>
 
-                            {/* Status Card */}
-                            <Card className="p-4 rounded-2xl mb-4 mx-2" style={{ backgroundColor: 'rgba(255, 255, 255, 0.15)' }}>
-                                <Text className="text-white/80 text-xs mb-2">Status:</Text>
-                                <Text className="text-white text-base font-semibold">Connected</Text>
-                            </Card>
                         </ScrollView>
                     )}
                 </View>
