@@ -161,9 +161,9 @@ function publishTestMessage1() {
                             {/* ============= IF DEVICE CONNECTED ============== */}
 
                             {/* Machine Image in Card with Shadow */}
-                            <View className="items-center justify-center mb-3 px-4">
+                            <View className="items-center  justify-center mb-3 px-4">
                                 <Card
-                                    className=" overflow-hidden h-80 w-auto"
+                                    className=" overflow-hidden h-80 w-auto border-muted-foreground/10"
                                     style={{
                                         width: Dimensions.get('window').width - 32,
                                         shadowColor: '#000',
