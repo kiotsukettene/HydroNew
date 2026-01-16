@@ -18,7 +18,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { WifiOff, Smartphone, X } from "lucide-react-native"
 import WifiModal from "@/components/ui/wifi-connection";
 import FolderBg from "@/components/ui/folder-bg";
-import { getMQTTClient, publishMessage, subscribeMessage } from "@/service/mqtt-client";
+import { getMQTTClient, publishMessage, subscribeMessage } from "@/service/mqtt.client";
 import { useAuthStore } from "@/store/auth/authStore";
 import { Card } from "@/components/ui/card";
 import AsyncStorage from "@react-native-async-storage/async-storage";
