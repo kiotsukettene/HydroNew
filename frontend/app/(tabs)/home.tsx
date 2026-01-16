@@ -21,6 +21,7 @@ import type { HomeProps } from '@/types/home';
 import { useRouter } from 'expo-router';
 import { useDashboardStore } from '@/store/auth/dashboardStore';
 import { useNotificationStore } from '@/store/notification/notificationStore';
+import { useSensorStore } from '@/store/sensor/sensorStore';
 
 import { db } from '@/src/firebase';
 import { onValue, ref } from 'firebase/database';
@@ -81,19 +82,12 @@ export default function Home() {
 
   const router = useRouter()
   
-  // //  Temporary mock data 
-  // waterQuality = waterQuality || {
-  //   pHLevel: 6.5,
-  //   status: 'Good',
-  //   level: 'Low',
-  // };
-
-  // growth = growth || {
-  //   percentage: 45,
-  // };
 
   const { data, loading, error, fetchDashboard } = useDashboardStore();
   const unreadCount = useNotificationStore((s) => s.unreadCount);
+  
+  // Real-time sensor data - read directly from store (subscription is in _layout.tsx via useEchoSetup)
+  const cleanWater = useSensorStore((state) => state.cleanWater);
   //firebase data fetching
    const [sensorData, setSensorData] = useState<SensorData | null>(null);
   const [latestKey, setLatestKey] = useState<string | null>(null);
@@ -137,9 +131,14 @@ export default function Home() {
     );
   }
 
-   const waterQuality = data
-    ? { pHLevel: data.pHLevel, status: data.status, unit: data.unit }
-    : { pHLevel: 0, status: 'Unknown', unit: '' };
+  // Use real-time pH from clean water sensor, fallback to dashboard data
+  const realTimePH = cleanWater?.ph != null && !isNaN(cleanWater.ph) ? cleanWater.ph : null;
+  
+  const waterQuality = {
+    pHLevel: realTimePH ?? data?.pHLevel ?? 0,
+    status: data?.status ?? 'Unknown',
+    unit: data?.unit ?? ''
+  };
 
   const userName = data?.user || 'User';
   const growth = { percentage: 45 }; // Still mock data for now
@@ -174,11 +173,10 @@ export default function Home() {
               {/* pH Level */}
               <View className="absolute left-6 top-9 z-10">
                 <Text className="text-5xl font-bold text-[#2D7D7D]">
-                  {sensorData ? sensorData.ph : '--'}
+                  {waterQuality.pHLevel != null && !isNaN(waterQuality.pHLevel) ? waterQuality.pHLevel.toFixed(2) : '0.00'}
                 </Text>
                 <Text className="text-lg font-semibold text-foreground/70">pH Level</Text>
               </View>
-
               {/* Water Info */}
               <CardContent className="absolute bottom-4 left-9 z-10 rounded-lg bg-primary/20 px-10 py-3">
                 <View className="flex-row gap-16">
