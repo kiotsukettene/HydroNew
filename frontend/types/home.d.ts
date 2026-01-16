@@ -1,5 +1,5 @@
 export type WaterQuality = {
-    pHLevel: numnber;
+    pHLevel: number;
     status: 'Good' | 'Poor';
     level: 'Low' | 'Medium' | 'High';
 }

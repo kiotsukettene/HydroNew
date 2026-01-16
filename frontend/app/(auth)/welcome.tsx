@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Link, router } from 'expo-router';
 import { Text } from '@/components/ui/text';
 
+
 const { height } = Dimensions.get('window');
 
 const WelcomeScreen = () => {

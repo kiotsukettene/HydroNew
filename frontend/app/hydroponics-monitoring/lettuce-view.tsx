@@ -10,6 +10,10 @@ import { Text } from '@/components/ui/text';
 import { Card } from '@/components/ui/card';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useHydroponicSetupStore } from '@/store/hydroponics/hydroponicSetupStore';
+import { publishMessage } from '@/service/mqtt-client';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useAuthStore } from '@/store/auth/authStore';
+import { useSensorStore } from '@/store/sensor/sensorStore';
 
 export default function LettuceView() {
   const router = useRouter();
@@ -17,15 +21,45 @@ export default function LettuceView() {
   const setupId = params.id;
   const { currentSetup, fetchSetupById, loading, error } = useHydroponicSetupStore();
   const [activeTab, setActiveTab] = useState<'details' | 'monitoring'>('monitoring');
+  
+  // Real-time hydroponics sensor data - read directly from store (subscription is in _layout.tsx via useEchoSetup)
+  const hydroponicsWater = useSensorStore((state) => state.hydroponicsWater);
 
   // Check if harvest is allowed (plant age must be >= 14 days)
   const canHarvest = currentSetup ? (currentSetup.plant_age ?? 0) >= 14 : false;
+  const userId = useAuthStore((state) => state.user?.id);
 
   useEffect(() => {
     if (setupId) {
       fetchSetupById(Number(setupId));
     }
   }, [setupId]);
+
+const getDeviceSerialNumber = async () => {
+  try {
+    const deviceData = await AsyncStorage.getItem(`paired_device:${userId}`);
+    if (!deviceData) {
+      console.warn("No paired device found in storage.");
+      return null;
+    }
+    const device = JSON.parse(deviceData);
+    return device.serial_number;
+  } catch (err) {
+    console.error("Failed to read paired device:", err);
+    return null;
+  }
+};
+
+const startPump = async () => {
+  const serial_number = await getDeviceSerialNumber();
+  if (!serial_number) return;
+
+  publishMessage(`hydroponics/${serial_number}/pump/1`, 'OPEN', 1);
+  console.log(`Published pump start message for device ${serial_number}`);
+  router.push('/hydroponics-monitoring/pump-screen')
+  console.log('Pump started');
+}; 
+ 
 
   return (
     <SafeAreaView className="flex-1 bg-background">
@@ -92,7 +126,7 @@ export default function LettuceView() {
                 <Button
                   className="w-full rounded-xl bg-emerald-50"
                   onPress={() => {
-                    router.push('/hydroponics-monitoring/pump-screen');
+                    startPump();
                   }}
                   disabled={loading}>
                   <Icon as={Droplet} className="text-primary" />
@@ -171,7 +205,9 @@ export default function LettuceView() {
                       <Icon as={Activity} size={16} className="text-muted-foreground" />
                       <Text className="text-sm text-muted-foreground">pH Level</Text>
                     </View>
-                    <Text className="text-3xl font-bold">6.8</Text>
+                    <Text className="text-3xl font-bold">
+                      {hydroponicsWater?.ph != null && !isNaN(hydroponicsWater.ph) ? hydroponicsWater.ph.toFixed(2) : '--'}
+                    </Text>
                   </View>
                   <View className="items-end">
                     <Text className="text-xs text-muted-foreground mb-1">Target Range</Text>
@@ -188,7 +224,9 @@ export default function LettuceView() {
                       <Icon as={Droplet} size={16} className="text-muted-foreground" />
                       <Text className="text-sm text-muted-foreground">TDS (Total Dissolved Solids)</Text>
                     </View>
-                    <Text className="text-3xl font-bold">920 <Text className="text-lg text-muted-foreground">ppm</Text></Text>
+                    <Text className="text-3xl font-bold">
+                      {hydroponicsWater?.tds ? Math.round(hydroponicsWater.tds) : '--'} <Text className="text-lg text-muted-foreground">ppm</Text>
+                    </Text>
                   </View>
                   <View className="items-end">
                     <Text className="text-xs text-muted-foreground mb-1">Target Range</Text>
@@ -204,7 +242,9 @@ export default function LettuceView() {
                     <Icon as={Thermometer} size={16} className="text-muted-foreground" />
                     <Text className="text-xs text-muted-foreground">EC</Text>
                   </View>
-                  <Text className="text-2xl font-bold">1.8</Text>
+                  <Text className="text-2xl font-bold">
+                    {hydroponicsWater?.ec != null && !isNaN(hydroponicsWater.ec) ? hydroponicsWater.ec.toFixed(2) : '--'}
+                  </Text>
                   <Text className="text-xs text-muted-foreground mt-1">mS/cm</Text>
                 </Card>
 
@@ -213,7 +253,9 @@ export default function LettuceView() {
                     <Icon as={Wind} size={16} className="text-muted-foreground" />
                     <Text className="text-xs text-muted-foreground">Humidity</Text>
                   </View>
-                  <Text className="text-2xl font-bold">41%</Text>
+                  <Text className="text-2xl font-bold">
+                    {hydroponicsWater?.humidity != null && !isNaN(hydroponicsWater.humidity) ? `${hydroponicsWater.humidity.toFixed(0)}%` : '--'}
+                  </Text>
                   <Text className="text-xs text-muted-foreground mt-1">Optimal: 50-70%</Text>
                 </Card>
               </View>
