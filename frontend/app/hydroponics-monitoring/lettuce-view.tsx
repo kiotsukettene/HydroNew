@@ -10,6 +10,9 @@ import { Text } from '@/components/ui/text';
 import { Card } from '@/components/ui/card';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useHydroponicSetupStore } from '@/store/hydroponics/hydroponicSetupStore';
+import { publishMessage } from '@/service/mqtt-client';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useAuthStore } from '@/store/auth/authStore';
 import { useSensorStore } from '@/store/sensor/sensorStore';
 
 export default function LettuceView() {
@@ -24,12 +27,39 @@ export default function LettuceView() {
 
   // Check if harvest is allowed (plant age must be >= 14 days)
   const canHarvest = currentSetup ? (currentSetup.plant_age ?? 0) >= 14 : false;
+  const userId = useAuthStore((state) => state.user?.id);
 
   useEffect(() => {
     if (setupId) {
       fetchSetupById(Number(setupId));
     }
   }, [setupId]);
+
+const getDeviceSerialNumber = async () => {
+  try {
+    const deviceData = await AsyncStorage.getItem(`paired_device:${userId}`);
+    if (!deviceData) {
+      console.warn("No paired device found in storage.");
+      return null;
+    }
+    const device = JSON.parse(deviceData);
+    return device.serial_number;
+  } catch (err) {
+    console.error("Failed to read paired device:", err);
+    return null;
+  }
+};
+
+const startPump = async () => {
+  const serial_number = await getDeviceSerialNumber();
+  if (!serial_number) return;
+
+  publishMessage(`hydroponics/${serial_number}/pump/1`, 'OPEN', 1);
+  console.log(`Published pump start message for device ${serial_number}`);
+  router.push('/hydroponics-monitoring/pump-screen')
+  console.log('Pump started');
+}; 
+ 
 
   return (
     <SafeAreaView className="flex-1 bg-background">
@@ -96,7 +126,7 @@ export default function LettuceView() {
                 <Button
                   className="w-full rounded-xl bg-emerald-50"
                   onPress={() => {
-                    router.push('/hydroponics-monitoring/pump-screen');
+                    startPump();
                   }}
                   disabled={loading}>
                   <Icon as={Droplet} className="text-primary" />
