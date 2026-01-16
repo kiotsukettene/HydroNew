@@ -82,7 +82,10 @@ export default function WaterQualityHistorical() {
     if (!waterQualityHistorical?.time_series) return [];
     
     return waterQualityHistorical.time_series
-      .filter(item => item[parameterKey as keyof typeof item] !== undefined)
+      .filter(item => {
+        const paramData = item[parameterKey as keyof typeof item] as any;
+        return paramData && paramData.average !== undefined && paramData.average !== null;
+      })
       .map((item, index) => {
         const paramData = item[parameterKey as keyof typeof item] as any;
         return {
@@ -90,7 +93,7 @@ export default function WaterQualityHistorical() {
           label: index % Math.ceil(waterQualityHistorical.time_series.length / 5) === 0 
             ? new Date(item.timestamp).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) 
             : '',
-          dataPointText: paramData.average.toFixed(1),
+          dataPointText: (paramData.average || 0).toFixed(1),
         };
       });
   };
