@@ -16,7 +16,7 @@ import { Button } from "@/components/ui/button";
 import { Text } from "@/components/ui/text";
 import { Separator } from "@/components/ui/separator";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { WifiOff, Smartphone, X } from "lucide-react-native"
+import { WifiOff, Smartphone, X, Music, Lightbulb, Star, Film, Heart, Sofa, Settings } from "lucide-react-native"
 import WifiModal from "@/components/ui/wifi-connection";
 import FolderBg from "@/components/ui/folder-bg";
 import { getMQTTClient, publishMessage, subscribeMessage } from "@/service/mqtt.client";
@@ -27,7 +27,19 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export default function DeviceConnection () {
 const [wifiModal, setWifiModal] = useState(false);
-const [pairedDevice, setPairedDevice] = useState<any>(null);
+// Temporary: Set to show connected device UI for testing
+const [pairedDevice, setPairedDevice] = useState<any>({
+  id: 'temp-device-1',
+  name: 'BIOTECH MACHINE',
+  model: 'MFC-1204328HD0B45',
+  modelType: 'Raspberry Pi 5',
+  firmware: '28743/65FG'
+});
+
+// Control states
+const [soundOn, setSoundOn] = useState(true);
+const [lightOn, setLightOn] = useState(false);
+const [selectedPreset, setSelectedPreset] = useState('Movie');
 
 const userId = useAuthStore((state) => state.user?.id);
 
@@ -108,16 +120,13 @@ function publishTestMessage1() {
     return (
             <SafeAreaView className="flex-1 bg-green-900">
             <PageHeader title="Device Connection" showNotificationButton={false} />
-
                 <View className='flex-1 p-4'>
+                  
+                  {/* ========= IF NO DEVICE CONNECTED ========= */}
                     {!pairedDevice ? (
                         <View className="flex-1 justify-between items-center px-6" style={{ paddingVertical: 40 }}>
-                            {/* Top Content */}
                             <View className="items-center" style={{ flex: 1, justifyContent: 'center' }}>
-                                {/* Illustration Container with Concentric Circles */}
-                                <View className="items-center justify-center " style={{ position: 'relative', width: 320, height: 320 }}>
-                                   
-                                    
+                                <View className="items-center justify-center " style={{ position: 'relative', width: 320, height: 320 }}>                    
                                     {/* Image */}
                                     <View style={{ zIndex: 1 }}>
                                         <Image 
@@ -129,7 +138,6 @@ function publishTestMessage1() {
                                     </View>
                                 </View>
 
-                                {/* Text Content */}
                                 <View className="px-2 items-center">
                                     <Text className="text-2xl font-bold mb-1 text-center" style={{ color: '#FFFFFF' }}>
                                         No device connected
@@ -152,30 +160,54 @@ function publishTestMessage1() {
                             </View>
                         </View>
                     ) : (
-                        <>
-                            <ImageBackground
-                                source={require('@/assets/images/add-device-circle.png')}
-                                resizeMode="contain"
-                                className="h-80 w-64 justify-center items-center self-center"
-                            >   <Pressable onPress={() => setWifiModal(true)}>
-                                <View className="p-4 items-center justify-center">
-                                    <Text className="text-secondary font-bold text-5xl">+</Text>
-                                </View>
-                                </Pressable>
-                            </ImageBackground>
+                        <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
 
-                            <View className="flex-1 p-4 bg-white/75 rounded-3xl mt-4 space-y-3 ">
-                                <Text className="text-center text-[#155036] text-base">
-                                Click the button below to pair a device. Make sure your device is powered on and already connected to a known network.  
-                                If not, add it to the network to pair it.
-                                </Text>
-                                <View className="flex-1 justify-end">
-                                    <Button className="bg-[#155036]">
-                                        <Text className="text-white">Pair Device</Text>
-                                    </Button>
-                                </View>
+                          {/* ============= IF DEVICE CONNECTED ============== */}
+
+                            {/* Machine Image */}
+                            <View className="items-center justify-center mb-6 mt-4">
+                                <Image 
+                                    source={require('@/assets/images/sample-machine.png')}
+                                    resizeMode="contain"
+                                    style={{ width: Dimensions.get('window').width - 60, height: 300 }}
+                                    className="rounded-2xl"
+                                />
                             </View>
-                        </>
+
+                            {/* Device Title */}
+                            <View className="mb-4 px-2">
+                                <Text className="text-white text-2xl font-bold text-center mb-1" style={{ textTransform: 'uppercase' }}>
+                                    {pairedDevice.name || 'BIOTECH MACHINE'}
+                                </Text>
+                                <Text className="text-white/70 text-sm text-center">
+                                    {pairedDevice.model || 'MFC-1204328HD0B45'}
+                                </Text>
+                            </View>
+
+                            {/* Detail */}
+                            <View className="flex-row gap-3 mb-4 px-2">
+                                <Card className="flex-1 p-4 rounded-2xl" style={{ backgroundColor: 'rgba(255, 255, 255, 0.15)' }}>
+                                    <Text className="text-white/80 text-xs mb-2">Model:</Text>
+                                    <Text className="text-white text-base font-semibold">
+                                        {pairedDevice.modelType || 'Raspberry Pi 5'}
+                                    </Text>
+                                </Card>
+
+                                {/* Firmware Card */}
+                                <Card className="flex-1 p-4 rounded-2xl" style={{ backgroundColor: 'rgba(255, 255, 255, 0.15)' }}>
+                                    <Text className="text-white/80 text-xs mb-2">Firmware:</Text>
+                                    <Text className="text-white text-base font-semibold">
+                                        {pairedDevice.firmware || '28743/65FG'}
+                                    </Text>
+                                </Card>
+                            </View>
+
+                            {/* Status Card */}
+                            <Card className="p-4 rounded-2xl mb-4 mx-2" style={{ backgroundColor: 'rgba(255, 255, 255, 0.15)' }}>
+                                <Text className="text-white/80 text-xs mb-2">Status:</Text>
+                                <Text className="text-white text-base font-semibold">Connected</Text>
+                            </Card>
+                        </ScrollView>
                     )}
                 </View>
 
