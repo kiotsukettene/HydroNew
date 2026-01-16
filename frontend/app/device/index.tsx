@@ -21,21 +21,55 @@ import FolderBg from "@/components/ui/folder-bg";
 import { getMQTTClient, publishMessage, subscribeMessage } from "@/service/mqtt-client";
 import { useAuthStore } from "@/store/auth/authStore";
 import { Card } from "@/components/ui/card";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 
 export default function DeviceConnection () {
 const [wifiModal, setWifiModal] = useState(false);
 const [pairedDevice, setPairedDevice] = useState<any>(null);
 
+const userId = useAuthStore((state) => state.user?.id);
+
 
 useEffect(() => {
-    const subscribe = subscribeMessage("devices/pairing", (topic, message) => {
+  const subscribe = subscribeMessage(
+    `devices/${userId}/pairing`,
+    async (topic, message) => {
+      try {
+        const payloadString = message.toString();
         console.log("Received message on topic:", topic);
-        console.log("Message payload:", message.toString());
-    });
-    return subscribe;
+        console.log("Message payload:", payloadString);
 
+        const payload = JSON.parse(payloadString);
+
+        const storageKey = `paired_device:${userId}`;
+
+        if (!payload?.device?.id) {
+          console.warn("Invalid pairing payload:", payload);
+          return;
+        }
+
+        const existingDevice = await AsyncStorage.getItem(storageKey);
+        if (existingDevice) {
+          console.log("Device already paired:", JSON.parse(existingDevice));
+          return;
+        }
+
+        await AsyncStorage.setItem(
+          storageKey,
+          JSON.stringify(payload.device)
+        );
+
+        console.log("Device saved to AsyncStorage");
+      } catch (err) {
+        console.error("Failed to handle pairing payload:", err);
+      }
+    }
+  );
+
+  return subscribe;
 }, []);
+
 
 
 function publishTestMessage() {
