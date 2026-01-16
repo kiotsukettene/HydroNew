@@ -6,25 +6,71 @@ import {
   KeyboardAvoidingView,
   Platform,
   ScrollView,
-  ImageBackground
+  ImageBackground,
+  Pressable
 } from "react-native";
-import React, {useState} from "react";
+import React, {useEffect, useState} from "react";
 import { PageHeader } from '@/components/ui/page-header'
-import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Text } from "@/components/ui/text";
-import { Link, useRouter } from "expo-router";
 import { Separator } from "@/components/ui/separator";
-import { Label } from "@/components/ui/label";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { WifiOff } from "lucide-react-native"
 import WifiModal from "@/components/ui/wifi-connection";
 import FolderBg from "@/components/ui/folder-bg";
-import { getMQTTClient, publishMessage } from "@/service/mqtt-client";
+import { getMQTTClient, publishMessage, subscribeMessage } from "@/service/mqtt-client";
+import { useAuthStore } from "@/store/auth/authStore";
+import { Card } from "@/components/ui/card";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+
 
 export default function DeviceConnection () {
 const [wifiModal, setWifiModal] = useState(false);
 const [pairedDevice, setPairedDevice] = useState<any>(null);
+
+const userId = useAuthStore((state) => state.user?.id);
+
+
+useEffect(() => {
+  const subscribe = subscribeMessage(
+    `devices/${userId}/pairing`,
+    async (topic, message) => {
+      try {
+        const payloadString = message.toString();
+        console.log("Received message on topic:", topic);
+        console.log("Message payload:", payloadString);
+
+        const payload = JSON.parse(payloadString);
+
+        const storageKey = `paired_device:${userId}`;
+
+        if (!payload?.device?.id) {
+          console.warn("Invalid pairing payload:", payload);
+          return;
+        }
+
+        const existingDevice = await AsyncStorage.getItem(storageKey);
+        if (existingDevice) {
+          console.log("Device already paired:", JSON.parse(existingDevice));
+          return;
+        }
+
+        await AsyncStorage.setItem(
+          storageKey,
+          JSON.stringify(payload.device)
+        );
+
+        console.log("Device saved to AsyncStorage");
+      } catch (err) {
+        console.error("Failed to handle pairing payload:", err);
+      }
+    }
+  );
+
+  return subscribe;
+}, []);
+
+
 
 function publishTestMessage() {
     publishMessage('iot/valve', 'OPEN', 0);
@@ -44,32 +90,24 @@ function publishTestMessage1() {
                         source={require('@/assets/images/add-device-circle.png')}
                         resizeMode="contain"
                         className="h-80 w-64 justify-center items-center self-center"
-                    >
+                    >   <Pressable onPress={() => setWifiModal(true)}>
                         <View className="p-4 items-center justify-center">
                             <Text className="text-secondary font-bold text-5xl">+</Text>
                         </View>
+                        </Pressable>
                     </ImageBackground>
-                    <ScrollView className="flex-1 bg-white/20 rounded-3xl p-3">
 
-
-                        <FolderBg>
-
-                            <Text className="text-white mb-2">Device Information</Text>
-                            <View className="p-2">
-                                <Text className="text-white">Device Name:</Text>
-                                <Text className="text-white">Device Name:</Text>
-                                <Text className="text-white">Device Name:</Text>
-                            </View>
-                            <View className="p-2">
-                                <Text className="text-white text-sm italic">SM Free Wifi</Text>
-                                <Text className="text-white text-sm italic">Connected</Text>
-
-                            </View>
-                        </FolderBg>
-
-
-                    </ScrollView>
-                    <Button className="bg-[#155036] mt-3" onPress={() => setWifiModal(true)}> <Text className="text-white">Add Device</Text></Button>
+                    <View className="flex-1 p-4 bg-white/75 rounded-3xl mt-4 space-y-3 ">
+                        <Text className="text-center text-[#155036] text-base">
+                        Click the button below to pair a device. Make sure your device is powered on and already connected to a known network.  
+                        If not, add it to the network to pair it.
+                        </Text>
+                        <View className="flex-1 justify-end">
+                            <Button className="bg-[#155036]">
+                                <Text className="text-white">Pair Device</Text>
+                            </Button>
+                        </View>
+                    </View>
                 </View>
 
                 <WifiModal

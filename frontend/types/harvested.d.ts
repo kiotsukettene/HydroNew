@@ -22,6 +22,7 @@ export type HarvestItem = {
   harvest_date: string;
   duration_days: number;
   yield: Yield | null;
+  status: string;
 };
 
 export type HarvestStatistics = {

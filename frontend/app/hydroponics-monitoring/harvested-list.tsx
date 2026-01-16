@@ -18,14 +18,10 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import {
   Filter,
   Search,
-  MoreVertical,
   X,
-  Archive,
   ChevronLeft,
   ChevronRight,
 } from 'lucide-react-native';
-import { useRouter } from 'expo-router';
-import { Badge } from '@/components/ui/badge';
 import { useHarvestedStore } from '@/store/hydroponics/harvestedStore';
 import type { HarvestItem } from '@/types/harvested';
 
@@ -76,7 +72,6 @@ const yyyyMMToMonthAbbr = (yyyyMM: string): string | null => {
 };
 
 const HarvestedList = () => {
-  const router = useRouter();
   const [query, setQuery] = useState('');
   const [showFilter, setShowFilter] = useState(false);
   const [showDetails, setShowDetails] = useState<HarvestItem | null>(null);
@@ -482,7 +477,8 @@ const HarvestedList = () => {
                       <Text className="mb-4 text-base font-semibold text-foreground">Crop Information</Text>
                       
                       <View className="gap-4">
-                        <View>
+                        <View className="flex-row gap-4">
+                        <View className="flex-1">
                           <Text className="mb-1.5 text-xs font-medium uppercase tracking-wide text-muted-foreground">
                             Crop Name
                           </Text>
@@ -490,6 +486,17 @@ const HarvestedList = () => {
                             {showDetails.crop_name.charAt(0).toUpperCase() + showDetails.crop_name.slice(1)}
                           </Text>
                         </View>
+                        
+                        <View className="flex-1">
+                            <Text className="mb-1.5 text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                              Status
+                            </Text>
+                            <Text className="text-base font-semibold capitalize text-foreground">
+                              {showDetails.status}
+                            </Text>
+                        </View>
+                        </View>
+                          
 
                         <View className="flex-row gap-4">
                           <View className="flex-1">
@@ -570,7 +577,7 @@ const HarvestedList = () => {
                                 Total Weight
                               </Text>
                               <Text className="text-lg font-bold text-foreground">
-                                {showDetails?.yield.total_weight?.toFixed(2) ?? '0.00'} g
+                                {showDetails?.yield?.total_weight != null ? showDetails.yield.total_weight.toFixed(2) : '0.00'} g
                               </Text>
                             </View>
                           </View>
@@ -607,7 +614,7 @@ const HarvestedList = () => {
                                         {grade.weight !== null && (
                                           <Text className="text-xs text-muted-foreground">
                                             Weight: <Text className="font-semibold text-foreground">
-                                              {grade?.weight?.toFixed(2) ?? '0.00'} g
+                                              {grade.weight != null ? grade.weight.toFixed(2) : '0.00'} g
                                             </Text>
                                           </Text>
                                         )}
