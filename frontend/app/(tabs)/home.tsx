@@ -4,12 +4,11 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Button } from '@/components/ui/button';
 import {
   ArrowRightIcon,
-  BellIcon,
   ChartColumn,
-  History,
   Leaf,
   Settings,
   ChevronRight,
+  Smartphone,
 } from 'lucide-react-native';
 import { Card, CardContent } from '@/components/ui/card';
 import { Text } from '@/components/ui/text';
@@ -257,11 +256,12 @@ export default function Home() {
                 </Pressable>
 
                 <View className="gap-2 sm:gap-3 md:gap-4">
-                  <Pressable onPress={() => router.push('/history')} className="rounded-2xl bg-blue-50 p-4 sm:p-5 md:p-6 min-h-20 sm:min-h-24 md:min-h-28">
-                    <History color={'#1E40AF'} strokeWidth={2} size={24} className="sm:w-7 sm:h-7 md:w-8 md:h-8" />
+                  <Pressable onPress={() => router.push('/device')} className="rounded-2xl bg-blue-50 p-4 sm:p-5 md:p-6 min-h-20 sm:min-h-24 md:min-h-28">
+                    <Smartphone color={'#1E40AF'} strokeWidth={2} size={24} className="sm:w-7 sm:h-7 md:w-8 md:h-8" />
                     <Text className="text-sm sm:text-base md:text-lg font-semibold text-blue-900">
-                      History
+                      Device
                     </Text>
+                   
                   </Pressable>
 
                   <Pressable onPress={() => {router.push('/report-analytics')}}  className="flex-1 justify-between rounded-2xl bg-yellow-50 p-4 sm:p-5 md:p-6 min-h-20 sm:min-h-24 md:min-h-28">
@@ -273,9 +273,7 @@ export default function Home() {
                     </View>
                   </Pressable>
 
-                  <Button onPress={() => router.push('/device')}>
-                    <Text>Device</Text>
-                  </Button>
+                
                 </View>
               </View>
             </View>
