@@ -127,9 +127,9 @@ const openPhoneWifiSettings = () => {
                 Your WiFi credentials are used only for this connection and are not stored on external servers.
               </Text>
 
-              <TouchableOpacity onPress={resetWifiModal} className="mt-5 items-center">
+              <Button variant="ghost" onPress={resetWifiModal} className="mt-5 items-center">
                 <Text className="text-gray-500">Cancel</Text>
-              </TouchableOpacity>
+                </Button>
 
             </SafeAreaView>
           </View>

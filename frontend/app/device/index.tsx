@@ -9,6 +9,7 @@ import {
   ImageBackground,
   Pressable
 } from "react-native";
+import Svg, { Circle } from "react-native-svg";
 import React, {useEffect, useState} from "react";
 import { PageHeader } from '@/components/ui/page-header'
 import { Button } from "@/components/ui/button";
@@ -105,24 +106,35 @@ function publishTestMessage1() {
 }
 
     return (
-        <ImageBackground className="flex-1" source={require('@/assets/images/device-con-bg.png')} resizeMode="cover">
-            <SafeAreaView className="flex-1">
+            <SafeAreaView className="flex-1 bg-green-900">
+            <PageHeader title="Device Connection" showNotificationButton={false} />
+
                 <View className='flex-1 p-4'>
-                    <PageHeader title="Device Connection" showNotificationButton={false} />
                     {!pairedDevice ? (
                         <View className="flex-1 justify-between items-center px-6" style={{ paddingVertical: 40 }}>
                             {/* Top Content */}
                             <View className="items-center" style={{ flex: 1, justifyContent: 'center' }}>
-                                {/* Illustration Container */}
-                                
+                                {/* Illustration Container with Concentric Circles */}
+                                <View className="items-center justify-center " style={{ position: 'relative', width: 320, height: 320 }}>
+                                   
+                                    
+                                    {/* Image */}
+                                    <View style={{ zIndex: 1 }}>
+                                        <Image 
+                                            source={require('@/assets/images/no-connected.png')}
+                                            resizeMode="contain"
+                                            className="opacity-55"
+                                            style={{ width: 220, height: 220 }}
+                                        />
+                                    </View>
+                                </View>
 
                                 {/* Text Content */}
-                                <View className="px-2">
-                                   
-                                    <Text className="text-lg font-semibold mb-2 text-center" style={{ color: '#155036', textShadowColor: 'rgba(255, 255, 255, 0.8)', textShadowOffset: { width: 0, height: 1 }, textShadowRadius: 3 }}>
-                                        No device connected.
+                                <View className="px-2 items-center">
+                                    <Text className="text-2xl font-bold mb-1 text-center" style={{ color: '#FFFFFF' }}>
+                                        No device connected
                                     </Text>
-                                    <Text className="text-base text-center" style={{ color: '#155036', opacity: 0.9, textShadowColor: 'rgba(255, 255, 255, 0.8)', textShadowOffset: { width: 0, height: 1 }, textShadowRadius: 3 }}>
+                                    <Text className="text-base text-center leading-6" style={{ color: 'rgba(255, 255, 255, 0.8)' }}>
                                         Please connect your device to get started.
                                     </Text>
                                 </View>
@@ -131,10 +143,11 @@ function publishTestMessage1() {
                             {/* Pair Device Button at Bottom */}
                             <View className="w-full" style={{ paddingBottom: 20 }}>
                                 <Button 
+                                    variant={'ghost'}
                                     className="" 
                                     onPress={() => setWifiModal(true)}
                                 >
-                                    <Text className="text-white text-lg font-semibold">Pair Device</Text>
+                                    <Text className="text-lg font-semibold">Pair Device</Text>
                                 </Button>
                             </View>
                         </View>
@@ -177,6 +190,6 @@ function publishTestMessage1() {
                 />
 
             </SafeAreaView>
-        </ImageBackground> 
+        
     )
 }

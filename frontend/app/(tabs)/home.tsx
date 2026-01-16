@@ -272,9 +272,7 @@ export default function Home() {
                       </Text>
                     </View>
                   </Pressable>
-                  <Button onPress={() => router.push('/device')}>
-                    <Text>Device</Text>
-                  </Button>
+                  
                 </View>
               </View>
             </View>
