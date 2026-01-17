@@ -4,6 +4,7 @@ import { Wifi, Bluetooth } from "lucide-react-native";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Text } from "@/components/ui/text";
+import { Separator } from "./separator";
 
 interface PairOptionModalProps {
   visible: boolean;
@@ -51,12 +52,14 @@ export function PairOptionModal({
               <View className="flex-1">
                 <Text className="text-lg font-semibold text-popover-foreground">
                   Pair by WiFi
-                </Text>
+                </Text> 
                 <Text className="text-sm text-muted-foreground/70">
                   Connect via WiFi network
                 </Text>
               </View>
             </Pressable>
+
+             <Separator className="my-4"/>
 
             {/* Bluetooth Pairing Option */}
             <Pressable
