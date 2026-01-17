@@ -61,12 +61,12 @@ export default function CropPerformance() {
 
   return (
     <ScrollView 
-      className="flex-1"
+      className="flex-1 bg-white"
       refreshControl={
         <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
       }
     >
-      <SafeAreaView>
+      <SafeAreaView className=''>
         <PageHeader 
           title="Crop Performance"
           showBackButton={true}
