@@ -171,7 +171,8 @@ export default function TreatmentEfficiency() {
           </ChartContainer>
 
           {/* Success Rate Trend Chart */}
-          <ChartContainer 
+        <View className='mt-4'>
+            <ChartContainer 
             title="Success Rate Trend" 
             subtitle="Daily success rate over 30 days"
             loading={loading}
@@ -210,6 +211,7 @@ export default function TreatmentEfficiency() {
               )}
             </View>
           </ChartContainer>
+        </View>
 
           {/* Maintenance Recommendations */}
           {treatmentEfficiency?.maintenance_recommendations && treatmentEfficiency.maintenance_recommendations.length > 0 && (
