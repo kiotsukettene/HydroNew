@@ -53,7 +53,7 @@ export default function YieldSummary() {
     ? [
         {
           value: yieldSummary.grade_distribution.selling?.count || 0,
-          color: '',
+          color: '#9ab068',
           text: 'Selling',
         },
         {
