@@ -52,7 +52,7 @@ export default function TreatmentEfficiency() {
 
   return (
     <ScrollView 
-      className="flex-1"
+      className="flex-1 bg-white/90"
       refreshControl={
         <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
       }
@@ -71,27 +71,21 @@ export default function TreatmentEfficiency() {
                 <StatCard
                   title="Total Cycles"
                   value={treatmentEfficiency?.total_cycles || 0}
-                  icon={Activity}
                   colorScheme="primary"
+                  bgClassName='bg-[#d6e8b6]'
                 />
               </View>
               <View className="flex-1">
                 <StatCard
                   title="Avg Cycles/Day"
                   value={(treatmentEfficiency?.avg_cycles_per_day || 0).toFixed(1)}
-                  icon={Target}
                   colorScheme="primary"
+                  bgClassName='bg-[#d6edf5]'
                 />
               </View>
             </View>
 
-            <StatCard
-              title="Overall Success Rate"
-              value={`${(treatmentEfficiency?.overall_success_rate || 0).toFixed(0)}%`}
-              icon={TrendingUp}
-              colorScheme="success"
-              subtitle="Average across all cycles"
-            />
+          
           </View>
 
           {/* Efficiency Trend Indicator */}
@@ -177,7 +171,8 @@ export default function TreatmentEfficiency() {
           </ChartContainer>
 
           {/* Success Rate Trend Chart */}
-          <ChartContainer 
+        <View className='mt-4'>
+            <ChartContainer 
             title="Success Rate Trend" 
             subtitle="Daily success rate over 30 days"
             loading={loading}
@@ -216,6 +211,7 @@ export default function TreatmentEfficiency() {
               )}
             </View>
           </ChartContainer>
+        </View>
 
           {/* Maintenance Recommendations */}
           {treatmentEfficiency?.maintenance_recommendations && treatmentEfficiency.maintenance_recommendations.length > 0 && (

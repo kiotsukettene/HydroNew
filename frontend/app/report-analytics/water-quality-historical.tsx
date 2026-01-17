@@ -100,7 +100,7 @@ export default function WaterQualityHistorical() {
 
   return (
     <ScrollView 
-      className="flex-1"
+      className="flex-1 bg-white/90"
       refreshControl={
         <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
       }
@@ -115,22 +115,22 @@ export default function WaterQualityHistorical() {
           {/* Filters */}
           <View className="gap-3 mb-4">
             {/* System Type Filter */}
-            <Card className="border-muted-foreground/30 p-3">
-              <Text className="text-sm font-semibold text-gray-700 mb-2">System Type</Text>
-              <View className="flex-row gap-2">
+            <View>
+              <Text className="font-medium text-gray-700 mb-2">System Type</Text>
+              <View className="flex-row bg-stone-100 rounded-full p-1 border border-brown-100">
                 {SYSTEM_TYPES.map((type) => (
                   <TouchableOpacity
                     key={type.value}
                     onPress={() => setSystemType(type.value)}
-                    className={`flex-1 py-2.5 px-2 rounded-lg border ${
+                    className={`flex-1 py-2 px-2 rounded-full ${
                       systemType === type.value
-                        ? 'bg-primary border-primary'
-                        : 'bg-white border-muted-foreground/30'
+                        ? 'bg-stone-700'
+                        : 'bg-transparent'
                     }`}
                   >
                     <Text
                       className={`text-center text-[11px] font-medium ${
-                        systemType === type.value ? 'text-white' : 'text-gray-700'
+                        systemType === type.value ? 'text-white' : 'text-stone-500'
                       }`}
                     >
                       {type.label}
@@ -138,25 +138,25 @@ export default function WaterQualityHistorical() {
                   </TouchableOpacity>
                 ))}
               </View>
-            </Card>
+            </View>
 
             {/* Interval Filter */}
-            <Card className="border-muted-foreground/30 p-3">
-              <Text className="text-sm font-semibold text-gray-700 mb-2">Interval</Text>
-              <View className="flex-row gap-2">
+            <View>
+              <Text className="font-medium text-gray-700 mb-2">Interval</Text>
+              <View className="flex-row bg-stone-100 rounded-full p-1 border border-brown-100">
                 {INTERVAL_OPTIONS.map((opt) => (
                   <TouchableOpacity
                     key={opt.value}
                     onPress={() => setInterval(opt.value)}
-                    className={`flex-1 py-2.5 px-3 rounded-lg border ${
+                    className={`flex-1 py-2 px-3 rounded-full ${
                       interval === opt.value
-                        ? 'bg-primary border-primary'
-                        : 'bg-white border-muted-foreground/30'
+                        ? 'bg-stone-700'
+                        : 'bg-transparent'
                     }`}
                   >
                     <Text
                       className={`text-center text-xs font-medium ${
-                        interval === opt.value ? 'text-white' : 'text-gray-700'
+                        interval === opt.value ? 'text-white' : 'text-stone-500'
                       }`}
                     >
                       {opt.label}
@@ -164,7 +164,7 @@ export default function WaterQualityHistorical() {
                   </TouchableOpacity>
                 ))}
               </View>
-            </Card>
+            </View>
           </View>
 
           {/* Statistical Summary */}

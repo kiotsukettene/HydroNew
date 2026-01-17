@@ -53,17 +53,17 @@ export default function YieldSummary() {
     ? [
         {
           value: yieldSummary.grade_distribution.selling?.count || 0,
-          color: '#10b981',
+          color: '#9ab068',
           text: 'Selling',
         },
         {
           value: yieldSummary.grade_distribution.consumption?.count || 0,
-          color: '#3b82f6',
+          color: '#add3e1',
           text: 'Consumption',
         },
         {
           value: yieldSummary.grade_distribution.disposal?.count || 0,
-          color: '#ef4444',
+          color: '#feb4b4',
           text: 'Disposal',
         },
       ]
@@ -71,7 +71,7 @@ export default function YieldSummary() {
 
   return (
     <ScrollView 
-      className="flex-1"
+      className="flex-1 bg-white/90"
       refreshControl={
         <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
       }
@@ -90,23 +90,24 @@ export default function YieldSummary() {
               value={yieldSummary?.total_harvested_setups || 0}
               icon={Package}
               colorScheme="primary"
+              bgClassName='bg-[#e8f5d1]'
             />
             
-            <View className="flex-row gap-3">
+            <View className="flex-row gap-3 mt-3">
               <View className="flex-1">
                 <StatCard
                   title="Total Weight"
                   value={`${((yieldSummary?.grade_distribution?.total_weight || 0) / 1000).toFixed(2)} kg`}
-                  icon={Scale}
                   colorScheme="success"
+                  bgClassName=''
                 />
               </View>
               <View className="flex-1">
                 <StatCard
                   title="Sellable"
                   value={`${(yieldSummary?.sellable_yield_percentage || 0)}%`}
-                  icon={TrendingUp}
                   colorScheme="success"
+                  bgClassName=''
                 />
               </View>
             </View>
@@ -118,6 +119,7 @@ export default function YieldSummary() {
                   value={`${(yieldSummary?.grade_distribution?.consumption?.percentage || 0)}%`}
                   subtitle={`${(yieldSummary?.grade_distribution?.consumption?.count || 0)} items`}
                   colorScheme="success"
+                  bgClassName=''
                 />
               </View>
               <View className="flex-1">
@@ -126,6 +128,7 @@ export default function YieldSummary() {
                   value={`${(yieldSummary?.waste_percentage || 0)}%`}
                   subtitle={`${(yieldSummary?.grade_distribution?.disposal?.count || 0)} items`}
                   colorScheme="danger"
+                  bgClassName=''
                 />
               </View>
             </View>

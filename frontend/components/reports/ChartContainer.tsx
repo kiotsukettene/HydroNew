@@ -23,7 +23,7 @@ export function ChartContainer({
     <Card className='border-muted-foreground/30 px-2 py-4 bg-gradient-to-br from-secondary/20 to-white rounded-2xl overflow-hidden'>
       <View className="flex-row justify-between items-start mb-4">
         <View className="flex-1 px-4 pt-2">
-          <Text className="text-2xl font-bold text-primary">{title}</Text>
+          <Text className="text-2xl font-semibold">{title}</Text>
           {subtitle && (
             <Text className="text-base text-gray-600 mt-1">{subtitle}</Text>
           )}
