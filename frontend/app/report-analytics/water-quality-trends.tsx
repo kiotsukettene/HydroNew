@@ -80,7 +80,7 @@ export default function WaterQualityTrends() {
         />
         <View className="p-4">
           {/* System Type Filter */}
-          <View className="mb-4">
+          <View className="mb-4" style={{ zIndex: 10, position: 'relative' }}>
             <Text className="font-medium text-gray-700 mb-2">System Type</Text>
             <View className="flex-row bg-stone-100 rounded-full p-2 border border-brown-100">
               {SYSTEM_TYPES.map((type) => (

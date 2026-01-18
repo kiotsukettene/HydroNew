@@ -113,7 +113,7 @@ export default function WaterQualityHistorical() {
         />
         <View className="p-4">
           {/* Filters */}
-          <View className="gap-3 mb-4">
+          <View className="gap-3 mb-4" style={{ zIndex: 10, position: 'relative' }}>
             {/* System Type Filter */}
             <View>
               <Text className="font-medium text-gray-700 mb-2">System Type</Text>
