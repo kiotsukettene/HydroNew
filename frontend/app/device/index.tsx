@@ -23,10 +23,12 @@ import { getMQTTClient, publishMessage, subscribeMessage } from "@/service/mqtt.
 import { useAuthStore } from "@/store/auth/authStore";
 import { Card } from "@/components/ui/card";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { PairOptionModal } from "@/components/ui/pair-option-modal";
 
 
 export default function DeviceConnection () {
 const [wifiModal, setWifiModal] = useState(false);
+const [pairingMethodModal, setPairingMethodModal] = useState(false);
 
 
 // Temporary: Set to show connected device UI for testing
@@ -151,11 +153,11 @@ function publishTestMessage1() {
                                 </View>
                             </View>
 
-                            {/* Pair Device Button at Bottom */}
+                            {/*============== Pair Device Button ==============*/}
                             <View className="w-full" style={{ paddingBottom: 20 }}>
                                 <Button 
-                                    className="bg-[#155036]" 
-                                    onPress={() => setWifiModal(true)}
+                                    className="bg-primary" 
+                                    onPress={() => setPairingMethodModal(true)}
                                 >
                                     <Text className="text-white text-lg font-semibold">Pair Device</Text>
                                 </Button>
@@ -240,17 +242,17 @@ function publishTestMessage1() {
                                 </Pressable>
                             </View>
 
-                            {/* Status Card - Full Width with Soft Shadow */}
+                            {/* Status Card  */}
                             <View className="mb-6 px-4">
                                 <Card 
                                     className="rounded-3xl border-muted-foreground/20 px-6 py-4"    
                                 >
                                     <View className="flex-row justify-between items-center">
                                         <View>
-                                            <Text className="text-gray-500 text-xs font-medium mb-3" style={{ letterSpacing: 0.3 }}>
+                                            <Text className="text-muted-foreground text-xs font-medium mb-3" >
                                                 Status
                                             </Text>
-                                            <Text className="text-gray-900 text-lg font-bold">
+                                            <Text className="text-lg font-bold">
                                                 Connected
                                             </Text>
                                         </View>
@@ -261,6 +263,21 @@ function publishTestMessage1() {
                         </ScrollView>
                     )}
                 </View>
+
+                {/* =============== PAIRING DEVICE SELECTION BUTTON & MODAL ================== */}
+                <PairOptionModal
+                    visible={pairingMethodModal}
+                    onClose={() => setPairingMethodModal(false)}
+                    onWifiPress={() => {
+                        setPairingMethodModal(false);
+                        setWifiModal(true);
+                    }}
+                    onBluetoothPress={() => {
+                        setPairingMethodModal(false);
+                        // TODO: Implement Bluetooth pairing
+                        console.log("Bluetooth pairing selected");
+                    }}
+                />
 
                 <WifiModal
                     visible={wifiModal}
