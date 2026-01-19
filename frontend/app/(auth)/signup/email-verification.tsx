@@ -105,7 +105,7 @@ const handleCancel = () => {
 
             <CardContent className="gap-6">
               {error && (
-                <Text className="text-red-500 text-center text-sm">
+                <Text className="text-red-600 text-center text-sm">
                   {error}
                 </Text>
               )}

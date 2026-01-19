@@ -54,7 +54,7 @@ connectDeviceToWifi: async (ssid: string, password?: string, pairing_token?: str
       error?.message
     );
 
-    // 🔥 AP shutdown breaks HTTP — this is SUCCESS
+    //  AP shutdown breaks HTTP — this is SUCCESS
     return { status: "ok", ssid };
 
   } finally {

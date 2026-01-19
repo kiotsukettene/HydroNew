@@ -21,4 +21,3 @@ export type Device = {
   firmware_version: string;
   status: string;
 };
-
