@@ -192,10 +192,10 @@ function publishTestMessage1() {
                             {/* Device Title with Better Hierarchy */}
                             <View className="mb-4 px-6">
                                 <Text className="text-gray-900 text-4xl font-black text-left mb-2" >
-                                    {pairedDevice.name || 'BIOTECH MACHINE'}
+                                    {pairedDevice.device_name || 'BIOTECH MACHINE'}
                                 </Text>
                                 <Text className=" text-sm text-primary text-left font-medium" >
-                                    {pairedDevice.model || 'MFC-1204328HD0B45'}
+                                    {pairedDevice.serial_number || 'MFC-1204328HD0B45'}
                                 </Text>
                             </View>
 
@@ -211,7 +211,7 @@ function publishTestMessage1() {
                                                     Model
                                                 </Text>
                                                 <Text className=" text-lg font-bold" style={{ lineHeight: 24 }}>
-                                                    {pairedDevice.modelType || 'Raspberry Pi 5'}
+                                                    {pairedDevice.model || 'Raspberry Pi 5'}
                                                 </Text>
                                             </View>
                                             <View className="w-12 h-12 rounded-full bg-yellow-50 items-center justify-center">
@@ -231,7 +231,7 @@ function publishTestMessage1() {
                                                     Firmware
                                                 </Text>
                                                 <Text className="text-lg font-bold" >
-                                                    {pairedDevice.firmware || '28743/65FG'}
+                                                    {pairedDevice.firmware_version || '28743/65FG'}
                                                 </Text>
                                             </View>
                                             <View className="w-12 h-12 rounded-full bg-gray-50 items-center justify-center">
@@ -253,7 +253,7 @@ function publishTestMessage1() {
                                                 Status
                                             </Text>
                                             <Text className="text-lg font-bold">
-                                                Connected
+                                                {pairedDevice.status || 'Connected'}
                                             </Text>
                                         </View>
                                     </View>
