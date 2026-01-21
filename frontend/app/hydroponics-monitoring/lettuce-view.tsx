@@ -11,6 +11,7 @@ import { Card } from '@/components/ui/card';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useHydroponicSetupStore } from '@/store/hydroponics/hydroponicSetupStore';
 import { useSensorStore } from '@/store/sensor/sensorStore';
+import { subscribeMessage, publishMessage } from '@/service/mqtt.client';
 
 export default function LettuceView() {
   const router = useRouter();
@@ -30,6 +31,12 @@ export default function LettuceView() {
       fetchSetupById(Number(setupId));
     }
   }, [setupId]);
+
+  const pumpWater = () => {
+    publishMessage('iot/pump', 'ON', 0);
+    router.push('/hydroponics-monitoring/pump-screen')
+    console.log('Pumping water...');
+  };
 
   return (
     <SafeAreaView className="flex-1 bg-background">
@@ -96,7 +103,7 @@ export default function LettuceView() {
                 <Button
                   className="w-full rounded-xl bg-emerald-50"
                   onPress={() => {
-                    router.push('/hydroponics-monitoring/pump-screen');
+                    pumpWater();
                   }}
                   disabled={loading}>
                   <Icon as={Droplet} className="text-primary" />
