@@ -6,6 +6,8 @@ import { useAccountStore } from "../account/accountStore";
 import { Platform } from "react-native";
 import { disconnectEcho } from "@/lib/echo";
 import { useNotificationStore } from "../notification/notificationStore";
+import { firebase } from "@react-native-firebase/auth";
+import { GoogleSignin } from "@react-native-google-signin/google-signin";
 
 const isWeb = Platform.OS === "web";
 
@@ -46,6 +48,8 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   setUserEmail: (email: string) => set({ userEmail: email }),
   setUser: (user) => set({ user }),
   setToken: (token) => set({ token }),
+  hydrated: false,
+  setHydrated: (value) => set({ hydrated: value }),
 
   resetErrors: () =>
     set({
@@ -109,6 +113,32 @@ login: async (email, password) => {
   }
 },
 
+signInWithGoogle: async (firebaseIdToken, first_name, last_name) => {
+    set({ loading: true, error: null});
+    try {
+      const response = await axiosInstance.post("/google-login", {token: firebaseIdToken, first_name, last_name });
+      const { token, user, needs_verification } = response.data;
+
+      await storage.setItem("token", token);
+      await storage.setItem("user", JSON.stringify(user));
+
+      set({
+        loading: false,
+        user: user || null,
+        token,
+        needsVerification: needs_verification ?? false,
+      });
+      await useAccountStore.getState().fetchAccount();
+      console.log("Google sign-in successful:", user);
+      return response.data;
+
+    } catch (err: any) {
+      const {message} = handleAxiosError(err);
+      set({ loading: false, error: message });
+      console.log("Google sign-in error:", message);
+      return null;
+    }
+},
 
   verifyOtp: async (otp: string) => {
     set({ loading: true, error: null, fieldErrors: {} });
@@ -168,25 +198,39 @@ login: async (email, password) => {
     }
   },
 
-  logout: async () => {
-     // Get user ID before clearing state
-    const user = get().user;
-    
-    // Stop listening to notifications
-    if (user?.id) {
-      useNotificationStore.getState().stopListening(user.id);
-    }
-    
-    // Disconnect Echo
-    disconnectEcho();
-    await storage.removeItem("token");
-    set({
-      user: null,
-      token: null,
-      error: null,
-      message: null,
-      fieldErrors: {},
-      needsVerification: false,
-    });
-  },
+logout: async () => {
+  const user = get().user;
+
+  // Stop listening safely
+  if (user?.id) {
+    useNotificationStore.getState().stopListening(user.id);
+  }
+
+  // Disconnect echo safely
+  disconnectEcho();
+
+  // Clear storage
+  await storage.removeItem("token");
+  await GoogleSignin.signOut();
+
+  // Reset auth state
+  set({
+    user: null,
+    token: null,
+    error: null,
+    message: null,
+    fieldErrors: {},
+    needsVerification: false,
+  });
+
+  // Reset notification store
+  useNotificationStore.setState({
+    notifications: [],
+    unreadCount: 0,
+    error: null,
+    loading: false,
+    isListening: false,
+  });
+},
+
 }));

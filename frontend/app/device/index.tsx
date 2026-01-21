@@ -34,13 +34,13 @@ const [pairingMethodModal, setPairingMethodModal] = useState(false);
 // Temporary: Set to show connected device UI for testing
 
 
-// const [pairedDevice, setPairedDevice] = useState<any>({
-//   id: 'temp-device-1',
-//   name: 'BIOTECH MACHINE',
-//   model: 'MFC-1204328HD0B45',
-//   modelType: 'Raspberry Pi 5',
-//   firmware: '28743/65FG'
-// });
+/* const [pairedDevice, setPairedDevice] = useState<any>({
+   id: 'temp-device-1',
+   name: 'BIOTECH MACHINE',
+   model: 'MFC-1204328HD0B45',
+   modelType: 'Raspberry Pi 5',
+   firmware: '28743/65FG'
+ });*/
 
 
 // if want to test no device connected UI, set to null
