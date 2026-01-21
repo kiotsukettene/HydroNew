@@ -21,7 +21,7 @@ export default function WifiModal({ visible, onClose, onConnect }: WifiModalProp
   const [showPassword, setShowPassword] = useState(false);
   const [showPhoneWifiPrompt, setShowPhoneWifiPrompt] = useState(false);
   const { connectDeviceToWifi, loading, error, getPairingToken } = useDeviceStore();
-  const [pairingToken, setPairingToken] = useState<string | undefined>(undefined);
+  const [pairingToken, setPairingToken] = useState<string | undefined>(undefined); 
 
   useEffect(() => {
     if (visible) {

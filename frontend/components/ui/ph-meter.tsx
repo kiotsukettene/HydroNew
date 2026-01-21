@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { View, Text, Pressable } from "react-native";
 
 interface PhScaleProps {
@@ -30,8 +30,17 @@ const PhScale: React.FC<PhScaleProps> = ({ phValue }) => {
     { level: 14, label: "Very Strong Alkaline", description: "Extremely alkaline - toxic to most plants. Growth is impossible." },
   ];
 
-  const roundedPh = Math.max(0, Math.min(14, Math.round(phValue)));
-  const [selectedPh, setSelectedPh] = useState<number>(roundedPh);
+  // Calculate which segment to highlight based on pH value (0-14 scale maps to 0-14 segments)
+  const clampedPh = Math.max(0, Math.min(14, phValue));
+  const activeSegment = Math.floor(clampedPh);
+  
+  const [selectedPh, setSelectedPh] = useState<number>(activeSegment);
+
+  // Update selected pH when phValue prop changes
+  useEffect(() => {
+    const newActiveSegment = Math.floor(Math.max(0, Math.min(14, phValue)));
+    setSelectedPh(newActiveSegment);
+  }, [phValue]);
 
   const handlePhClick = (index: number) => {
     setSelectedPh(index);
@@ -41,7 +50,7 @@ const PhScale: React.FC<PhScaleProps> = ({ phValue }) => {
     <View className="w-full items-center mt-4">
       <View className="flex-row w-[95%] justify-between">
         {colors.map((color, index) => {
-          const isActive = index === roundedPh;
+          const isActive = index === activeSegment;
           const isSelected = index === selectedPh;
           return (
             <Pressable
