@@ -61,12 +61,12 @@ export default function CropPerformance() {
 
   return (
     <ScrollView 
-      className="flex-1"
+      className="flex-1 bg-white"
       refreshControl={
         <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
       }
     >
-      <SafeAreaView>
+      <SafeAreaView className=''>
         <PageHeader 
           title="Crop Performance"
           showBackButton={true}
@@ -74,11 +74,12 @@ export default function CropPerformance() {
         />
         <View className="p-4">
           {/* Growth Stage Distribution */}
-          <ChartContainer 
-            title="Growth Stage Distribution" 
-            subtitle="Active setups by growth stage"
-            loading={loading}
-          >
+          <View className="mb-4">
+            <ChartContainer 
+              title="Growth Stage Distribution" 
+              subtitle="Active setups by growth stage"
+              loading={loading}
+            >
             <View className="items-center py-4">
               {growthStageData.length > 0 ? (
                 <PieChart
@@ -106,14 +107,16 @@ export default function CropPerformance() {
                 ))}
               </View>
             </View>
-          </ChartContainer>
+            </ChartContainer>
+          </View>
 
           {/* Health Status Distribution */}
-          <ChartContainer 
-            title="Health Status Distribution" 
-            subtitle="Overall health of active setups"
-            loading={loading}
-          >
+          <View className="mb-4">
+            <ChartContainer 
+              title="Health Status Distribution" 
+              subtitle="Overall health of active setups"
+              loading={loading}
+            >
             <View className="items-center py-4">
               {healthStatusData.length > 0 ? (
                 <PieChart
@@ -145,7 +148,8 @@ export default function CropPerformance() {
                 ))}
               </View>
             </View>
-          </ChartContainer>
+            </ChartContainer>
+          </View>
 
           {/* Parameter Compliance */}
           {cropPerformance?.parameter_compliance && (

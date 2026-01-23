@@ -71,7 +71,7 @@ export default function CropComparison() {
 
   return (
     <ScrollView 
-      className="flex-1"
+      className="flex-1 bg-white/90"
       refreshControl={
         <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
       }
@@ -85,16 +85,16 @@ export default function CropComparison() {
         <View className="p-4">
           {/* Metric Selection */}
           <View className="mb-4">
-            <Text className="text-sm font-medium text-gray-700 mb-2">Compare By</Text>
-            <View className="flex-row bg-gray-100 rounded-xl p-1">
+            <Text className=" font-medium text-gray-700 mb-2">Compare By</Text>
+            <View className="flex-row bg-stone-100 rounded-full p-1 border border-brown-100">
               {metricOptions.map((option) => (
                 <TouchableOpacity
                   key={option.value}
                   activeOpacity={0.7}
-                  className={`flex-1 py-2.5 rounded-lg ${selectedMetric === option.value ? 'bg-primary' : 'bg-transparent'}`}
+                  className={`flex-1 py-2 px-3 rounded-full ${selectedMetric === option.value ? 'bg-stone-700' : 'bg-transparent '}`}
                   onPress={() => setSelectedMetric(option.value)}
                 >
-                  <Text className={`text-center text-xs font-semibold ${selectedMetric === option.value ? 'text-white' : 'text-muted-foreground'}`}>
+                  <Text className={`text-center text-xs font-medium ${selectedMetric === option.value ? 'text-white' : 'text-stone-500'}`}>
                     {option.label}
                   </Text>
                 </TouchableOpacity>

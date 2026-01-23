@@ -103,7 +103,7 @@ export const useReportsStore = create<ReportsStore>((set, get) => ({
     try {
       const params = new URLSearchParams();
       params.append('system_type', systemType);
-      params.append('parameter', parameter);
+      if (parameter) params.append('parameter', parameter);
       params.append('days', days.toString());
 
       const response = await axiosInstance.get(`reports/water-quality/trends?${params.toString()}`);

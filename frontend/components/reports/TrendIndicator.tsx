@@ -35,6 +35,20 @@ export function TrendIndicator({ trend, value, showLabel = true }: TrendIndicato
           bgColor: 'bg-red-50',
           label: 'Declining',
         };
+      case 'insufficient_data':
+        return {
+          icon: ArrowRight,
+          color: 'text-gray-600',
+          bgColor: 'bg-gray-50',
+          label: 'Insufficient Data',
+        };
+      default:
+        return {
+          icon: ArrowRight,
+          color: 'text-gray-600',
+          bgColor: 'bg-gray-50',
+          label: 'No Data',
+        };
     }
   };
 

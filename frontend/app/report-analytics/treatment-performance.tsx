@@ -39,7 +39,7 @@ export default function TreatmentPerformance() {
     ? [
         {
           value: treatmentPerformance.success_count,
-          color: '#10b981',
+          color: '#9ab068',
           text: 'Success',
         },
         {
@@ -52,7 +52,7 @@ export default function TreatmentPerformance() {
 
   return (
     <ScrollView 
-      className="flex-1"
+      className="flex-1 bg-white/90"
       refreshControl={
         <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
       }
@@ -66,12 +66,19 @@ export default function TreatmentPerformance() {
         <View className="p-4">
           {/* Summary Stats */}
           <View className="gap-3 mb-4">
+
+            <StatCard
+              title="Average Cycle Duration"
+              value={`${(treatmentPerformance?.avg_cycle_duration || 0).toFixed(1)} min`}
+              subtitle="Time to complete treatment"
+              colorScheme="primary"
+            />
+
             <View className="flex-row gap-3">
               <View className="flex-1">
                 <StatCard
                   title="Total Cycles"
                   value={treatmentPerformance?.total_cycles || 0}
-                  icon={Droplet}
                   colorScheme="primary"
                 />
               </View>
@@ -79,19 +86,12 @@ export default function TreatmentPerformance() {
                 <StatCard
                   title="Success Rate"
                   value={`${(treatmentPerformance?.success_rate || 0).toFixed(0)}%`}
-                  icon={CheckCircle}
                   colorScheme="success"
                 />
               </View>
             </View>
 
-            <StatCard
-              title="Average Cycle Duration"
-              value={`${(treatmentPerformance?.avg_cycle_duration || 0).toFixed(1)} min`}
-              icon={Clock}
-              subtitle="Time to complete treatment"
-              colorScheme="primary"
-            />
+            
           </View>
 
           {/* Performance Score Gauge */}
@@ -151,13 +151,13 @@ export default function TreatmentPerformance() {
           </ChartContainer>
 
           {/* Water Quality Improvements */}
-          <Card className="border-muted-foreground/30 p-4 mb-4">
+          <Card className="border-muted-foreground/30 mt-4 p-4 mb-2">
             <Text className="text-xl font-semibold text-primary mb-3">
               Water Quality Improvements
             </Text>
             <View className="flex-row gap-3">
               <View className="flex-1">
-                <Card className="p-4 bg-blue-50 border border-blue-200">
+                <Card className="p-4 bg-blue-50 border ">
                   <View className="flex-row items-center gap-2 mb-1">
                     <TrendingDown size={16} className="text-blue-600" />
                     <Text className="text-xs text-blue-700">Turbidity Reduction</Text>
@@ -168,7 +168,7 @@ export default function TreatmentPerformance() {
                 </Card>
               </View>
               <View className="flex-1">
-                <Card className="p-4 bg-green-50 border border-green-200">
+                <Card className="p-4 bg-green-50 border ">
                   <View className="flex-row items-center gap-2 mb-1">
                     <TrendingDown size={16} className="text-green-600" />
                     <Text className="text-xs text-green-700">TDS Reduction</Text>

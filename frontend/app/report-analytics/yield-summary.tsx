@@ -33,28 +33,37 @@ export default function YieldSummary() {
 
   // Prepare chart data
   const weightByCropData = yieldSummary?.weight_by_crop
-    ? Object.entries(yieldSummary.weight_by_crop).map(([crop, weight]) => ({
-        value: weight,
-        label: crop.charAt(0).toUpperCase() + crop.slice(1, 3),
-        frontColor: 'hsl(173 58% 39%)',
+    ? Object.entries(yieldSummary.weight_by_crop).map(([crop, data]) => ({
+        value: data.total_weight || 0,
+        label: crop.length > 6 ? crop.substring(0, 3) : crop.substring(0, 4),
+        frontColor: '#16a085',
+        topLabelComponent: () => (
+          <Text style={{ fontSize: 10, color: '#4B5563', marginBottom: 2 }}>
+            {data.total_weight}g
+          </Text>
+        ),
       }))
     : [];
+
+  // Debug log
+  console.log('Weight by Crop Data:', weightByCropData);
+  console.log('Yield Summary:', yieldSummary);
 
   const gradeDistributionData = yieldSummary?.grade_distribution
     ? [
         {
           value: yieldSummary.grade_distribution.selling?.count || 0,
-          color: '#10b981',
+          color: '#9ab068',
           text: 'Selling',
         },
         {
           value: yieldSummary.grade_distribution.consumption?.count || 0,
-          color: '#3b82f6',
+          color: '#add3e1',
           text: 'Consumption',
         },
         {
           value: yieldSummary.grade_distribution.disposal?.count || 0,
-          color: '#ef4444',
+          color: '#feb4b4',
           text: 'Disposal',
         },
       ]
@@ -62,14 +71,14 @@ export default function YieldSummary() {
 
   return (
     <ScrollView 
-      className="flex-1"
+      className="flex-1 bg-white/90"
       refreshControl={
         <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
       }
     >
       <SafeAreaView>
         <PageHeader 
-          title="Yield Summary"
+          title="Yield Summary "
           showBackButton={true}
           showNotificationButton={false}
         />
@@ -81,23 +90,24 @@ export default function YieldSummary() {
               value={yieldSummary?.total_harvested_setups || 0}
               icon={Package}
               colorScheme="primary"
+              bgClassName='bg-[#e8f5d1]'
             />
             
-            <View className="flex-row gap-3">
+            <View className="flex-row gap-3 mt-3">
               <View className="flex-1">
                 <StatCard
                   title="Total Weight"
-                  value={`${(yieldSummary?.grade_distribution?.total_weight || 0)} kg`}
-                  icon={Scale}
+                  value={`${((yieldSummary?.grade_distribution?.total_weight || 0) / 1000).toFixed(2)} kg`}
                   colorScheme="success"
+                  bgClassName=''
                 />
               </View>
               <View className="flex-1">
                 <StatCard
                   title="Sellable"
                   value={`${(yieldSummary?.sellable_yield_percentage || 0)}%`}
-                  icon={TrendingUp}
                   colorScheme="success"
+                  bgClassName=''
                 />
               </View>
             </View>
@@ -109,6 +119,7 @@ export default function YieldSummary() {
                   value={`${(yieldSummary?.grade_distribution?.consumption?.percentage || 0)}%`}
                   subtitle={`${(yieldSummary?.grade_distribution?.consumption?.count || 0)} items`}
                   colorScheme="success"
+                  bgClassName=''
                 />
               </View>
               <View className="flex-1">
@@ -117,51 +128,19 @@ export default function YieldSummary() {
                   value={`${(yieldSummary?.waste_percentage || 0)}%`}
                   subtitle={`${(yieldSummary?.grade_distribution?.disposal?.count || 0)} items`}
                   colorScheme="danger"
+                  bgClassName=''
                 />
               </View>
             </View>
           </View>
 
-          {/* Weight by Crop Chart */}
-          <ChartContainer 
-            title="Weight by Crop Type" 
-            subtitle="Total harvest weight per crop"
-            loading={loading}
-          >
-            <View className="px-4 py-4">
-              {weightByCropData.length > 0 ? (
-                <BarChart
-                  data={weightByCropData}
-                  height={250}
-                  barWidth={40}
-                  spacing={30}
-                  initialSpacing={20}
-                  endSpacing={20}
-                  noOfSections={5}
-                  yAxisThickness={1}
-                  xAxisThickness={1}
-                  xAxisColor="hsl(0 0% 89.8%)"
-                  yAxisColor="hsl(0 0% 89.8%)"
-                  yAxisTextStyle={{ color: 'hsl(0 0% 45.1%)', fontSize: 12 }}
-                  xAxisLabelTextStyle={{ color: 'hsl(0 0% 45.1%)', fontSize: 12 }}
-                  rulesColor="hsl(0 0% 89.8%)"
-                  rulesType="solid"
-                  showVerticalLines
-                  verticalLinesColor="hsl(0 0% 89.8%)"
-                  adjustToWidth={true}
-                />
-              ) : (
-                <Text className="text-center text-muted-foreground py-8">No data available</Text>
-              )}
-            </View>
-          </ChartContainer>
-
           {/* Grade Distribution */}
-          <ChartContainer 
-            title="Grade Distribution" 
-            subtitle="Quality breakdown of harvests"
-            loading={loading}
-          >
+          <View className="mb-4">
+            <ChartContainer 
+              title="Grade Distribution" 
+              subtitle="Quality breakdown of harvests"
+              loading={loading}
+            >
             <View className="items-center py-4">
               {gradeDistributionData.length > 0 ? (
                 <>
@@ -195,7 +174,44 @@ export default function YieldSummary() {
                 <Text className="text-muted-foreground">No data available</Text>
               )}
             </View>
-          </ChartContainer>
+            </ChartContainer>
+          </View>
+
+          {/* Weight by Crop Chart */}
+          <View className="mb-4">
+            <ChartContainer 
+              title="Weight by Crop Type" 
+              subtitle="Total harvest weight per crop"
+              loading={loading}
+            >
+            <View className="px-4 py-4">
+              {weightByCropData.length > 0 ? (
+                <BarChart
+                  data={weightByCropData}
+                  height={250}
+                  barWidth={40}
+                  spacing={30}
+                  initialSpacing={20}
+                  endSpacing={20}
+                  noOfSections={5}
+                  yAxisThickness={1}
+                  xAxisThickness={1}
+                  xAxisColor="#E5E5E5"
+                  yAxisColor="#E5E5E5"
+                  yAxisTextStyle={{ color: '#737373', fontSize: 12 }}
+                  xAxisLabelTextStyle={{ color: '#737373', fontSize: 12 }}
+                  rulesColor="#E5E5E5"
+                  rulesType="solid"
+                  showVerticalLines
+                  verticalLinesColor="#E5E5E5"
+                  isAnimated
+                />
+              ) : (
+                <Text className="text-center text-muted-foreground py-8">No data available</Text>
+              )}
+            </View>
+            </ChartContainer>
+          </View>
 
           {!loading && !yieldSummary && (
             <View className="p-6 items-center">
