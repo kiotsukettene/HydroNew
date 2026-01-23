@@ -15,6 +15,7 @@ import {
   Scroll,
   Lock,
   MessageSquareMore,
+  FileClock,
 } from 'lucide-react-native'
 import React, { useEffect} from 'react'
 import { SafeAreaView } from 'react-native-safe-area-context'
@@ -34,6 +35,7 @@ const settings = [
   { icon: Scroll, title: 'Terms and Conditions', link: '/account/terms-and-conditions' },
   { icon: Lock, title: 'Privacy Policy', link: '/account/privacy-policy' },
   { icon: MessageSquareMore, title: 'FAQs', link: '/account/faq' },
+  { icon: FileClock, title: 'Activity Log', link: '/account/login-history' },
 ];
 
   useEffect(() => {
