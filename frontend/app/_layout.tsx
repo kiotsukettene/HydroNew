@@ -25,16 +25,36 @@ export default function RootLayout() {
 
 
   const user = useAuthStore(state => state.user);
+  const token = useAuthStore(state => state.token);
   const needsVerification = useAuthStore(state => state.needsVerification);
 
+  // Compute userId for Echo setup
+  // Only provide userId when:
+  // 1. Hydration is complete (token/user loaded from storage)
+  // 2. User doesn't need verification
+  // 3. Token exists
+  // 4. User exists with an ID
+  const echoUserId = hydrated && !needsVerification && token && user?.id ? user.id : undefined;
+
   // Setup Echo globally - will only initialize when user is authenticated AND verified
-  // Don't setup Echo if user needs email verification
-  useEchoSetup(needsVerification ? undefined : user?.id);
+  useEchoSetup(echoUserId);
 
   const [fontsLoaded] = useFonts({
     "FingerPaint-Regular": require("@/assets/fonts/Finger_Paint/FingerPaint-Regular.ttf"),
     "FingerPaint": require("@/assets/fonts/Finger_Paint/FingerPaint-Regular.ttf"),
   });
+
+  // Debug logging for persistent auth
+  useEffect(() => {
+    console.log('🔍 [RootLayout] Auth state:', {
+      hydrated,
+      hasToken: !!token,
+      hasUser: !!user,
+      userId: user?.id,
+      needsVerification,
+      echoUserId,
+    });
+  }, [hydrated, token, user, needsVerification, echoUserId]);
 
   useEffect(() => {
     async function bootstrap() {
@@ -44,12 +64,30 @@ export default function RootLayout() {
         const storedToken = await AsyncStorage.getItem("token");
         const storedUser = await AsyncStorage.getItem("user");
 
-        if (storedToken) setToken(storedToken);
-        if (storedUser) setUser(JSON.parse(storedUser));
+        console.log('🔍 [Bootstrap] Loading from AsyncStorage:', {
+          hasToken: !!storedToken,
+          hasUser: !!storedUser,
+          userRaw: storedUser?.substring(0, 100), // First 100 chars
+        });
+
+        if (storedToken) {
+          console.log('✅ [Bootstrap] Setting token');
+          setToken(storedToken);
+        }
+        
+        if (storedUser) {
+          console.log('✅ [Bootstrap] Parsing and setting user');
+          const parsedUser = JSON.parse(storedUser);
+          console.log('✅ [Bootstrap] Parsed user:', parsedUser);
+          setUser(parsedUser);
+        } else {
+          console.log('⚠️ [Bootstrap] No user found in AsyncStorage');
+        }
         // Don't initialize Echo here - let useEchoSetup handle it after verification check
       } catch (e) {
-        console.log("Auth bootstrap failed:", e);
+        console.error("❌ [Bootstrap] Auth bootstrap failed:", e);
       } finally {
+        console.log('✅ [Bootstrap] Setting hydrated to true');
         setHydrated(true);
         SplashScreen.hideAsync();
       }

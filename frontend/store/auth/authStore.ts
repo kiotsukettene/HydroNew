@@ -118,16 +118,25 @@ login: async (email, password) => {
     const response = await axiosInstance.post("/login", { email, password });
     const { token, user, needs_verification, message } = response.data;
 
+    console.log('🔍 [Login] Response:', { hasToken: !!token, hasUser: !!user, user });
+
     if (!token) {
       set({ loading: false, error: message || "Invalid credentials" });
       return null;
     }
 
+    // Store token
     await storage.setItem("token", token);
+    console.log('✅ [Login] Token saved to storage');
+    
+    // Store user if exists
     if (user) {
-      await AsyncStorage.setItem("user", JSON.stringify(user));
+      const userString = JSON.stringify(user);
+      await storage.setItem("user", userString);
+      console.log('✅ [Login] User saved to storage:', user);
     } else {
-      await AsyncStorage.removeItem("user");
+      await storage.removeItem("user");
+      console.log('⚠️ [Login] No user in response, removed from storage');
     }
 
     set({
@@ -136,6 +145,8 @@ login: async (email, password) => {
       token,
       needsVerification: needs_verification ?? false,
     });
+    
+    console.log('✅ [Login] State updated');
     await useAccountStore.getState().fetchAccount();
 
     return response.data;
@@ -152,8 +163,11 @@ signInWithGoogle: async (firebaseIdToken, first_name, last_name) => {
       const response = await axiosInstance.post("/google-login", {token: firebaseIdToken, first_name, last_name });
       const { token, user, needs_verification } = response.data;
 
+      console.log('🔍 [Google Login] Response:', { hasToken: !!token, hasUser: !!user, user });
+
       await storage.setItem("token", token);
       await storage.setItem("user", JSON.stringify(user));
+      console.log('✅ [Google Login] Token and user saved to storage');
 
       set({
         loading: false,
@@ -162,13 +176,13 @@ signInWithGoogle: async (firebaseIdToken, first_name, last_name) => {
         needsVerification: needs_verification ?? false,
       });
       await useAccountStore.getState().fetchAccount();
-      console.log("Google sign-in successful:", user);
+      console.log("✅ [Google Login] Google sign-in successful:", user);
       return response.data;
 
     } catch (err: any) {
       const {message} = handleAxiosError(err);
       set({ loading: false, error: message });
-      console.log("Google sign-in error:", message);
+      console.log("❌ [Google Login] Google sign-in error:", message);
       return null;
     }
 },
@@ -186,19 +200,29 @@ signInWithGoogle: async (firebaseIdToken, first_name, last_name) => {
         { otp },
         { headers: { Authorization: `Bearer ${token}` } }
       );
+      
+      console.log('🔍 [Verify OTP] Response:', response.data);
+      
       const fullToken = response.data.token;
+      const user = response.data.user || get().user; // Use user from response or keep current
+      
       await storage.setItem("token", fullToken);
+      if (user) {
+        await storage.setItem("user", JSON.stringify(user));
+        console.log('✅ [Verify OTP] User saved to storage:', user);
+      }
       
       await useAccountStore.getState().fetchAccount();
 
       set({
         loading: false,
-        token: response.data.token,
+        token: fullToken,
+        user: user,
         needsVerification: false,
         error: null,
       });
 
-      await storage.setItem("token", response.data.token);
+      console.log('✅ [Verify OTP] Verification successful');
       return response.data;
     } catch (err: any) {
       const { message, fieldErrors } = handleAxiosError(err);

@@ -9,14 +9,24 @@ const RECONNECT_DELAY = 3000; // 3 seconds
 
 export const initializeEcho = (authToken: string) => {
   if (echoInstance) {
-    console.log('Echo already initialized, returning existing instance');
+    console.log('✅ Echo already initialized, returning existing instance');
+    // Update the auth token in case it changed
+    const pusherInstance = (echoInstance as any).connector.pusher;
+    if (pusherInstance && pusherInstance.config) {
+      pusherInstance.config.auth = {
+        headers: {
+          Authorization: `Bearer ${authToken}`,
+          Accept: 'application/json',
+        },
+      };
+    }
     return echoInstance;
   }
 
-  console.log('Initializing Echo with token:', authToken ? 'Token exists' : 'No token');
-  console.log('Pusher Key:', process.env.EXPO_PUBLIC_PUSHER_APP_KEY);
-  console.log('Pusher Cluster:', process.env.EXPO_PUBLIC_PUSHER_APP_CLUSTER);
-  console.log('Auth Endpoint:', `${process.env.EXPO_PUBLIC_API_URL}/broadcasting/auth`);
+  console.log('🔧 Initializing Echo with token:', authToken ? 'Token exists' : 'No token');
+  console.log('🔑 Pusher Key:', process.env.EXPO_PUBLIC_PUSHER_APP_KEY);
+  console.log('🌍 Pusher Cluster:', process.env.EXPO_PUBLIC_PUSHER_APP_CLUSTER);
+  console.log('🔐 Auth Endpoint:', `${process.env.EXPO_PUBLIC_API_URL}/broadcasting/auth`);
 
   echoInstance = new Echo({
     broadcaster: 'pusher',
@@ -135,10 +145,24 @@ export const getConnectionState = () => {
 
 export const disconnectEcho = () => {
   if (echoInstance) {
-    console.log('Disconnecting Echo');
-    echoInstance.disconnect();
+    console.log('🔌 Disconnecting Echo');
+    try {
+      const pusherInstance = (echoInstance as any).connector.pusher;
+      if (pusherInstance) {
+        // Unbind all event listeners
+        pusherInstance.connection.unbind_all();
+        // Disconnect
+        pusherInstance.disconnect();
+      }
+      echoInstance.disconnect();
+    } catch (error) {
+      console.error('❌ Error disconnecting Echo:', error);
+    }
     echoInstance = null;
     connectionPromise = null;
     reconnectAttempts = 0;
+    console.log('✅ Echo disconnected and cleaned up');
+  } else {
+    console.log('⚠️ No Echo instance to disconnect');
   }
 };

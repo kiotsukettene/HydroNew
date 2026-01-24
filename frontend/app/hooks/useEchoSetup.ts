@@ -29,32 +29,35 @@ export const useEchoSetup = (userId?: number, deviceId: number = 1) => {
         const token = useAuthStore.getState().token;
         console.log('Token retrieved from auth store:', token ? 'Token exists' : 'No token found');
         
+        if (!token) {
+          console.log('⚠️ No token available, skipping Echo setup');
+          return;
+        }
+        
         if (token && userId) {
-          console.log('Initializing Echo for user:', userId);
+          console.log('✅ Initializing Echo for user:', userId);
           
           // Initialize Echo (only once)
           initializeEcho(token);
           
           // Fetch notifications to get the unread count
-          console.log('Fetching notifications...');
+          console.log('📥 Fetching notifications...');
           await fetchNotifications();
           
-          console.log('Starting to listen for notifications...');
+          console.log('👂 Starting to listen for notifications...');
           // Start listening to notifications
           startListening(userId);
-        } else {
-          console.log('Missing token or userId, cannot setup Echo');
         }
       } catch (error) {
-        console.error('Error setting up Echo:', error);
+        console.error('❌ Error setting up Echo:', error);
       }
     };
 
     setupEcho();
 
-    // Cleanup on unmount
+    // Cleanup on unmount or when userId changes
     return () => {
-      console.log('useEchoSetup cleanup running');
+      console.log('🧹 useEchoSetup cleanup running');
       if (userId) {
         stopListening(userId);
       }
