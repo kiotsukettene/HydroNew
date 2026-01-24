@@ -10,6 +10,8 @@ export interface DeviceStore {
 
   connectDeviceToWifi: (ssid: string, password?: string, pairingToken?: string) => Promise<any>;
   getPairingToken: () => Promise<string | undefined>;
+  fetchDevice: (userId: number) => Promise<void>;
+  setDevice: (device: any) => void;
 }
 
 

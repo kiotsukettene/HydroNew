@@ -8,6 +8,7 @@ import { disconnectEcho } from "@/lib/echo";
 import { useNotificationStore } from "../notification/notificationStore";
 import { firebase } from "@react-native-firebase/auth";
 import { GoogleSignin } from "@react-native-google-signin/google-signin";
+import { useDeviceStore } from "@/store/device/deviceStore";
 
 const isWeb = Platform.OS === "web";
 
@@ -66,26 +67,23 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       // Parse response if it's a string
       let responseData = response.data;
       if (typeof responseData === 'string') {
-        console.log('⚠️ Response is a string, extracting JSON...');
+        console.log(' Response is a string, extracting JSON...');
         try {
           // Extract JSON from string (backend may have debug output before JSON)
           const jsonMatch = responseData.match(/\{.*\}/s);
           if (jsonMatch) {
             responseData = JSON.parse(jsonMatch[0]);
-            console.log('✅ JSON extracted and parsed successfully');
+            console.log(' JSON extracted and parsed successfully');
           } else {
             throw new Error('No JSON found in response');
           }
         } catch (parseError) {
-          console.error('❌ JSON parse error:', parseError);
+          console.error(' JSON parse error:', parseError);
           console.error('Raw response:', responseData);
           throw parseError;
         }
       }
       
-      console.log('🔍 Register API response:', responseData);
-      console.log('🔍 needs_verification value:', responseData.needs_verification);
-      console.log('🔍 Setting needsVerification to:', responseData.needs_verification ?? false);
 
       const needsVerif = responseData.needs_verification ?? false;
       
@@ -96,16 +94,15 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         needsVerification: needsVerif,
       });
       
-      console.log('✅ State updated, needsVerification is now:', needsVerif);
       
       // Verify the state was actually set
       const currentState = get();
-      console.log('🔍 Current needsVerification from store:', currentState.needsVerification);
+
 
       await storage.setItem("token", responseData.token);
 
     } catch (err: any) {
-      console.error('❌ Register error:', err);
+      console.error(' Register error:', err);
       const { message, fieldErrors } = handleAxiosError(err);
       set({ loading: false, error: message, fieldErrors });
     }
@@ -118,7 +115,7 @@ login: async (email, password) => {
     const response = await axiosInstance.post("/login", { email, password });
     const { token, user, needs_verification, message } = response.data;
 
-    console.log('🔍 [Login] Response:', { hasToken: !!token, hasUser: !!user, user });
+    console.log(' [Login] Response:', { hasToken: !!token, hasUser: !!user, user });
 
     if (!token) {
       set({ loading: false, error: message || "Invalid credentials" });
@@ -127,16 +124,16 @@ login: async (email, password) => {
 
     // Store token
     await storage.setItem("token", token);
-    console.log('✅ [Login] Token saved to storage');
+    console.log(' [Login] Token saved to storage');
     
     // Store user if exists
     if (user) {
       const userString = JSON.stringify(user);
       await storage.setItem("user", userString);
-      console.log('✅ [Login] User saved to storage:', user);
+      console.log(' [Login] User saved to storage:', user);
     } else {
       await storage.removeItem("user");
-      console.log('⚠️ [Login] No user in response, removed from storage');
+      console.log(' [Login] No user in response, removed from storage');
     }
 
     set({
@@ -146,9 +143,11 @@ login: async (email, password) => {
       needsVerification: needs_verification ?? false,
     });
     
-    console.log('✅ [Login] State updated');
+    console.log(' [Login] State updated');
     await useAccountStore.getState().fetchAccount();
 
+    await useDeviceStore.getState().fetchDevice(response.data.user.id);
+    
     return response.data;
   } catch (err: any) {
     const { message, fieldErrors } = handleAxiosError(err);

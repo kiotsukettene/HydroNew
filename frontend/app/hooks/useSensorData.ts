@@ -1,13 +1,13 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef } from 'react';
 import { getEcho, waitForConnection } from '@/lib/echo';
 import { useSensorStore } from '@/store/sensor/sensorStore';
 import { useAuthStore } from '@/store/auth/authStore';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useDeviceStore } from '@/store/device/deviceStore';
 
 /**
  * Custom hook to listen to real-time sensor data broadcasts
  * Subscribes to device-specific sensor channel and updates the sensor store
- * Device ID is automatically loaded from AsyncStorage based on paired device
+ * Device ID is automatically loaded from deviceStore
  * 
  * @param fallbackDeviceId - Optional fallback device ID if no device is paired (defaults to null)
  */
@@ -16,46 +16,19 @@ export const useSensorData = (fallbackDeviceId: number | null = null) => {
   const isListeningRef = useRef(false);
   const channelRef = useRef<any>(null);
   const token = useAuthStore((state) => state.token);
-  const userId = useAuthStore((state) => state.user?.id);
-  const [deviceId, setDeviceId] = useState<number | null>(fallbackDeviceId);
+  
+  // Get device ID from deviceStore instead of AsyncStorage
+  const devices = useDeviceStore((state) => state.devices);
+  const deviceId = devices.length > 0 ? devices[0].id : fallbackDeviceId;
 
-  // Load device ID from AsyncStorage
+  // Log when device becomes available
   useEffect(() => {
-    const loadDeviceId = async () => {
-      if (!userId) {
-        console.log('⚠️ No userId, cannot load device from storage');
-        return;
-      }
-
-      try {
-        const storageKey = `paired_device:${userId}`;
-        const deviceData = await AsyncStorage.getItem(storageKey);
-        
-        if (deviceData) {
-          const device = JSON.parse(deviceData);
-          console.log('📱 Loaded device from AsyncStorage:', device);
-          
-          if (device.id) {
-            setDeviceId(device.id);
-            console.log(`✅ Device ID set to: ${device.id}`);
-          } else {
-            console.warn('⚠️ Device found but has no ID');
-          }
-        } else {
-          console.log('⚠️ No paired device found in AsyncStorage');
-          // Use fallback if provided
-          if (fallbackDeviceId !== null) {
-            setDeviceId(fallbackDeviceId);
-            console.log(`ℹ️ Using fallback device ID: ${fallbackDeviceId}`);
-          }
-        }
-      } catch (error) {
-        console.error('❌ Error loading device from AsyncStorage:', error);
-      }
-    };
-
-    loadDeviceId();
-  }, [userId, fallbackDeviceId]);
+    if (deviceId) {
+      console.log('📱 Device ID available for sensor subscription:', deviceId);
+    } else {
+      console.log('⚠️ No device ID available for sensor subscription');
+    }
+  }, [deviceId]);
 
   useEffect(() => {
     // Only proceed if we have a token and device ID

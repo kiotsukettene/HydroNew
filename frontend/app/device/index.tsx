@@ -21,6 +21,7 @@ import WifiModal from "@/components/ui/wifi-connection";
 import FolderBg from "@/components/ui/folder-bg";
 import { getMQTTClient, publishMessage, subscribeMessage } from "@/service/mqtt.client";
 import { useAuthStore } from "@/store/auth/authStore";
+import { useDeviceStore } from "@/store/device/deviceStore";
 import { Card } from "@/components/ui/card";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { PairOptionModal } from "@/components/ui/pair-option-modal";
@@ -103,6 +104,10 @@ useEffect(() => {
 
         setPairedDevice(payload.device);
         console.log("Device saved to AsyncStorage");
+        
+        // Also update the deviceStore so useSensorData can react to it
+        useDeviceStore.getState().setDevice(payload.device);
+        console.log("Device updated in deviceStore");
       } catch (err) {
         console.error("Failed to handle pairing payload:", err);
       }
