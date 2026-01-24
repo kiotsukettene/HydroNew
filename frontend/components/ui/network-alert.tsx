@@ -6,7 +6,10 @@ import Svg, { Rect, Circle, Defs, ClipPath, G } from "react-native-svg";
 
 export function NetworkAlert() {
   const isOffline = useNetworkStore(s => s.isInternetReachable === false);
-  if (!isOffline) return null;
+  const isPairingDevice = useNetworkStore(s => s.isPairingDevice);
+  
+  // Don't show the alert if we're pairing a device (expected to lose internet)
+  if (!isOffline || isPairingDevice) return null;
 
   return (
     <SafeAreaView className="absolute inset-0 z-[99999] bg-white">

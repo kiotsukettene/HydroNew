@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { getEcho, waitForConnection } from '@/lib/echo';
 import { useSensorStore } from '@/store/sensor/sensorStore';
 import { useAuthStore } from '@/store/auth/authStore';
@@ -16,22 +16,73 @@ export const useSensorData = (fallbackDeviceId: number | null = null) => {
   const isListeningRef = useRef(false);
   const channelRef = useRef<any>(null);
   const token = useAuthStore((state) => state.token);
+  const user = useAuthStore((state) => state.user);
+  const [echoReady, setEchoReady] = useState(false);
+  const [deviceLoadAttempted, setDeviceLoadAttempted] = useState(false);
   
-  // Get device ID from deviceStore instead of AsyncStorage
+  // Get device ID from deviceStore
   const devices = useDeviceStore((state) => state.devices);
   const deviceId = devices.length > 0 ? devices[0].id : fallbackDeviceId;
+  const { fetchDevice } = useDeviceStore();
+
+  // Load device from API if not already loaded
+  useEffect(() => {
+    const loadDevice = async () => {
+      // Only attempt once and only if we have a user
+      if (deviceLoadAttempted || !user?.id) {
+        return;
+      }
+
+      console.log('📱 [useSensorData] No device in store, fetching for user:', user.id);
+      setDeviceLoadAttempted(true);
+      
+      try {
+        await fetchDevice(user.id);
+      } catch (error) {
+        console.error(' [useSensorData] Failed to fetch device:', error);
+      }
+    };
+
+    // If no device is loaded and we haven't tried yet, load it
+    if (devices.length === 0 && !deviceLoadAttempted && user?.id) {
+      loadDevice();
+    }
+  }, [devices.length, deviceLoadAttempted, user?.id, fetchDevice]);
+
+  // Check if Echo is initialized periodically
+  useEffect(() => {
+    const checkEcho = () => {
+      const echo = getEcho();
+      if (echo && !echoReady) {
+        console.log('✅ [useSensorData] Echo is now ready');
+        setEchoReady(true);
+      }
+    };
+
+    // Check immediately
+    checkEcho();
+
+    // Then check every 500ms until Echo is ready
+    const interval = setInterval(checkEcho, 500);
+
+    return () => clearInterval(interval);
+  }, [echoReady]);
 
   // Log when device becomes available
   useEffect(() => {
     if (deviceId) {
-      console.log('📱 Device ID available for sensor subscription:', deviceId);
+      console.log('📱 [useSensorData] Device ID available for sensor subscription:', deviceId);
+      console.log('📱 [useSensorData] Will subscribe to channel: sensor.device.' + deviceId);
     } else {
-      console.log('⚠️ No device ID available for sensor subscription');
+      console.log('⚠️ [useSensorData] No device ID available for sensor subscription');
+      console.log('⚠️ [useSensorData] Devices in store:', devices);
     }
-  }, [deviceId]);
+    
+    console.log('🔍 [useSensorData] Echo ready status:', echoReady);
+  }, [deviceId, devices, echoReady]);
 
   useEffect(() => {
-    // Only proceed if we have a token and device ID
+    // Only proceed if we have a token, device ID, and Echo is ready
     if (!token) {
       console.log('No auth token, skipping sensor data subscription');
       return;
@@ -39,6 +90,11 @@ export const useSensorData = (fallbackDeviceId: number | null = null) => {
 
     if (deviceId === null) {
       console.log('⚠️ No device ID available, skipping sensor data subscription');
+      return;
+    }
+
+    if (!echoReady) {
+      console.log('⚠️ [useSensorData] Echo not ready yet, waiting...');
       return;
     }
 
@@ -56,15 +112,16 @@ export const useSensorData = (fallbackDeviceId: number | null = null) => {
         }
 
         // Wait for WebSocket connection
-        console.log('⚡ Waiting for WebSocket connection for sensor data...');
+        console.log('⚡ [useSensorData] Waiting for WebSocket connection for sensor data...');
         await waitForConnection();
-        console.log('⚡ WebSocket connected! Setting up sensor listeners...');
+        console.log('⚡ [useSensorData] WebSocket connected! Setting up sensor listeners...');
 
         isListeningRef.current = true;
 
         // Subscribe to the single device channel (NOT separate channels per system)
         // Using PUBLIC channel - change to .private() if backend uses PrivateChannel
-        console.log(`🔔 Attempting to subscribe to public channel: sensor.device.${deviceId}`);
+        console.log(`🔔 [useSensorData] Subscribing to PUBLIC channel: sensor.device.${deviceId}`);
+        console.log(`🔔 [useSensorData] Listening for event: .sensor.data.updated`);
         
         const channel = echo
           .channel(`sensor.device.${deviceId}`)
@@ -180,21 +237,23 @@ export const useSensorData = (fallbackDeviceId: number | null = null) => {
 
         // Add subscription success/error handlers for debugging
         channel.subscription.bind('pusher:subscription_succeeded', () => {
-          console.log(`✅ Successfully subscribed to sensor.device.${deviceId}`);
+          console.log(`✅ [useSensorData] Successfully subscribed to sensor.device.${deviceId}`);
+          console.log(`✅ [useSensorData] Now listening for sensor data broadcasts on this channel`);
         });
 
         channel.subscription.bind('pusher:subscription_error', (error: any) => {
-          console.error(`❌ Subscription error for sensor.device.${deviceId}:`, error);
+          console.error(`❌ [useSensorData] Subscription error for sensor.device.${deviceId}:`, error);
         });
 
         // Listen for ALL events on this channel for debugging
         channel.subscription.bind_global((eventName: string, data: any) => {
-          console.log(`📨 Event received on channel sensor.device.${deviceId}:`, eventName, data);
+          console.log(`📨 [useSensorData] Event received on channel sensor.device.${deviceId}:`, eventName, data);
         });
 
-        console.log(`✅ Successfully set up subscription to sensor channel for device ${deviceId}`);
-        console.log('  - Channel: sensor.device.' + deviceId);
-        console.log('  - Event: .sensor.data.updated');
+        console.log(`✅ [useSensorData] Successfully set up subscription to sensor channel for device ${deviceId}`);
+        console.log(`  - Channel: sensor.device.${deviceId}`);
+        console.log(`  - Event: .sensor.data.updated`);
+        console.log(`  - Backend should broadcast to this channel for device_id: ${deviceId}`);
       } catch (error: any) {
         console.error('❌ Error setting up sensor listeners:', error);
         setError(error.message || 'Failed to setup sensor listeners');
@@ -206,22 +265,23 @@ export const useSensorData = (fallbackDeviceId: number | null = null) => {
 
     // Cleanup function
     return () => {
-      console.log('🧹 Cleaning up sensor listeners...');
+      console.log('🧹 [useSensorData] Cleaning up sensor listeners for device:', deviceId);
       
       const echo = getEcho();
       if (echo && channelRef.current && deviceId !== null) {
         try {
           echo.leave(`sensor.device.${deviceId}`);
+          console.log(`✅ [useSensorData] Left channel: sensor.device.${deviceId}`);
         } catch (error) {
-          console.error('Error leaving channel:', error);
+          console.error('[useSensorData] Error leaving channel:', error);
         }
         channelRef.current = null;
       }
       
       isListeningRef.current = false;
-      console.log('✅ Sensor listeners cleaned up');
+      console.log('✅ [useSensorData] Sensor listeners cleaned up');
     };
-  }, [deviceId, token, updateCleanWater, updateDirtyWater, updateHydroponicsWater, setError]);
+  }, [deviceId, token, echoReady, updateCleanWater, updateDirtyWater, updateHydroponicsWater, setError]);
 
   return {
     // Return the store data for convenience
