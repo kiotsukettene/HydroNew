@@ -33,7 +33,7 @@ export const useSensorData = (fallbackDeviceId: number | null = null) => {
         return;
       }
 
-      console.log('📱 [useSensorData] No device in store, fetching for user:', user.id);
+      console.log(' [useSensorData] No device in store, fetching for user:', user.id);
       setDeviceLoadAttempted(true);
       
       try {
@@ -54,7 +54,7 @@ export const useSensorData = (fallbackDeviceId: number | null = null) => {
     const checkEcho = () => {
       const echo = getEcho();
       if (echo && !echoReady) {
-        console.log('✅ [useSensorData] Echo is now ready');
+        console.log(' [useSensorData] Echo is now ready');
         setEchoReady(true);
       }
     };
@@ -71,14 +71,14 @@ export const useSensorData = (fallbackDeviceId: number | null = null) => {
   // Log when device becomes available
   useEffect(() => {
     if (deviceId) {
-      console.log('📱 [useSensorData] Device ID available for sensor subscription:', deviceId);
-      console.log('📱 [useSensorData] Will subscribe to channel: sensor.device.' + deviceId);
+      console.log(' [useSensorData] Device ID available for sensor subscription:', deviceId);
+      console.log(' [useSensorData] Will subscribe to channel: sensor.device.' + deviceId);
     } else {
-      console.log('⚠️ [useSensorData] No device ID available for sensor subscription');
-      console.log('⚠️ [useSensorData] Devices in store:', devices);
+      console.log(' [useSensorData] No device ID available for sensor subscription');
+      console.log(' [useSensorData] Devices in store:', devices);
     }
     
-    console.log('🔍 [useSensorData] Echo ready status:', echoReady);
+    console.log(' [useSensorData] Echo ready status:', echoReady);
   }, [deviceId, devices, echoReady]);
 
   useEffect(() => {
@@ -89,12 +89,12 @@ export const useSensorData = (fallbackDeviceId: number | null = null) => {
     }
 
     if (deviceId === null) {
-      console.log('⚠️ No device ID available, skipping sensor data subscription');
+      console.log(' No device ID available, skipping sensor data subscription');
       return;
     }
 
     if (!echoReady) {
-      console.log('⚠️ [useSensorData] Echo not ready yet, waiting...');
+      console.log(' [useSensorData] Echo not ready yet, waiting...');
       return;
     }
 
