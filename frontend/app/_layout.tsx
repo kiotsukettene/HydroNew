@@ -11,7 +11,7 @@ import { initializeEcho } from "@/lib/echo";
 import NetInfo, { NetInfoState} from "@react-native-community/netinfo";
 import { useNetworkStore } from "@/store/network/networkStore";
 import { NetworkAlert } from "@/components/ui/network-alert";
-
+import { useEchoSetup } from "@/app/hooks/useEchoSetup";
 
 import { useAuthStore } from "@/store/auth/authStore";
 import { getMQTTClient } from "@/service/mqtt.client";
@@ -22,6 +22,14 @@ export { ErrorBoundary } from "expo-router";
 
 export default function RootLayout() {
   const { setToken, setUser, setHydrated, hydrated } = useAuthStore();
+
+
+  const user = useAuthStore(state => state.user);
+  const needsVerification = useAuthStore(state => state.needsVerification);
+
+  // Setup Echo globally - will only initialize when user is authenticated AND verified
+  // Don't setup Echo if user needs email verification
+  useEchoSetup(needsVerification ? undefined : user?.id);
 
   const [fontsLoaded] = useFonts({
     "FingerPaint-Regular": require("@/assets/fonts/Finger_Paint/FingerPaint-Regular.ttf"),
@@ -38,7 +46,7 @@ export default function RootLayout() {
 
         if (storedToken) setToken(storedToken);
         if (storedUser) setUser(JSON.parse(storedUser));
-        if (storedToken) initializeEcho(storedToken);
+        // Don't initialize Echo here - let useEchoSetup handle it after verification check
       } catch (e) {
         console.log("Auth bootstrap failed:", e);
       } finally {

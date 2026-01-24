@@ -62,17 +62,50 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
     try {
       const response = await axiosInstance.post("/register", data);
+      
+      // Parse response if it's a string
+      let responseData = response.data;
+      if (typeof responseData === 'string') {
+        console.log('⚠️ Response is a string, extracting JSON...');
+        try {
+          // Extract JSON from string (backend may have debug output before JSON)
+          const jsonMatch = responseData.match(/\{.*\}/s);
+          if (jsonMatch) {
+            responseData = JSON.parse(jsonMatch[0]);
+            console.log('✅ JSON extracted and parsed successfully');
+          } else {
+            throw new Error('No JSON found in response');
+          }
+        } catch (parseError) {
+          console.error('❌ JSON parse error:', parseError);
+          console.error('Raw response:', responseData);
+          throw parseError;
+        }
+      }
+      
+      console.log('🔍 Register API response:', responseData);
+      console.log('🔍 needs_verification value:', responseData.needs_verification);
+      console.log('🔍 Setting needsVerification to:', responseData.needs_verification ?? false);
 
+      const needsVerif = responseData.needs_verification ?? false;
+      
       set({
         loading: false,
-        user: response.data.user,
-        token: response.data.token,
-        needsVerification: response.data.needs_verification ?? false,
+        user: responseData.user,
+        token: responseData.token,
+        needsVerification: needsVerif,
       });
+      
+      console.log('✅ State updated, needsVerification is now:', needsVerif);
+      
+      // Verify the state was actually set
+      const currentState = get();
+      console.log('🔍 Current needsVerification from store:', currentState.needsVerification);
 
-      await storage.setItem("token", response.data.token);
+      await storage.setItem("token", responseData.token);
 
     } catch (err: any) {
+      console.error('❌ Register error:', err);
       const { message, fieldErrors } = handleAxiosError(err);
       set({ loading: false, error: message, fieldErrors });
     }

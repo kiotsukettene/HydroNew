@@ -21,7 +21,7 @@ export const useEchoSetup = (userId?: number, deviceId: number = 1) => {
     const setupEcho = async () => {
       try {
         if (!userId) {
-          console.log('No userId provided, skipping Echo setup');
+          console.log('⚠️ No userId provided, skipping Echo setup (user may need verification)');
           return;
         }
 

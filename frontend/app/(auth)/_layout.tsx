@@ -3,11 +3,12 @@ import { useAuthStore } from "@/store/auth/authStore";
 import { initializeEcho } from "@/lib/echo";
 
 export default function AuthLayout() {
-  const {token, hydrated} = useAuthStore();
+  const {token, hydrated, needsVerification} = useAuthStore();
 
   if (!hydrated) return null;
 
-  if (token) {
+  // Only redirect to home if user has token AND doesn't need verification
+  if (token && !needsVerification) {
     return <Redirect href="/(tabs)/home" />;
   };
 
