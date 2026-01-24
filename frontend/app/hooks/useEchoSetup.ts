@@ -9,9 +9,8 @@ import { useSensorData } from './useSensorData';
  * This is the main hook to use in your root layout
  * 
  * @param userId - The user ID for notifications
- * @param deviceId - The device ID for sensor data (defaults to 1)
  */
-export const useEchoSetup = (userId?: number, deviceId: number = 1) => {
+export const useEchoSetup = (userId?: number) => {
   const { startListening, stopListening, fetchNotifications } = useNotificationStore();
   
   // Initialize Echo connection
@@ -66,7 +65,8 @@ export const useEchoSetup = (userId?: number, deviceId: number = 1) => {
   }, [userId, startListening, stopListening, fetchNotifications]);
 
   // Setup sensor data listeners (this will reuse the same Echo connection)
-  const sensorData = useSensorData(deviceId);
+  // Device ID is now automatically loaded from AsyncStorage
+  const sensorData = useSensorData();
 
   return sensorData;
 };

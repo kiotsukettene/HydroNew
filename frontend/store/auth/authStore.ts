@@ -268,7 +268,16 @@ logout: async () => {
 
   // Clear storage
   await storage.removeItem("token");
-  await GoogleSignin.signOut();
+  
+  // Sign out from Google if the user signed in with Google
+  // Wrap in try-catch since GoogleSignin might not be configured
+  try {
+    await GoogleSignin.signOut();
+    console.log(' [Logout] Signed out from Google');
+  } catch (error: any) {
+    // Ignore error if GoogleSignin is not configured or user didn't sign in with Google
+    console.log('ℹ [Logout] Google sign-out skipped:', error.message);
+  }
 
   // Reset auth state
   set({
