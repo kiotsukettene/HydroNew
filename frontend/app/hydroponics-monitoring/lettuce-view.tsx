@@ -26,6 +26,25 @@ export default function LettuceView() {
   // Check if harvest is allowed (plant age must be >= 14 days)
   const canHarvest = currentSetup ? (currentSetup.plant_age ?? 0) >= 14 : false;
 
+  // mappings here for each GIF you want to support.
+  const cropGifMap: Record<string, any> = {
+    olmetie: require('../../assets/gif-lettuce/olmetie.gif'),
+    'green-rapid': require('../../assets/gif-lettuce/green-rapid.gif'),
+    romaine: require('../../assets/gif-lettuce/romaine.gif'),
+    butterhead: require('../../assets/gif-lettuce/butterhead.gif'),
+    loose: require('../../assets/gif-lettuce/loose.gif'),
+  };
+
+  const gifKey = currentSetup?.crop_name
+    ? currentSetup.crop_name.toString().toLowerCase().replace(/\s+/g, '-')
+    : 'lettuce';
+
+  const plantImageSource = cropGifMap[gifKey] ?? cropGifMap['lettuce'];
+
+  
+  // fixed GIF size
+  const imageSize = 300;
+
   useEffect(() => {
     if (setupId) {
       fetchSetupById(Number(setupId));
@@ -71,11 +90,14 @@ export default function LettuceView() {
             borderBottomRightRadius: 30,
           }}>
           <View className="items-center justify-center py-4">
-            <Image
-              source={require('@/assets/images/lettuce.png')}
-              style={{ width: 160, height: 160 }}
-              resizeMode="contain"
-            />
+            {/* fixed-size container: constrains layout so only the GIF changes size */}
+            <View style={{ width: imageSize, height: imageSize, alignItems: 'center', justifyContent: 'center' }}>
+              <Image
+                source={plantImageSource}
+                style={{ width: '100%', height: '100%' }}
+                resizeMode="contain"
+              />
+            </View>
           </View>
         </View>
 
