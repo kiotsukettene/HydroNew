@@ -124,10 +124,10 @@ export const shouldShowToast = (notification: NotificationType): boolean => {
   if (notification.type === 'warning') return true;
   
   // Show toast for sensor alerts (backend uses 'sensor_alert' type)
-  if (notification.type === 'sensor_alert') return true;
+  if (notification.type === 'info') return true;
   
   // Show toast for harvest alerts
-  if (notification.type === 'harvest_alert') return true;
+  if (notification.type === 'success') return true;
   
   // Show toast for harvest-ready notifications
   if (notification.title.toLowerCase().includes('ready to harvest')) return true;
@@ -143,8 +143,7 @@ export const shouldShowToast = (notification: NotificationType): boolean => {
  */
 export const getToastDuration = (notification: NotificationType): number => {
   if (notification.type === 'warning') return 5000; // 5 seconds for warnings
-  if (notification.type === 'sensor_alert') return 5000; // 5 seconds for sensor alerts
-  if (notification.type === 'harvest_alert') return 4000; // 4 seconds for harvest alerts
+  if (notification.type === 'info') return 5000; // 5 seconds for sensor alerts
   if (notification.type === 'success') return 3000; // 3 seconds for success
   return 4000; // 4 seconds default
 };
