@@ -13,6 +13,7 @@ import { Button } from "@/components/ui/button";
 import { Text } from "@/components/ui/text";
 import { Link, useRouter } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { Separator } from "@/components/ui/separator";
 import { Label } from "@/components/ui/label";
 import {
   Card,
@@ -21,14 +22,23 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import Svg, { Path } from "react-native-svg";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useAuthStore } from "@/store/auth/authStore";
 import PasswordToggle from "@/app/hooks/password-toggle";
 import { loginSchema } from "@/validators/authSchema";
 import { ZodError } from "zod";
 import { toast } from "sonner-native"
+import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { useCallback } from "react";
 import { useFocusEffect } from "expo-router";
+
+
+import { GoogleSignin } from '@react-native-google-signin/google-signin';
+import auth from '@react-native-firebase/auth';
+
+
+
 
 const { height } = Dimensions.get("window");
 
@@ -36,6 +46,7 @@ export default function Login() {
   const login = useAuthStore((state) => state.login);
   const user = useAuthStore((state) => state.user);
   const error = useAuthStore((state) => state.error);
+  const googleSSO = useAuthStore((state) => state.signInWithGoogle);
   const resetErrors = useAuthStore((state) => state.resetErrors);
   const loading = useAuthStore((state) => state.loading);
   const needsVerification = useAuthStore((state) => state.needsVerification);
@@ -111,6 +122,51 @@ export default function Login() {
       }
     }
   }
+
+
+GoogleSignin.configure({
+  webClientId: '835032812073-av4pmjr94757qiu2ug8ri9ivfdkdp9nd.apps.googleusercontent.com',
+  offlineAccess: true,
+});
+
+async function signInWithGoogle() {
+  try {
+    
+
+    const userInfo = await GoogleSignin.signIn();
+    console.log('Google user info:', userInfo);
+
+    const idToken = (userInfo as any).data?.idToken; 
+    if (!idToken) {
+      console.warn('No idToken returned!');
+      return;
+    }
+    const googleCredential = auth.GoogleAuthProvider.credential(idToken);
+    const userCredential = await auth().signInWithCredential(googleCredential);
+    console.log('Google user:', userCredential.user);
+
+    const firebaseIdToken = await auth().currentUser?.getIdToken();
+    console.log('Firebase ID token:', firebaseIdToken);
+
+    const first_name = userInfo.data?.user?.givenName ?? "";
+    const last_name = userInfo.data?.user?.familyName ?? "";
+    if (!firebaseIdToken) {
+      console.warn('Firebase ID token is null, aborting backend call');
+      return;
+    }
+    const result = await googleSSO(firebaseIdToken!, first_name, last_name);
+
+    if(result?.user){
+      toast.success("Login successful!");
+      router.push("/(tabs)/home");
+    }
+    
+    console.log('Backend SSO result:', result);
+  } catch (error) {
+    console.error('Google sign-in error:', error);
+  }
+}
+
 
   return (
     <SafeAreaView className="flex-1 bg-background">
@@ -228,6 +284,42 @@ export default function Login() {
                     disabled={loading}
                   >
                     {loading ? <Text>Logging in...</Text> : <Text>Login</Text>}
+                  </Button>
+
+                  {/* Separator */}
+                  <View className="flex-row items-center mt-2">
+                    <Separator className="flex-1 bg-muted-foreground/40" />
+                    <Text className="px-3 text-muted-foreground">or</Text>
+                    <Separator className="flex-1 bg-muted-foreground/40" />
+                  </View>
+
+                  {/* Google Button */}
+                  <Button
+                    onPress={signInWithGoogle}
+                    variant="outline"
+                    className="w-full flex-row items-center justify-center gap-2 mt-2"
+                  >
+                    <Svg width={20} height={20} viewBox="0 0 48 48">
+                      <Path
+                        fill="#4285F4"
+                        d="M23.49 12.27c1.69 0 3.21.58 4.41 1.7l3.28-3.28C28.96 8.34 26.45 7 23.49 7c-4.38 0-8.09 2.58-9.79 6.33l3.86 3c.93-2.79 3.54-4.72 6.93-4.72z"
+                      />
+                      <Path
+                        fill="#34A853"
+                        d="M46.1 24.5c0-1.44-.13-2.82-.36-4.15H23.5v7.84h12.64c-.55 2.95-2.21 5.45-4.72 7.12l3.66 2.84c3.59-3.31 5.68-8.18 5.68-13.65z"
+                      />
+                      <Path
+                        fill="#FBBC05"
+                        d="M13.71 28.42c-.45-1.35-.71-2.8-.71-4.29s.26-2.94.71-4.29l-3.86-3C8.72 19.44 8 21.92 8 24.5s.72 5.06 1.85 7.66l3.86-3z"
+                      />
+                      <Path
+                        fill="#EA4335"
+                        d="M23.49 41c3.39 0 6.24-1.12 8.32-3.04l-3.66-2.84c-1.05.7-2.41 1.12-4.66 1.12-3.39 0-6-1.93-6.93-4.72l-3.86 3C15.4 38.42 19.11 41 23.49 41z"
+                      />
+                    </Svg>
+                    <Text className="font-normal text-secondary">
+                      Login with Google
+                    </Text>
                   </Button>
 
                   {/* Footer */}

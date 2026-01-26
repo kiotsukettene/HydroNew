@@ -51,8 +51,14 @@ export default function SignUp() {
   }, [firstName, lastName, email, password, confirmPassword]);
 
   useEffect(() => {
+    console.log('🔍 needsVerification changed:', needsVerification);
+    console.log('🔍 needsVerification type:', typeof needsVerification);
+    console.log('🔍 needsVerification === true:', needsVerification === true);
     if (needsVerification) {
+      console.log('🚀 Navigating to email verification page');
       router.replace("/(auth)/signup/email-verification");
+    } else {
+      console.log('❌ Not navigating, needsVerification is falsy');
     }
   }, [needsVerification]);
 
@@ -73,6 +79,15 @@ async function onSubmit() {
     if (!checked) return;
 
     await register(validatedData);
+    console.log('✅ Registration successful:', { email, firstName, lastName });
+    
+    // Navigate to email verification page after successful registration
+    const currentNeedsVerification = useAuthStore.getState().needsVerification;
+    console.log('🔍 After register, needsVerification:', currentNeedsVerification);
+    if (currentNeedsVerification) {
+      console.log('🚀 Navigating to verification page');
+      router.replace("/(auth)/signup/email-verification");
+    }
 
   } catch (err: any) {
     if (err instanceof ZodError) {

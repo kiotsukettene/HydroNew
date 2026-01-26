@@ -21,9 +21,12 @@ import WifiModal from "@/components/ui/wifi-connection";
 import FolderBg from "@/components/ui/folder-bg";
 import { getMQTTClient, publishMessage, subscribeMessage } from "@/service/mqtt.client";
 import { useAuthStore } from "@/store/auth/authStore";
+import { useDeviceStore } from "@/store/device/deviceStore";
+import { useNetworkStore } from "@/store/network/networkStore";
 import { Card } from "@/components/ui/card";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { PairOptionModal } from "@/components/ui/pair-option-modal";
+import { toast } from "sonner-native";
 
 
 export default function DeviceConnection () {
@@ -34,13 +37,13 @@ const [pairingMethodModal, setPairingMethodModal] = useState(false);
 // Temporary: Set to show connected device UI for testing
 
 
-// const [pairedDevice, setPairedDevice] = useState<any>({
-//   id: 'temp-device-1',
-//   name: 'BIOTECH MACHINE',
-//   model: 'MFC-1204328HD0B45',
-//   modelType: 'Raspberry Pi 5',
-//   firmware: '28743/65FG'
-// });
+/* const [pairedDevice, setPairedDevice] = useState<any>({
+   id: 'temp-device-1',
+   name: 'BIOTECH MACHINE',
+   model: 'MFC-1204328HD0B45',
+   modelType: 'Raspberry Pi 5',
+   firmware: '28743/65FG'
+ });*/
 
 
 // if want to test no device connected UI, set to null
@@ -60,6 +63,7 @@ useEffect(() => {
       const existingDevice = await AsyncStorage.getItem(storageKey);
       if (existingDevice) {
         setPairedDevice(JSON.parse(existingDevice));
+        toast.success("Device paired successfully!");
       }
     } catch (err) {
       console.error("Failed to check paired device:", err);
@@ -103,6 +107,10 @@ useEffect(() => {
 
         setPairedDevice(payload.device);
         console.log("Device saved to AsyncStorage");
+        
+        // Also update the deviceStore so useSensorData can react to it
+        useDeviceStore.getState().setDevice(payload.device);
+        console.log("Device updated in deviceStore");
       } catch (err) {
         console.error("Failed to handle pairing payload:", err);
       }
@@ -271,6 +279,8 @@ function publishTestMessage1() {
                     onWifiPress={() => {
                         setPairingMethodModal(false);
                         setWifiModal(true);
+                        // Set pairing flag to ignore network alerts
+                        useNetworkStore.getState().setIsPairingDevice(true);
                     }}
                     onBluetoothPress={() => {
                         setPairingMethodModal(false);
@@ -281,11 +291,17 @@ function publishTestMessage1() {
 
                 <WifiModal
                     visible={wifiModal}
-                    onClose={() => setWifiModal(false)}
+                    onClose={() => {
+                        setWifiModal(false);
+                        // Clear pairing flag when modal closes
+                        useNetworkStore.getState().setIsPairingDevice(false);
+                    }}
                     onConnect={({ ssid, password, device }) => {
                         console.log("Connecting with:", ssid, password, device);
                         setPairedDevice(device);
-                        setWifiModal(false); 
+                        setWifiModal(false);
+                        // Clear pairing flag after successful connection
+                        useNetworkStore.getState().setIsPairingDevice(false);
                     }}
                 />
 

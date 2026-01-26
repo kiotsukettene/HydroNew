@@ -17,6 +17,7 @@ interface PageHeaderProps {
   showBackButton?: boolean;
   showNotificationButton?: boolean;
   showEllipsisButton?: boolean;
+  rightButton?: React.ReactNode;
 }
 
 export function PageHeader({
@@ -27,6 +28,7 @@ export function PageHeader({
   showBackButton = true,
   showNotificationButton = true,
   showEllipsisButton = false,
+  rightButton,
 }: PageHeaderProps) {
   const router = useRouter();
   const logout = useAuthStore((s) => s.logout);
@@ -89,25 +91,31 @@ export function PageHeader({
 
       {/* Right Side - Notification and Ellipsis Buttons */}
       <View className="flex-1 flex-row items-center justify-end gap-2">
-        {showNotificationButton && (
-          <Button
-            onPress={handleNotificationPress}
-            className="w-10 h-10 p-0 bg-transparent"
-          >
-            <NotificationBadge count={unreadCount} size={24} color="#445104" strokeWidth={3} />
-          </Button>
-        )}
-        {showEllipsisButton && (
-          <Button
-            variant="ghost"
-            onPress={handleEllipsisPress}
-            className="w-10 h-10 p-0"
-          >
-            <MoreHorizontal size={24} color="#000000" strokeWidth={2} />
-          </Button>
-        )}
-        {!showNotificationButton && !showEllipsisButton && (
-          <View className="w-10" />
+        {rightButton ? (
+          rightButton
+        ) : (
+          <>
+            {showNotificationButton && (
+              <Button
+                onPress={handleNotificationPress}
+                className="w-10 h-10 p-0 bg-transparent"
+              >
+                <NotificationBadge count={unreadCount} size={24} color="#445104" strokeWidth={3} />
+              </Button>
+            )}
+            {showEllipsisButton && (
+              <Button
+                variant="ghost"
+                onPress={handleEllipsisPress}
+                className="w-10 h-10 p-0"
+              >
+                <MoreHorizontal size={24} color="#000000" strokeWidth={2} />
+              </Button>
+            )}
+            {!showNotificationButton && !showEllipsisButton && (
+              <View className="w-10" />
+            )}
+          </>
         )}
       </View>
     </View>

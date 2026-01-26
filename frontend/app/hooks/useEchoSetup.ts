@@ -9,9 +9,8 @@ import { useSensorData } from './useSensorData';
  * This is the main hook to use in your root layout
  * 
  * @param userId - The user ID for notifications
- * @param deviceId - The device ID for sensor data (defaults to 1)
  */
-export const useEchoSetup = (userId?: number, deviceId: number = 1) => {
+export const useEchoSetup = (userId?: number) => {
   const { startListening, stopListening, fetchNotifications } = useNotificationStore();
   
   // Initialize Echo connection
@@ -21,7 +20,7 @@ export const useEchoSetup = (userId?: number, deviceId: number = 1) => {
     const setupEcho = async () => {
       try {
         if (!userId) {
-          console.log('No userId provided, skipping Echo setup');
+          console.log('⚠️ No userId provided, skipping Echo setup (user may need verification)');
           return;
         }
 
@@ -29,32 +28,35 @@ export const useEchoSetup = (userId?: number, deviceId: number = 1) => {
         const token = useAuthStore.getState().token;
         console.log('Token retrieved from auth store:', token ? 'Token exists' : 'No token found');
         
+        if (!token) {
+          console.log('⚠️ No token available, skipping Echo setup');
+          return;
+        }
+        
         if (token && userId) {
-          console.log('Initializing Echo for user:', userId);
+          console.log('✅ Initializing Echo for user:', userId);
           
           // Initialize Echo (only once)
           initializeEcho(token);
           
           // Fetch notifications to get the unread count
-          console.log('Fetching notifications...');
+          console.log('📥 Fetching notifications...');
           await fetchNotifications();
           
-          console.log('Starting to listen for notifications...');
+          console.log('👂 Starting to listen for notifications...');
           // Start listening to notifications
           startListening(userId);
-        } else {
-          console.log('Missing token or userId, cannot setup Echo');
         }
       } catch (error) {
-        console.error('Error setting up Echo:', error);
+        console.error('❌ Error setting up Echo:', error);
       }
     };
 
     setupEcho();
 
-    // Cleanup on unmount
+    // Cleanup on unmount or when userId changes
     return () => {
-      console.log('useEchoSetup cleanup running');
+      console.log('🧹 useEchoSetup cleanup running');
       if (userId) {
         stopListening(userId);
       }
@@ -63,7 +65,8 @@ export const useEchoSetup = (userId?: number, deviceId: number = 1) => {
   }, [userId, startListening, stopListening, fetchNotifications]);
 
   // Setup sensor data listeners (this will reuse the same Echo connection)
-  const sensorData = useSensorData(deviceId);
+  // Device ID is now automatically loaded from AsyncStorage
+  const sensorData = useSensorData();
 
   return sensorData;
 };

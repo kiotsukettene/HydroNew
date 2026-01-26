@@ -31,6 +31,7 @@ interface HydroponicSetup extends HydroponicSetupPayload {
   plant_age: number;
   days_left: number;
   growth_percentage?: number;
+  growth_stage?: string;
 }
 
 interface PaginationLinks {
@@ -61,6 +62,7 @@ interface HydroponicSetupStore {
   total: number;
   cache: Record<string, any>;
   createHydroponicSetup: (data: HydroponicSetupPayload) => Promise<void>;
+  updateHydroponicSetup: (setupId: number, data: HydroponicSetupPayload) => Promise<void>;
   fetchHydroponicSetups: (page?: number, forceRefresh?: boolean) => Promise<void>; 
   fetchSetupById: (setupId: number) => Promise<void>;
   nextPage: () => Promise<void>;

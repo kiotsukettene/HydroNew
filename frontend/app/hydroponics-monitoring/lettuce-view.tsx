@@ -5,7 +5,7 @@ import { Icon } from '@/components/ui/icon';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { PageHeader } from '@/components/ui/page-header';
 import FolderBg from '@/components/ui/folder-bg';
-import { Droplet, Leaf, Activity, Thermometer, Wind } from 'lucide-react-native';
+import { Droplet, Leaf, Activity, Thermometer, Wind, Edit } from 'lucide-react-native';
 import { Text } from '@/components/ui/text';
 import { Card } from '@/components/ui/card';
 import { useLocalSearchParams, useRouter } from 'expo-router';
@@ -43,7 +43,24 @@ export default function LettuceView() {
       <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
         {/* =========== Page Header =========== */}
         <View className="relative z-10">
-          <PageHeader title="Hydroponics Monitoring" />
+          <PageHeader 
+            title="Hydroponics Monitoring" 
+            showBackButton={true} 
+            showNotificationButton={false}
+            rightButton={
+              <TouchableOpacity 
+                onPress={() => {
+                  if (setupId) {
+                    router.push(`/hydroponics-monitoring/hydroponics-setup-edit?id=${setupId}` as any);
+                  }
+                }}
+                className="w-10 h-10 items-center justify-center"
+                disabled={loading || !currentSetup}
+              >
+                <Icon as={Edit} size={20} className="text-primary" />
+              </TouchableOpacity>
+            }
+          />
         </View>
 
         {/* =========== Plant Section =========== */}
@@ -169,7 +186,6 @@ export default function LettuceView() {
           <View className="px-4 pb-5">
             <View className="mb-4">
               <Text className="text-lg font-semibold">Real-Time Monitoring</Text>
-              <Text className="text-xs text-muted-foreground mt-1">Updated just now</Text>
             </View>
 
             {/* Monitoring Cards Grid */}
