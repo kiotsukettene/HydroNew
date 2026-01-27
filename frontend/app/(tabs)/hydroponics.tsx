@@ -95,7 +95,7 @@ export default function Hydroponics() {
                                   {new Date(item.setup_date).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
                                 </Label>
                                 <Text className="mt-1 text-sm font-medium text-primary">
-                                  Growth: {item.growth_percentage ? `${item.growth_percentage}%` : '45%'} • {item.growth_stage ? item.growth_stage.charAt(0).toUpperCase() + item.growth_stage.slice(1) : ''}
+                                  Growth: {item.growth_percentage}% • {item.growth_stage ? item.growth_stage.charAt(0).toUpperCase() + item.growth_stage.slice(1) : ''}
                                 </Text>
                               </View>
                               <Image
