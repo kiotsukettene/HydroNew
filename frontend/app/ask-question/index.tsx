@@ -7,7 +7,7 @@ import { Text } from '@/components/ui/text'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent } from '@/components/ui/card'
 import { Icon } from '@/components/ui/icon'
-import { ArrowLeft, Mail, ChevronDown, MessageSquare, Calendar, Tag } from 'lucide-react-native'
+import { ArrowLeft, Mail, ChevronDown, MessageSquare, Calendar, Tag, History } from 'lucide-react-native'
 import { useRouter } from 'expo-router'
 import { PageHeader } from '@/components/ui/page-header'
 import { useFeedbackStore } from '@/store/feedback/feedbackStore'
@@ -30,10 +30,6 @@ export default function Index() {
   const [subject, setSubject] = useState('')
   const [message, setMessage] = useState('')
   const [showCategoryDropdown, setShowCategoryDropdown] = useState(false)
-
-  useEffect(() => {
-    fetchFeedbacks()
-  }, [])
 
   const handleSend = async () => {
     if (!category || !message.trim()) {
@@ -60,11 +56,6 @@ export default function Index() {
     return FEEDBACK_CATEGORIES.find(c => c.value === value)?.label || value
   }
 
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString)
-    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
-  }
-
   return (
     <SafeAreaView className="flex-1 bg-white" >
       <ScrollView 
@@ -72,7 +63,18 @@ export default function Index() {
         showsVerticalScrollIndicator={false}
       >
 
-<PageHeader title='' showBackButton={true} />
+<PageHeader 
+  title='' 
+  showBackButton={true} 
+  rightButton={
+    <TouchableOpacity 
+      onPress={() => router.push('/ask-question/feedback-list')}
+      className="w-10 h-10 items-center justify-center bg-primary/10 rounded-full"
+    >
+      <Icon as={History} size={20} className="text-primary" />
+    </TouchableOpacity>
+  }
+/>
 
     
         <View className="px-3 pb-8">
@@ -157,9 +159,7 @@ export default function Index() {
                   <Input
                     value={message}
                     onChangeText={setMessage}
-                    placeholder="Dear HydroNew team...
-
-Write your question or message here. We'd love to hear from you!"
+                    placeholder="Write your question or message here. We'd love to hear from you!"
                     multiline={true}
                     numberOfLines={8}
                     textAlignVertical="top"
@@ -174,7 +174,7 @@ Write your question or message here. We'd love to hear from you!"
               </View>
 
               {/* Send button */}
-              <View className="mt-2">
+              <View className="mt-4">
                 <Button 
                   onPress={handleSend}
                   className="w-full rounded-full h-14"
@@ -201,107 +201,9 @@ Write your question or message here. We'd love to hear from you!"
               We'll get back to you soon! 
             </Text>
           </View>
-
-          {/* Feedback History Section */}
-          <View className="mt-8">
-            <View className="flex-row items-center justify-between mb-4">
-              <Text className="text-xl font-bold text-primary">
-                Your Feedback History
-              </Text>
-              <View className="flex-row items-center gap-1">
-                <Icon as={MessageSquare} size={18} className="text-primary/70" />
-                <Text className="text-sm text-primary/70">
-                  {feedbacks.length} of {hasMore ? `${feedbacks.length}+` : feedbacks.length}
-                </Text>
-              </View>
-            </View>
-
-            {loading && feedbacks.length === 0 ? (
-              <View className="items-center py-8">
-                <ActivityIndicator size="large" color="#4CAF50" />
-                <Text className="text-muted-foreground mt-2">Loading feedback...</Text>
-              </View>
-            ) : feedbacks.length === 0 ? (
-              <Card className="p-6 rounded-2xl border border-muted-foreground/20">
-                <View className="items-center">
-                  <Icon as={MessageSquare} size={48} className="text-muted-foreground/30 mb-3" />
-                  <Text className="text-base text-muted-foreground text-center">
-                    No feedback submitted yet
-                  </Text>
-                  <Text className="text-sm text-muted-foreground/70 text-center mt-1">
-                    Your submitted feedback will appear here
-                  </Text>
-                </View>
-              </Card>
-            ) : (
-              <View className="gap-3">
-                {feedbacks.map((feedback) => (
-                  <Card key={feedback.id} className="rounded-2xl border border-muted-foreground/20">
-                    <CardContent className="p-4">
-                      {/* Header with category and date */}
-                      <View className="flex-row items-center justify-between mb-2">
-                        <View className="flex-row items-center gap-2">
-                          <View className="bg-primary/10 px-3 py-1 rounded-full">
-                            <Text className="text-xs font-semibold text-primary">
-                              {getCategoryLabel(feedback.category)}
-                            </Text>
-                          </View>
-                        </View>
-                        <View className="flex-row items-center gap-1">
-                          <Icon as={Calendar} size={14} className="text-muted-foreground" />
-                          <Text className="text-xs text-muted-foreground">
-                            {formatDate(feedback.created_at)}
-                          </Text>
-                        </View>
-                      </View>
-
-                      {/* Subject if available */}
-                      {feedback.subject && (
-                        <Text className="text-base font-semibold text-foreground mb-2">
-                          {feedback.subject}
-                        </Text>
-                      )}
-
-                      {/* Message */}
-                      <Text className="text-sm text-muted-foreground" numberOfLines={3}>
-                        {feedback.message}
-                      </Text>
-
-                      {/* Footer */}
-                      <View className="mt-3 pt-3 border-t border-muted-foreground/10">
-                        <Text className="text-xs text-muted-foreground italic">
-                          Feedback ID: #{feedback.id}
-                        </Text>
-                      </View>
-                    </CardContent>
-                  </Card>
-                ))}
-
-                {/* Load More Button */}
-                {hasMore && (
-                  <Button
-                    variant="outline"
-                    onPress={loadMore}
-                    disabled={loading}
-                    className="mt-2 rounded-xl"
-                  >
-                    <View className="flex-row items-center gap-2">
-                      {loading ? (
-                        <ActivityIndicator size="small" color="#4CAF50" />
-                      ) : (
-                        <Icon as={ChevronDown} size={18} className="text-primary" />
-                      )}
-                      <Text className="text-primary">
-                        {loading ? 'Loading...' : 'Load More'}
-                      </Text>
-                    </View>
-                  </Button>
-                )}
-              </View>
-            )}
-          </View>
         </View>
       </ScrollView>
     </SafeAreaView>
   )
 }
+
