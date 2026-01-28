@@ -12,6 +12,8 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useHydroponicSetupStore } from '@/store/hydroponics/hydroponicSetupStore';
 import { useSensorStore } from '@/store/sensor/sensorStore';
 import { subscribeMessage, publishMessage } from '@/service/mqtt.client';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useAuthStore } from '@/store/auth/authStore';
 
 export default function LettuceView() {
   const router = useRouter();
@@ -19,6 +21,8 @@ export default function LettuceView() {
   const setupId = params.id;
   const { currentSetup, fetchSetupById, loading, error } = useHydroponicSetupStore();
   const [activeTab, setActiveTab] = useState<'details' | 'monitoring'>('monitoring');
+  const userId = useAuthStore((state) => state.user?.id);
+  const [deviceSerial, setDeviceSerial] = useState('');
   
   // Real-time hydroponics sensor data - read directly from store (subscription is in _layout.tsx via useEchoSetup)
   const hydroponicsWater = useSensorStore((state) => state.hydroponicsWater);
@@ -45,6 +49,28 @@ export default function LettuceView() {
   // fixed GIF size
   const imageSize = 300;
 
+
+  {/* ========================== GET Device Serial ========================== */}
+    useEffect(() => {
+
+    const getDeviceSerial = async () => {
+      if (!userId) return;
+      
+      try {
+        const storageKey = `paired_device:${userId}`;
+        const deviceData = await AsyncStorage.getItem(storageKey);
+        if (deviceData) {
+          const device = JSON.parse(deviceData);
+          setDeviceSerial(device.serial_number);
+        }
+      } catch (error) {
+        console.error("Failed to retrieve device serial:", error);
+      }
+    };
+    getDeviceSerial();
+  },[userId]);
+
+
   useEffect(() => {
     if (setupId) {
       fetchSetupById(Number(setupId));
@@ -52,7 +78,8 @@ export default function LettuceView() {
   }, [setupId]);
 
   const pumpWater = () => {
-    publishMessage('iot/pump', 'ON', 0);
+    publishMessage(`hydroponics/${deviceSerial}/pump/1`, 'OPEN', 1);
+    console.log(`Published message to hydroponics/${deviceSerial}/pump/1`);
     router.push('/hydroponics-monitoring/pump-screen')
     console.log('Pumping water...');
   };
