@@ -1,5 +1,5 @@
 import { View, StyleSheet, BackHandler, Platform } from 'react-native'
-import React, { useEffect } from 'react'
+import React, { useEffect, useState } from 'react'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import LottieView from 'lottie-react-native'
 import { Button } from '@/components/ui/button'
@@ -7,10 +7,33 @@ import { Text } from '@/components/ui/text'
 import { useRouter, useFocusEffect } from 'expo-router'
 import { Stack } from 'expo-router'
 import { toast } from 'sonner-native'
+import { publishMessage } from '@/service/mqtt.client'
+import AsyncStorage from '@react-native-async-storage/async-storage'
+import { useAuthStore } from '@/store/auth/authStore'
+
 
 export default function PumpScreen() {
   const router = useRouter()
-  
+  const userId = useAuthStore((state) => state.user?.id);
+  const [deviceSerial, setDeviceSerial] = useState('');
+
+  useEffect(() => {
+    const getDeviceSerial = async () => {
+      if (!userId) return;
+
+      try {
+        const storageKey = `paired_device:${userId}`;
+        const deviceData = await AsyncStorage.getItem(storageKey);
+        if (deviceData) {
+          const device = JSON.parse(deviceData);
+          setDeviceSerial(device.serial_number);
+        }
+      } catch (error) {
+        console.error("Failed to retrieve device serial:", error);
+      }
+    };
+    getDeviceSerial();
+  },[userId]);
 
   // Prevent back navigation
   useFocusEffect(
@@ -28,16 +51,10 @@ export default function PumpScreen() {
   )
 
   // Auto navigate back after 7 seconds (for testing lang)
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      toast.success('Pumping completed successfully!')
-      router.back()
-    }, 7000) 
-
-    return () => clearTimeout(timer)
-  }, [router])
 
   const handleStopPump = () => {
+    publishMessage(`hydroponics/${deviceSerial}/pump/1`, 'CLOSE', 1);
+    console.log(`Published message to hydroponics/${deviceSerial}/pump/1`);
     // Navigate back to previous screen
     toast.success('Pumping completed successfully!')
     router.back()
