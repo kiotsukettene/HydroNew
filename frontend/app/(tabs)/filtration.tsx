@@ -1,4 +1,4 @@
-import { View, Image, ScrollView,} from 'react-native';
+import { View, Image, ScrollView, Pressable, LayoutAnimation, Platform, UIManager } from 'react-native';
 import React, { useState, useEffect } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { PageHeader } from '@/components/ui/page-header';
@@ -19,6 +19,13 @@ import FailedDetailsModal from '../hydroponics-monitoring/failed-details';
 import { router } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { toast } from 'sonner-native';
+import { publishMessage } from '@/service/mqtt.client';
+import { useAuthStore } from '@/store/auth/authStore';
+
+// Enable LayoutAnimation on Android
+if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
+  UIManager.setLayoutAnimationEnabledExperimental(true);
+}
 
 // Types 
 interface FiltrationStage {
@@ -49,6 +56,9 @@ export default function Filtration() {
   const [buttonText, setButtonText] = useState("Start Process");
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [showFailedModal, setShowFailedModal] = useState(false);
+  const [isStageOneExpanded, setIsStageOneExpanded] = useState(false);
+  const [deviceSerial, setDeviceSerial] = useState('');
+  const userId = useAuthStore((state) => state.user?.id);
 
   // Initialize all stages as pending
   const [filtrationStages, setFiltrationStages] = useState<FiltrationStage[]>([
@@ -117,6 +127,28 @@ export default function Filtration() {
 
   const clearStatus = () => AsyncStorage.removeItem('filtration_status');
 
+  {/* ========================== GET Device Serial ========================== */}
+ 
+  useEffect(() => {
+    const getDeviceSerial = async () => {
+      if (!userId) return;
+      
+      try {
+        const storageKey = `paired_device:${userId}`;
+        const deviceData = await AsyncStorage.getItem(storageKey);
+        
+        if (deviceData) {
+          const device = JSON.parse(deviceData);
+          setDeviceSerial(device.serial_number);
+        }
+      } catch (error) {
+        console.error("Failed to retrieve device serial:", error);
+      }
+    };
+
+    getDeviceSerial();
+  }, [userId]);
+
   {/* ========================== FUNCTIONALITY TESTING ========================== */}
 
   // Function to start the process
@@ -127,6 +159,12 @@ export default function Filtration() {
     setCurrentStage(1);
     saveStatus(1, 0);
     
+  {/* ========================== PUBLISH MESSAGE ========================== */}
+
+    publishMessage(`mfc/${deviceSerial}/pump/3`, 'OPEN', 1);
+    console.log(`Published message to mfc/${deviceSerial}/pump/3`);
+    {/* ========================== PUBLISH MESSAGE ========================== */}
+
     setTimeout(() => {
       updateStageStatus(1, "completed", "Completed", "bg-green-300", "bg-green-50", "border-green-100", "bg-green-500");
       setCurrentStage(2);
@@ -159,6 +197,12 @@ export default function Filtration() {
     setButtonText("On process...");
     setCurrentStage(0);
     
+
+    {/* ========================== PUBLISH MESSAGE ========================== */}    {/* ========================== PUBLISH MESSAGE ========================== */}
+    publishMessage(`reservoir_fallback/${deviceSerial}/pump/2`, 'CLOSE', 1);
+    console.log(`Published message to reservoir_fallback/${deviceSerial}/pump/2`);
+    {/* ========================== PUBLISH MESSAGE ========================== */}
+
     // Reset all stages back to pending
     setFiltrationStages(prev => prev.map(stage => ({
       ...stage,
@@ -282,6 +326,7 @@ export default function Filtration() {
     setShowSuccessModal(false);
     clearStatus();
     
+
     // Reset all stages back to pending
     setFiltrationStages([
       {
@@ -339,10 +384,44 @@ export default function Filtration() {
     ]);
   };
 
+  // Function to toggle Stage One expansion
+  const toggleStageOneExpansion = () => {
+    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+    setIsStageOneExpanded(!isStageOneExpanded);
+  };
+
+  // Function to handle drain water action
+  const handleDrainWater = () => {
+    toast.success("Draining water from Stage MFC");
+    publishMessage(`mfc_fallback/${deviceSerial}/valve/2`, 'OPEN', 1);
+    console.log(`Published message to mfc_fallback/${deviceSerial}/valve/2`);
+  };
+
+  const handleCompleteStageOne = () => {
+    toast.success("Completing Stage MFC");
+    publishMessage(`mfc/${deviceSerial}/valve/1`, 'CLOSE', 1);
+    console.log(`Published message to mfc/${deviceSerial}/valve/1`);
+  };
+
   useEffect(() => {
     return () => {};
   }, []);
 
+  // Calculate progress based on completed stages
+  const calculateProgress = () => {
+    const completedStages = filtrationStages.filter(stage => stage.status === 'completed').length;
+    return (completedStages / filtrationStages.length) * 100; // 25% per stage for 4 stages
+  };
+
+  // Get status text based on current state
+  const getStatusText = () => {
+    const completedCount = filtrationStages.filter(s => s.status === 'completed').length;
+    
+    if (completedCount === 4) return 'Complete';
+    if (isProcessFailed) return 'Restart Required';
+    if (isProcessStarted) return 'In Progress...';
+    return 'Not Started';
+  };
 
  
   return (  
@@ -398,17 +477,23 @@ export default function Filtration() {
           </View>
           
 
-          <Card className="mt-0 flex-row items-center justify-between border-0 bg-emerald-50 p-3 sm:p-4">
+          <Card className={`mt-0 flex-row items-center justify-between border-0 p-3 sm:p-4 ${
+            calculateProgress() === 100 
+              ? 'bg-emerald-100' 
+              : isProcessFailed 
+              ? 'bg-red-50' 
+              : 'bg-emerald-50'
+          }`}>
 
 
             <View className="flex-1 flex-row items-center">
-              <View className="text mr-2 sm:mr-3 h-10 w-10 sm:h-12 sm:w-12 items-center justify-center rounded-full bg-primary/40">
+              <View className="text mr-2 sm:mr-3 h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-full bg-primary/40">
                 <Loader className="text-muted" size={18} />
               </View>
 
               {/* Text with background patterns */}
               <View className="relative flex-1">
-                <Text className="text-base sm:text-lg font-semibold text-primary">In Progress...</Text>
+                <Text className="text-base sm:text-sm text-primary">{getStatusText()}</Text>
           
               </View>
             </View>
@@ -434,15 +519,17 @@ export default function Filtration() {
                     stroke="#16a34a"
                     strokeWidth={2.5}
                     fill="transparent"
-                    strokeDasharray={`${2 * Math.PI * 20}`}
-                    strokeDashoffset={`${2 * Math.PI * 20 * 0.95}`}
+                    strokeDasharray={2 * Math.PI * 20}
+                    strokeDashoffset={2 * Math.PI * 20 * (1 - calculateProgress() / 100)}
                     strokeLinecap="round"
                     transform="rotate(-90 24 24)"
                   />
                 </Svg>
                 {/* Percentage text */}
                 <View className="absolute inset-0 items-center justify-center">
-                  <Text className="text-xs sm:text-sm md:text-base font-bold text-emerald-800">0%</Text>
+                  <Text className="text-xs sm:text-sm md:text-base font-bold text-emerald-800">
+                    {Math.round(calculateProgress())}%
+                  </Text>
                 </View>
               </View>
             </View>
@@ -457,6 +544,7 @@ export default function Filtration() {
               {filtrationStages.map((stage, index) => {
                 const IconComponent = stage.icon;
                 const isLast = index === filtrationStages.length - 1;
+                const isStageOne = stage.id === 1;
                 
                 return (
                   <View key={stage.id} className={`relative flex-row items-center ${!isLast ? 'mb-6 sm:mb-8' : ''}`}>
@@ -469,44 +557,67 @@ export default function Filtration() {
                   
                     
                     {/* Stage Card */}
-                    <View className={`flex-1 ${stage.cardBgColor} rounded-2xl p-3 sm:p-4 ${
-                      stage.status === 'active' ? 'border-2' : stage.status === 'failed' ? 'border-2' : 'border'
-                    } ${stage.borderColor}`}>
-                      <View className="flex-row items-center justify-between mb-2 sm:mb-3">
-                        <Text className="text-base sm:text-lg font-bold">{stage.title}</Text>
-                        <Badge 
-                          variant={stage.status === 'completed' ? 'default' : stage.status === 'active' ? 'secondary' : stage.status === 'failed' ? 'destructive' : 'outline'}
-                          className={
-                            stage.status === 'completed' 
-                              ? 'bg-emerald-500 dark:bg-green-600' 
-                              : stage.status === 'active' 
-                              ? 'bg-blue-500 dark:bg-blue-600' 
-                              : stage.status === 'failed'
-                              ? 'bg-red-500 dark:bg-red-600'
-                              : 'bg-gray-400 dark:bg-gray-500'
-                          }
-                        >
-                          <Text className="text-white">{stage.statusText}</Text>
-                        </Badge>
-                      </View>
-                      <Text className="text-sm sm:text-base font-semibold mb-1">{stage.name}</Text>
-                      <Text className="text-foreground/50 text-xs sm:text-sm">{stage.description}</Text>
-                      
-                      {/*  ============= View Details button for failed stages ============== */}
-                      {stage.status === 'failed' && (
-                        <Button variant="link" className="self-center" onPress={() => setShowFailedModal(true)}>
-                          <Text className="text-red-600 text-sm">View Details</Text>
-                        </Button>
-
+                    <Pressable 
+                      className={`flex-1 ${stage.cardBgColor} rounded-2xl ${
+                        stage.status === 'active' ? 'border-2' : stage.status === 'failed' ? 'border-2' : 'border'
+                      } ${stage.borderColor}`}
+                      onPress={isStageOne ? toggleStageOneExpansion : undefined}
+                      disabled={!isStageOne}
+                    >
+                      <View className="p-3 sm:p-4">
+                        <View className="flex-row items-center justify-between mb-2 sm:mb-3">
+                          <Text className="text-base sm:text-lg font-bold">{stage.title}</Text>
+                          <Badge 
+                            variant={stage.status === 'completed' ? 'default' : stage.status === 'active' ? 'secondary' : stage.status === 'failed' ? 'destructive' : 'outline'}
+                            className={
+                              stage.status === 'completed' 
+                                ? 'bg-emerald-500 dark:bg-green-600' 
+                                : stage.status === 'active' 
+                                ? 'bg-blue-500 dark:bg-blue-600' 
+                                : stage.status === 'failed'
+                                ? 'bg-red-500 dark:bg-red-600'
+                                : 'bg-gray-400 dark:bg-gray-500'
+                            }
+                          >
+                            <Text className="text-white">{stage.statusText}</Text>
+                          </Badge>
+                        </View>
+                        <Text className="text-sm sm:text-base font-semibold mb-1">{stage.name}</Text>
+                        <Text className="text-foreground/50 text-xs sm:text-sm">{stage.description}</Text>
                         
-                      )}
-                        {/* ===== ===== Failed Modal ===== ===== */}
-                    <FailedDetailsModal
-                      visible={showFailedModal}
-                      onClose={() => setShowFailedModal(false)}
-                    />
-                      
-                    </View>
+                        {/*  ============= Drain Water button for Stage One ============== */}
+                        {isStageOne && isStageOneExpanded && (
+                          <View className="mt-3 gap-1">
+                            <Button
+                             className="w-full h-8"
+                             onPress={handleCompleteStageOne}>
+                             <Text className="text-xs">Complete</Text>
+                           </Button>
+                            <Button 
+                              variant="outline" 
+                              className="w-full h-8"
+                              onPress={handleDrainWater}
+                            >
+                              <Text className="text-xs">Drain Water</Text>
+                            </Button>
+                          </View>
+                        )}
+                        
+                        {/*  ============= View Details button for failed stages ============== */}
+                        {stage.status === 'failed' && (
+                          <Button variant="link" className="self-center" onPress={() => setShowFailedModal(true)}>
+                            <Text className="text-red-600 text-sm">View Details</Text>
+                          </Button>
+
+                          
+                        )}
+                          {/* ===== ===== Failed Modal ===== ===== */}
+                      <FailedDetailsModal
+                        visible={showFailedModal}
+                        onClose={() => setShowFailedModal(false)}
+                      />
+                      </View>
+                    </Pressable>
                   
                   </View>
                 );
