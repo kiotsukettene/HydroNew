@@ -6,8 +6,6 @@ import { useAccountStore } from "../account/accountStore";
 import { Platform } from "react-native";
 import { disconnectEcho } from "@/lib/echo";
 import { useNotificationStore } from "../notification/notificationStore";
-import { firebase } from "@react-native-firebase/auth";
-import { GoogleSignin } from "@react-native-google-signin/google-signin";
 import { useDeviceStore } from "@/store/device/deviceStore";
 
 const isWeb = Platform.OS === "web";
@@ -156,36 +154,6 @@ login: async (email, password) => {
   }
 },
 
-signInWithGoogle: async (firebaseIdToken, first_name, last_name) => {
-    set({ loading: true, error: null});
-    try {
-      const response = await axiosInstance.post("/google-login", {token: firebaseIdToken, first_name, last_name });
-      const { token, user, needs_verification } = response.data;
-
-      console.log('🔍 [Google Login] Response:', { hasToken: !!token, hasUser: !!user, user });
-
-      await storage.setItem("token", token);
-      await storage.setItem("user", JSON.stringify(user));
-      console.log('✅ [Google Login] Token and user saved to storage');
-
-      set({
-        loading: false,
-        user: user || null,
-        token,
-        needsVerification: needs_verification ?? false,
-      });
-      await useAccountStore.getState().fetchAccount();
-      console.log("✅ [Google Login] Google sign-in successful:", user);
-      return response.data;
-
-    } catch (err: any) {
-      const {message} = handleAxiosError(err);
-      set({ loading: false, error: message });
-      console.log("❌ [Google Login] Google sign-in error:", message);
-      return null;
-    }
-},
-
   verifyOtp: async (otp: string) => {
     set({ loading: true, error: null, fieldErrors: {} });
 
@@ -267,16 +235,6 @@ logout: async () => {
 
   // Clear storage
   await storage.removeItem("token");
-  
-  // Sign out from Google if the user signed in with Google
-  // Wrap in try-catch since GoogleSignin might not be configured
-  try {
-    await GoogleSignin.signOut();
-    console.log(' [Logout] Signed out from Google');
-  } catch (error: any) {
-    // Ignore error if GoogleSignin is not configured or user didn't sign in with Google
-    console.log('ℹ [Logout] Google sign-out skipped:', error.message);
-  }
 
   // Reset auth state
   set({
