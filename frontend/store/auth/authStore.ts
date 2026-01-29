@@ -189,6 +189,10 @@ login: async (email, password) => {
         error: null,
       });
 
+      if (user?.id) {
+        await useDeviceStore.getState().fetchDevice(user.id);
+      }
+
       console.log('✅ [Verify OTP] Verification successful');
       return response.data;
     } catch (err: any) {

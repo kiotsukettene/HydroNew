@@ -29,6 +29,15 @@ fetchDevice: async (userId: number) => {
   set({ loading: true, error: null });
   
   try {
+    // Check if email is verified
+    const { useAuthStore } = require("@/store/auth/authStore");
+    const needsVerification = useAuthStore.getState().needsVerification;
+    if (needsVerification) {
+      console.log("Skipping device fetch: Email not verified");
+      set({ loading: false });
+      return;
+    }
+
     // Check if device already exists in AsyncStorage
     const storageKey = `paired_device:${userId}`;
     const existingDevice = await AsyncStorage.getItem(storageKey);
@@ -78,6 +87,33 @@ fetchDevice: async (userId: number) => {
 setDevice: (device: any) => {
   console.log("Setting device in store:", device);
   set({ devices: [device] });
+},
+
+unpairDevice: async (userId: number) => {
+  set({ loading: true, error: null });
+  try {
+    const response = await axiosInstance.post(`/devices/unpair/${userId}`);
+    console.log("Unpair device response:", response.data);
+
+    if (response.status === 200 || response.data?.status === "success") {
+      // Clear AsyncStorage
+      const storageKey = `paired_device:${userId}`;
+      await AsyncStorage.removeItem(storageKey);
+      
+      // Update state
+      set({ devices: [] });
+      return { status: "success" };
+    }
+    
+    return response.data;
+  } catch (error: any) {
+    const { message } = handleAxiosError(error);
+    set({ error: message });
+    console.error("Failed to unpair device:", message, error.response?.data);
+    return { status: "error", message };
+  } finally {
+    set({ loading: false });
+  }
 },
 
 // store/device/deviceStore.ts
