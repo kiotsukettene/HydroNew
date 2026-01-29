@@ -280,7 +280,7 @@ export default function Home() {
             <View className="mt-6 sm:mt-7 md:mt-8">
               <Text className="px-2 text-lg sm:text-xl md:text-2xl font-semibold text-gray-800">Quick Actions</Text>
 
-              <View className="mt-3 sm:mt-4 md:mt-5 flex-row gap-2 sm:gap-3 md:gap-4">
+              <View className="h-auto mt-3 sm:mt-4 md:mt-5 flex-row gap-2 sm:gap-3 md:gap-4">
                 <Pressable onPress={() => {router.push('/(tabs)/hydroponics')}} className='relative flex-1 justify-between overflow-hidden rounded-2xl bg-green-50 p-4 sm:p-5 md:p-6 min-h-24 sm:min-h-28 md:min-h-32'>
                   <Leaf color={'#15803D'} strokeWidth={2} size={24} className="sm:w-7 sm:h-7 md:w-8 md:h-8" />
                   <View>
