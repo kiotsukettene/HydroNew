@@ -1,4 +1,4 @@
-import { View, Image, TouchableOpacity, ScrollView, Pressable, ActivityIndicator } from 'react-native';
+import { View, Image, TouchableOpacity, ScrollView, Pressable } from 'react-native';
 import React, { useEffect, useState } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Button } from '@/components/ui/button';
@@ -21,6 +21,7 @@ import { useRouter } from 'expo-router';
 import { useDashboardStore } from '@/store/auth/dashboardStore';
 import { useNotificationStore } from '@/store/notification/notificationStore';
 import { useSensorStore } from '@/store/sensor/sensorStore';
+import { HomeSkeleton } from '@/components/skeletons';
 
 import { db } from '@/src/firebase';
 import { onValue, ref } from 'firebase/database';
@@ -113,12 +114,7 @@ export default function Home() {
   }, []);
 
   if (loading) {
-     return (
-      <SafeAreaView className="flex-1 items-center justify-center">
-        <ActivityIndicator size="large" color="#2D7D7D" />
-        <Text className="mt-2 text-lg text-gray-600">Loading dashboard...</Text>
-      </SafeAreaView>
-    );
+    return <HomeSkeleton />;
   }
 
   if (error) {

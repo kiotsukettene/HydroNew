@@ -1,4 +1,4 @@
-import { View, Image, Pressable, ScrollView, ActivityIndicator } from 'react-native';
+import { View, Image, Pressable, ScrollView } from 'react-native';
 import React, { useCallback } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { PageHeader } from '@/components/ui/page-header';
@@ -12,6 +12,7 @@ import NoSetup from '@/app/hydroponics-monitoring/no-setup';
 import { useFocusEffect } from '@react-navigation/native';
 
 import { useHydroponicSetupStore } from '@/store/hydroponics/hydroponicSetupStore';
+import { HydroponicsSkeleton } from '@/components/skeletons';
 
 const { height: screenHeight } = Dimensions.get('window');
 
@@ -35,12 +36,9 @@ export default function Hydroponics() {
   );
 
 
-  if (loading && hydroponicSetups.length === 0) return (
-    <SafeAreaView className="flex-1 bg-white items-center justify-center">
-       <ActivityIndicator size="large" color="#2D7D7D" />
-      <Text>Loading...</Text>
-    </SafeAreaView>
-  );
+  if (loading && hydroponicSetups.length === 0) {
+    return <HydroponicsSkeleton />;
+  }
   
   if (!loading && hydroponicSetups.length === 0) return <NoSetup />;
 
