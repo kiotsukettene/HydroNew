@@ -117,11 +117,12 @@ export default function Filtration() {
   ]);
 
   // Simple helper to save/clear filtration status
-  const saveStatus = (stage: number, progress: number, failed = false) => {
+  const saveStatus = (stage: number, progress: number, failed = false, complete = false) => {
     AsyncStorage.setItem('filtration_status', JSON.stringify({
       currentStage: `Stage ${stage}`,
       progress: `${progress}% Complete`,
       hasFailed: failed,
+      isComplete: complete,
     }));
   };
 
@@ -236,7 +237,7 @@ export default function Filtration() {
           setTimeout(() => {
             updateStageStatus(4, "completed", "Completed", "bg-green-300", "bg-green-50", "border-green-100", "bg-green-500");
             setButtonText("Process Complete");
-            saveStatus(4, 100);
+            saveStatus(4, 100, false, true);
             setTimeout(() => setShowSuccessModal(true), 500);
           }, 2000);
         }, 2000);

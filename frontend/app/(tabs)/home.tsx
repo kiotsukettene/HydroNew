@@ -9,6 +9,8 @@ import {
   Settings,
   ChevronRight,
   Smartphone,
+  CheckCircle2,
+  ArrowRight,
 } from 'lucide-react-native';
 import { Card, CardContent } from '@/components/ui/card';
 import { Text } from '@/components/ui/text';
@@ -54,25 +56,45 @@ function FiltrationBanner() {
   }
 
   const hasFailed = parsed.hasFailed || false;
+  const isComplete = parsed.isComplete || false;
   const stage = parsed.currentStage || 'Stage 1';
   const progress = parsed.progress || '25% Complete';
+
+  if (isComplete) {
+    return (
+      <TouchableOpacity
+        onPress={() => router.push('/(tabs)/filtration')}
+        className="mt-4 sm:mt-5 rounded-xl p-3 sm:p-4 flex-row items-center justify-between"
+        style={{ backgroundColor: '#16a34a' }}
+        activeOpacity={0.8}
+      >
+        <View className="flex-row items-center flex-1">
+          <CheckCircle2 size={20} color="#ffffff" strokeWidth={2.5} />
+          <Text className="ml-2 sm:ml-3 text-sm sm:text-base font-bold text-white">
+            Filtration Complete
+          </Text>
+        </View>
+        <ArrowRight size={18} color="#ffffff" />
+      </TouchableOpacity>
+    );
+  }
 
   return (
     <TouchableOpacity
       onPress={() => router.push('/(tabs)/filtration')}
-      className="mt-5 rounded-xl p-4 flex-row items-center justify-between"
+      className="mt-4 sm:mt-5 rounded-xl p-3 sm:p-4 flex-row items-center justify-between"
       style={{ backgroundColor: hasFailed ? '#dc2626' : '#16a34a' }}
       activeOpacity={0.8}
     >
       <View className="flex-row items-center flex-1">
-        <Settings size={20} color="#ffffff" strokeWidth={2.5} />
-        <Text className="ml-3 text-base font-bold text-white">
+        <Settings size={18} color="#ffffff" strokeWidth={2.5} />
+        <Text className="ml-2 sm:ml-3 text-sm sm:text-base font-bold text-white">
           {hasFailed ? 'Filtration Failed' : 'Filtration Running'}
         </Text>
       </View>
       <View className="flex-row items-center">
-        <Text className="text-sm text-white mr-2">{stage} - {progress}</Text>
-        <ChevronRight size={18} color="#ffffff" />
+        <Text className="text-xs sm:text-sm text-white mr-1 sm:mr-2">{stage} - {progress}</Text>
+        <ChevronRight size={16} color="#ffffff" />
       </View>
     </TouchableOpacity>
   );
