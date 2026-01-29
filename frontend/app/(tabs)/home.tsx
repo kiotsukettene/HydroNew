@@ -160,7 +160,9 @@ export default function Home() {
   const userName = data?.user || 'User';
   const nearestToHarvest = data?.nearest_to_harvest || null;
   const growth = { 
-    cropName: nearestToHarvest?.crop_name || 'No Active Crops',
+    cropName: nearestToHarvest?.crop_name
+      ? nearestToHarvest.crop_name.charAt(0).toUpperCase() + nearestToHarvest.crop_name.slice(1)
+      : 'No Active Crops',
     percentage: nearestToHarvest?.growth_percentage ?? 0
   };
 
