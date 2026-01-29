@@ -38,7 +38,7 @@ export default function Hydroponics() {
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
-    await fetchHydroponicSetups(currentPage);
+    await fetchHydroponicSetups(currentPage, true);
     setRefreshing(false);
   }, [fetchHydroponicSetups, currentPage]);
 
