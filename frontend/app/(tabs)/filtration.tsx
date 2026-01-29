@@ -536,6 +536,27 @@ export default function Filtration() {
             </View>
           </Card>
 
+           {/* Re-start Process Button - appears below main content card when process fails */}
+          {isProcessFailed && (
+            <Button 
+              onPress={handleButtonClick}
+              className="mt-4 bg-destructive"
+            >
+              <Text>Re-start Process</Text>
+            </Button>
+          )}
+          
+          {/* Save Process Button - appears below main content card after success modal */}
+          {isProcessCompleted && (
+            <Button 
+              onPress={handleSaveProcess}
+              className="mt-4 bg-secondary"
+            >
+              <Text>Mark as Complete</Text>
+            </Button>
+          )}
+          
+
           {/* ================= Main Content Card  ==================== */}
           <Card className=" border-2 border-gray-200 shadow-lg rounded-2xl">
               <View className="relative px-2 sm:px-4">
@@ -626,26 +647,7 @@ export default function Filtration() {
             </View>
           </Card>
           
-          {/* Re-start Process Button - appears below main content card when process fails */}
-          {isProcessFailed && (
-            <Button 
-              onPress={handleButtonClick}
-              className="mt-4"
-            >
-              <Text>Re-start Process</Text>
-            </Button>
-          )}
-          
-          {/* Save Process Button - appears below main content card after success modal */}
-          {isProcessCompleted && (
-            <Button 
-              onPress={handleSaveProcess}
-              className="mt-4"
-            >
-              <Text>Mark as Complete</Text>
-            </Button>
-          )}
-          
+         
           </Card>
           </View>
           </ScrollView>
