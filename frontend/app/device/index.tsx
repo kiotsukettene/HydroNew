@@ -137,15 +137,15 @@ function publishTestMessage1() {
 
 const handleUnpair = async () => {
     if (!userId) return;
-    
+
     try {
-        const result = await unpairDevice(userId);
-        if (result?.status === "success") {
+        const result = await unpairDevice();
+        if (result?.success) {
             setPairedDevice(null);
             setShowUnpairModal(false);
-            toast.success("Device unpaired successfully");
+            toast.success(result.message);
         } else {
-            toast.error(result?.message || "Failed to unpair device");
+            toast.error(result?.message ?? "Failed to unpair device");
         }
     } catch (err) {
         console.error("Unpair error:", err);

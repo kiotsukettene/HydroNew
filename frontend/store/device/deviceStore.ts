@@ -4,6 +4,7 @@ import { DeviceStore } from "@/types/device";
 import { handleAxiosError } from "@/api/handleAxiosError";
 import axiosInstance from "@/api/axiosInstance";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useAuthStore } from "@/store/auth/authStore";
 
 export const useDeviceStore = create<DeviceStore>((set, get) => ({
   devices: [],
@@ -89,28 +90,28 @@ setDevice: (device: any) => {
   set({ devices: [device] });
 },
 
-unpairDevice: async (userId: number) => {
+unpairDevice: async () => {
   set({ loading: true, error: null });
   try {
-    const response = await axiosInstance.post(`/devices/unpair/${userId}`);
+    const response = await axiosInstance.post(`/devices/unpair`);
     console.log("Unpair device response:", response.data);
 
-    if (response.status === 200 || response.data?.status === "success") {
-      // Clear AsyncStorage
+    if (response.status === 200) {
+      const message = response.data?.message ?? "Device unpaired successfully.";
+      const userId = useAuthStore.getState().user?.id;
       const storageKey = `paired_device:${userId}`;
       await AsyncStorage.removeItem(storageKey);
-      
-      // Update state
       set({ devices: [] });
-      return { status: "success" };
+      return { success: true, message };
     }
-    
-    return response.data;
+
+    const message = response.data?.message ?? "Failed to unpair device.";
+    return { success: false, message };
   } catch (error: any) {
     const { message } = handleAxiosError(error);
     set({ error: message });
     console.error("Failed to unpair device:", message, error.response?.data);
-    return { status: "error", message };
+    return { success: false, message };
   } finally {
     set({ loading: false });
   }
