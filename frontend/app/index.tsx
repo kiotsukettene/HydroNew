@@ -47,6 +47,10 @@ export default function Screen() {
 
   const isLoggedIn = token && user && !needsVerification;
 
+  if (token && needsVerification) {
+    return <Redirect href="/signup/email-verification" />;
+  }
+
   return isLoggedIn ? (
     <>
       {/* <Stack.Screen options={SCREEN_OPTIONS[colorScheme ?? 'light']} /> */}

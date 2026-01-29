@@ -10,6 +10,7 @@ type SensorReading = {
   temperature: number | null;
   ec: number | null;
   electric_current: number | null;
+  ai_classification: string | null;
   reading_time: string;
   created_at: string;
   updated_at: string;

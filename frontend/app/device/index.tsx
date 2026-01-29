@@ -66,7 +66,7 @@ useEffect(() => {
       const existingDevice = await AsyncStorage.getItem(storageKey);
       if (existingDevice) {
         setPairedDevice(JSON.parse(existingDevice));
-        toast.success("Device paired successfully!");
+
       }
     } catch (err) {
       console.error("Failed to check paired device:", err);
@@ -110,6 +110,7 @@ useEffect(() => {
 
         setPairedDevice(payload.device);
         console.log("Device saved to AsyncStorage");
+        toast.success("Device paired successfully!");
         
         // Also update the deviceStore so useSensorData can react to it
         useDeviceStore.getState().setDevice(payload.device);
