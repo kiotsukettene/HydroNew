@@ -151,7 +151,6 @@ const handleUpdateAccount = async () => {
                       }
                     }}
                   editable={editable}
-                  rightIcon={<AtSign size={20} color="#6B7280" />}
                   placeholder='First Name'
                   autoCapitalize='none'
                   className={`border text-base text-black ${
@@ -162,6 +161,7 @@ const handleUpdateAccount = async () => {
                   <Text className="text-red-500 text-sm">{errors.first_name}</Text>
                 )}
               </View>
+
               {/*lastname */}
               <View className='mt-2 gap-1'>
                 <Label className="font-normal text-muted-foreground">Last Name</Label>
@@ -175,7 +175,6 @@ const handleUpdateAccount = async () => {
                   }}
                   editable={editable}
                   placeholder='Last Name'
-                  rightIcon={<User size={20} color="#6B7280" />}
                   autoCapitalize='none'
                   className={`border text-base text-black ${
                     errors.last_name ? 'border-red-500' : 'border-muted-foreground/50'
@@ -185,6 +184,7 @@ const handleUpdateAccount = async () => {
                   <Text className="text-red-500 text-sm">{errors.last_name}</Text>
                 )}
               </View>
+
               {/*email */}
               <View className='mt-2 gap-1'>
                 <Label className="font-normal text-muted-foreground">Email</Label>
@@ -207,8 +207,10 @@ const handleUpdateAccount = async () => {
                   <Text className="text-red-500 text-sm">{errors.email}</Text>
                 )}
               </View>
+
               {/*contact */}
-              {/*birthdate */}
+
+              {/*Address */}
               <View className='mt-2 gap-1'>
                 <Label className="font-normal text-muted-foreground">Address</Label>
                 <InputWithIcon
@@ -231,7 +233,9 @@ const handleUpdateAccount = async () => {
                 )}
               </View>
 
-                <View className='mt-8 gap-3'>
+
+              {/* ================= Buttons ==================== */}
+              <View className='mt-16 gap-3'>
               {editable ? (
                 <View className="flex-col gap-3">
                   <Button
