@@ -1,5 +1,5 @@
-import { View, Image, Pressable, ScrollView, ActivityIndicator } from 'react-native';
-import React, { useCallback } from 'react';
+import { View, Image, Pressable, ScrollView, ActivityIndicator, RefreshControl } from 'react-native';
+import React, { useCallback, useState } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { PageHeader } from '@/components/ui/page-header';
 import { Dimensions } from 'react-native';
@@ -27,12 +27,20 @@ export default function Hydroponics() {
     prevPage 
   } = useHydroponicSetupStore();
 
+  const [refreshing, setRefreshing] = useState(false);
+
   useFocusEffect(
     useCallback(() => {
       // Fetch data (uses cache if available)
       fetchHydroponicSetups(1);
     }, [fetchHydroponicSetups])
   );
+
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    await fetchHydroponicSetups(currentPage);
+    setRefreshing(false);
+  }, [fetchHydroponicSetups, currentPage]);
 
 
   if (loading && hydroponicSetups.length === 0) return (
@@ -61,6 +69,14 @@ export default function Hydroponics() {
           className="flex-1"
           showsVerticalScrollIndicator={false}
           contentContainerStyle={{ paddingBottom: 100 }}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={onRefresh}
+              colors={['#2D7D7D']}
+              tintColor="#2D7D7D"
+            />
+          }
         >
           <View className="relative z-10 mt-36">
             <Card className="rounded-t-3xl border-transparent sm:p-6">
@@ -95,7 +111,7 @@ export default function Hydroponics() {
                                   {new Date(item.setup_date).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
                                 </Label>
                                 <Text className="mt-1 text-sm font-medium text-primary">
-                                  Growth: {item.growth_percentage ? `${item.growth_percentage}%` : '45%'} • {item.growth_stage ? item.growth_stage.charAt(0).toUpperCase() + item.growth_stage.slice(1) : ''}
+                                  Growth: {item.growth_percentage} • {item.growth_stage ? item.growth_stage.charAt(0).toUpperCase() + item.growth_stage.slice(1) : ''}
                                 </Text>
                               </View>
                               <Image
