@@ -42,12 +42,25 @@ export default function HarvestForm() {
 
   useEffect(() => {
     if (setupId) {
+      // Reset yield state and form data when setupId changes
+      resetYieldState();
+      setFormData({
+        totalCount: '',
+        totalWeight: '',
+        sellingCount: '',
+        sellingWeight: '',
+        consumptionCount: '',
+        consumptionWeight: '',
+        notes: '',
+      });
+      setManuallyEditedWeights(new Set());
+      setErrors({});
       fetchSetupById(setupId);
     }
     return () => {
       resetYieldState();
     };
-  }, [setupId]);
+  }, [setupId, fetchSetupById, resetYieldState]);
 
   // Auto-distribute weights when total weight or counts change
   useEffect(() => {
@@ -147,6 +160,9 @@ export default function HarvestForm() {
     setErrors({});
 
     try {
+      const sellingCount = parseInt(formData.sellingCount) || 0;
+      const consumptionCount = parseInt(formData.consumptionCount) || 0;
+      
       const payload = {
         total_count: parseInt(formData.totalCount),
         total_weight: formData.totalWeight ? parseFloat(formData.totalWeight) : null,
@@ -154,13 +170,15 @@ export default function HarvestForm() {
         grades: [
           {
             grade: 'selling' as const,
-            count: parseInt(formData.sellingCount) || 0,
-            weight: formData.sellingWeight ? parseFloat(formData.sellingWeight) : null,
+            count: sellingCount,
+            // If count is 0, set weight to null; otherwise use the provided weight
+            weight: sellingCount > 0 && formData.sellingWeight ? parseFloat(formData.sellingWeight) : null,
           },
           {
             grade: 'consumption' as const,
-            count: parseInt(formData.consumptionCount) || 0,
-            weight: formData.consumptionWeight ? parseFloat(formData.consumptionWeight) : null,
+            count: consumptionCount,
+            // If count is 0, set weight to null; otherwise use the provided weight
+            weight: consumptionCount > 0 && formData.consumptionWeight ? parseFloat(formData.consumptionWeight) : null,
           },
         ],
       };
@@ -188,6 +206,8 @@ export default function HarvestForm() {
       await markAsHarvested(setupId);
       setShowConfirmModal(false);
       setShowSuccessModal(true);
+      // Reset yield state after successful harvest
+      resetYieldState();
     } catch (err) {
       setShowConfirmModal(false);
       toast.error(error || 'Failed to mark as harvested');
