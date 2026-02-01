@@ -11,98 +11,134 @@ import type {
 export const useHarvestedStore = create<HarvestedStore>((set, get) => ({
   items: [],
   statistics: null,
-  currentPage: 1,
-  lastPage: 1,
   total: 0,
+  hasMore: false,
   loading: false,
+  loadingMore: false,
   error: null,
   searchQuery: "",
   filterMonth: null,
-  cache: {},
+  cache: null,
+  lastFetchTime: null,
 
-  fetchHarvested: async (page = 1, search = "", month = null, forceRefresh = false) => {
-    const cacheKey = `${page}|${search}|${month || ""}`;
-    const { cache } = get();
-
-    // Return cached data if available and not forcing refresh
-    if (cache[cacheKey] && !forceRefresh) {
-      set(cache[cacheKey]); // Fixed: removed cache preservation
+  fetchHarvested: async (reset = true, useCache = true) => {
+    const state = get();
+    
+    // If reset and cache exists and is fresh (less than 5 minutes old), use cache
+    if (reset && useCache && state.cache && state.lastFetchTime) {
+      const cacheAge = Date.now() - state.lastFetchTime;
+      const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
+      
+      if (cacheAge < CACHE_DURATION) {
+        set({
+          items: state.cache.items,
+          statistics: state.cache.statistics,
+          total: state.cache.total,
+          hasMore: state.cache.hasMore,
+          loading: false,
+          loadingMore: false,
+        });
+        return;
+      }
+    }
+    
+    // Prevent multiple simultaneous requests
+    if (state.loading || state.loadingMore) {
+      console.log('⚠️ Already loading, skipping request');
       return;
     }
 
-    // Clear items immediately when loading new data
-    set({ loading: true, error: null, items: [] });
+    // Calculate offset based on current items
+    const limit = 10;
+    const offset = reset ? 0 : state.items.length;
+    
+    set({ 
+      loading: reset, 
+      loadingMore: !reset,
+      error: null,
+      ...(reset && { items: [] }) // Clear items only on reset
+    });
 
     try {
       const params = new URLSearchParams();
-      params.append("page", page.toString());
-      if (search) {
-        params.append("search", search);
+      params.append("offset", offset.toString());
+      params.append("limit", limit.toString());
+      
+      if (state.searchQuery) {
+        params.append("search", state.searchQuery);
       }
-      if (month) {
-        params.append("month", month);
+      if (state.filterMonth) {
+        params.append("month", state.filterMonth);
       }
 
       const response = await axiosInstance.get<HarvestedResponse>(
         `/hydroponic-yields?${params.toString()}`
       );
 
-      const data = response.data.data;
-      const result = {
-        items: data.data,
-        statistics: response.data.statistics,
-        currentPage: data.current_page,
-        lastPage: data.last_page,
-        total: data.total,
-        searchQuery: search,
-        filterMonth: month,
-        loading: false,
-        error: null,
-      };
-
-      // Set result and cache together to avoid double render
+      const newItems = response.data.data || [];
+      const statistics = response.data.statistics || null;
+      const total = response.data.total || 0;
+      const hasMore = response.data.has_more || false;
+      
+      const updatedItems = reset ? newItems : [...state.items, ...newItems];
+      
       set({
-        ...result,
-        cache: {
-          ...cache,
-          [cacheKey]: result,
-        },
+        items: updatedItems,
+        statistics: statistics,
+        total: total,
+        hasMore: hasMore,
+        loading: false,
+        loadingMore: false,
+        error: null,
+        // Cache the initial load
+        ...(reset && {
+          cache: {
+            items: updatedItems,
+            statistics: statistics,
+            total: total,
+            hasMore: hasMore,
+          },
+          lastFetchTime: Date.now(),
+        }),
       });
+      
     } catch (err: any) {
       const { message } = handleAxiosError(err);
+      console.error('❌ Fetch error:', message, err);
       set({
         error: message,
         loading: false,
-        items: [],
+        loadingMore: false,
+        ...(reset && { items: [], statistics: null }),
       });
     }
   },
 
+  loadMore: async () => {
+    const { hasMore, loadingMore, loading } = get();
+    if (!hasMore || loadingMore || loading) return;
+    
+    await get().fetchHarvested(false);
+  },
+
+  refresh: async () => {
+    // Always bypass cache on manual refresh
+    await get().fetchHarvested(true, false);
+  },
+
   searchHarvested: async (search: string) => {
-    const { filterMonth } = get();
-    set({ cache: {} });
-    await get().fetchHarvested(1, search, filterMonth, true);
+    set({ searchQuery: search, cache: null, lastFetchTime: null });
+    await get().fetchHarvested(true, false);
   },
 
   filterByMonth: async (month: string | null) => {
-    const { searchQuery } = get();
-    set({ cache: {} });
-    await get().fetchHarvested(1, searchQuery, month, true);
+    set({ filterMonth: month, cache: null, lastFetchTime: null });
+    await get().fetchHarvested(true, false);
   },
 
-  nextPage: async () => {
-    const { currentPage, lastPage, fetchHarvested, searchQuery, filterMonth } = get();
-    if (currentPage < lastPage) {
-      await fetchHarvested(currentPage + 1, searchQuery, filterMonth);
-    }
+  clearCache: () => {
+    set({ cache: null, lastFetchTime: null });
   },
 
-  prevPage: async () => {
-    const { currentPage, fetchHarvested, searchQuery, filterMonth } = get();
-    if (currentPage > 1) {
-      await fetchHarvested(currentPage - 1, searchQuery, filterMonth);
-    }
-  },
-
-  clearCache: () => set({ cache: {} }),
+  resetError: () => set({ error: null }),
 }));
