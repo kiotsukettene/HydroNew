@@ -38,11 +38,48 @@ export function getMQTTClient(): MqttClient {
 /**
  * Publish a message to a topic.
  */
-
 export function publishMessage(topic: string, message: string, qos: 0|1|2 = 1) {
   getMQTTClient().publish(topic, message, { qos, retain: false });
 }
 
+/**
+ * Publish a message and invoke callback when ack is received on topic/ack.
+ * Ack "1" = success, "0" or other = error.
+ */
+export function publishWithAck(
+  topic: string,
+  message: string,
+  onAck: (success: boolean) => void,
+  qos: 0|1|2 = 1
+) {
+  const ackTopic = `${topic}/ack`;
+  const existing = pendingAckCallbacks.get(ackTopic);
+  if (existing) existing.callbacks.push(onAck);
+  else {
+    pendingAckCallbacks.set(ackTopic, { callbacks: [onAck] });
+    ensureAckHandler(ackTopic);
+  }
+  getMQTTClient().publish(topic, message, { qos, retain: false });
+}
+
+const pendingAckCallbacks = new Map<string, { callbacks: ((success: boolean) => void)[] }>();
+const ackHandlersRegistered = new Set<string>();
+
+function ensureAckHandler(ackTopic: string) {
+  if (ackHandlersRegistered.has(ackTopic)) return;
+  ackHandlersRegistered.add(ackTopic);
+  subscribeMessage(ackTopic, (_topic, payload) => {
+    const pending = pendingAckCallbacks.get(ackTopic);
+    if (!pending || pending.callbacks.length === 0) return;
+    const value = payload.toString().trim();
+    const success = value === '1';
+    const callbacks = pending.callbacks.splice(0);
+    pendingAckCallbacks.delete(ackTopic);
+    callbacks.forEach((cb) => {
+      try { cb(success); } catch (e) { console.error('publishWithAck callback error:', e); }
+    });
+  });
+}
 
 // SUBCRIBE LOGIC
 
