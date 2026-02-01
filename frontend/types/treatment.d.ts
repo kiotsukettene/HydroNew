@@ -31,16 +31,62 @@ export interface UpdateTreatmentPayload {
   total_cycles: number;
 }
 
+
+export type TreatmentStageName = 'MFC' | 'Natural Filter' | 'UV Filter' | 'Clean Water Tank';
+
+
+export type TreatmentStageStatus = 'processing';
+
+
+export interface SaveStagePayload {
+  stage_name: TreatmentStageName;
+  stage_order: number; 
+  status: TreatmentStageStatus;
+}
+
+
+export interface TreatmentStageRecord {
+  id?: number;
+  stage_name: TreatmentStageName;
+  stage_order: number;
+  status: TreatmentStageStatus;
+  created_at?: string;
+  updated_at?: string;
+}
+
+export interface SaveStageResponse {
+  success: boolean;
+  message: string;
+  data: TreatmentStageRecord;
+}
+
+/** Status for PUT /treatment/update-stages (completed = passed, failed = failed). */
+export type UpdateStageStatus = 'passed' | 'failed';
+
+/** Payload for PUT /treatment/update-stages (update stage by stage_order). */
+export interface UpdateStagePayload {
+  stage_order: number; // 0–3 for stages 1–4
+  status: UpdateStageStatus;
+}
+
+/** Response shape for PUT /treatment/update-stages. */
+export interface UpdateStageResponse {
+  success: boolean;
+  message: string;
+  data: TreatmentStageRecord;
+}
+
 export interface TreatmentStore {
   loading: boolean;
   error: string | null;
-  /** Last created or updated treatment report (e.g. current "on progress" or just finished). */
+
   currentTreatment: TreatmentReport | null;
 
-  /** Start a new treatment — POST /treatment. */
   saveTreatment: () => Promise<TreatmentReport | null>;
-  /** End the active treatment with cycle count — POST /treatment/update-treatment. */
   updateTreatment: (total_cycles: number) => Promise<TreatmentReport | null>;
+  saveStage: (payload: SaveStagePayload) => Promise<TreatmentStageRecord | null>;
+  /** Update stage result — PUT /treatment/update-stages (passed when completed, failed when failed). */
+  updateStage: (payload: UpdateStagePayload) => Promise<TreatmentStageRecord | null>;
   resetError: () => void;
   clearCurrentTreatment: () => void;
 }
