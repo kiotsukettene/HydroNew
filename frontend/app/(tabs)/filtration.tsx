@@ -19,7 +19,7 @@ import FailedDetailsModal from '../hydroponics-monitoring/failed-details';
 import { router } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { toast } from 'sonner-native';
-import { publishMessage } from '@/service/mqtt.client';
+import { publishWithAck, publishMessage, subscribeMessage } from '@/service/mqtt.client';
 import { useAuthStore } from '@/store/auth/authStore';
 import { useTreatmentStore } from '@/store/treatment/treatmentStore';
 import { useSensorStore } from '@/store/sensor/sensorStore';
@@ -29,7 +29,15 @@ if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental
   UIManager.setLayoutAnimationEnabledExperimental(true);
 }
 
-// Types 
+/** Map stage id (1–4) to backend stage_name and stage_order for POST /treatment/stages. */
+const STAGE_API_MAP: Record<number, { stage_name: import('@/types/treatment').TreatmentStageName; stage_order: number }> = {
+  1: { stage_name: 'MFC', stage_order: 1 },
+  2: { stage_name: 'Natural Filter', stage_order: 2 },
+  3: { stage_name: 'UV Filter', stage_order: 3 },
+  4: { stage_name: 'Clean Water Tank', stage_order: 4 },
+};
+
+// Types
 interface FiltrationStage {
   id: number;
   title: string;
@@ -60,28 +68,22 @@ export default function Filtration() {
   const [showFailedModal, setShowFailedModal] = useState(false);
   const [isStageOneExpanded, setIsStageOneExpanded] = useState(false);
   const [deviceSerial, setDeviceSerial] = useState('');
-  /** Total runs (start + each restart). Sent as total_cycles to backend when marking complete. */
   const [totalCycles, setTotalCycles] = useState(0);
-  const { saveTreatment, updateTreatment, currentTreatment } = useTreatmentStore();
+  const { saveTreatment, updateTreatment, saveStage, updateStage, currentTreatment } = useTreatmentStore();
   const userId = useAuthStore((state) => state.user?.id);
   const dirtyWater = useSensorStore((state) => state.dirtyWater);
   const cleanWater = useSensorStore((state) => state.cleanWater);
-  /** Timeout IDs for stages 2–4 progression; cleared on fail. */
   const stages2To4TimeoutIdsRef = useRef<ReturnType<typeof setTimeout>[]>([]);
-  /** Avoid re-triggering fail when cleanWater.ai_classification === 'bad'. */
   const hasFailedStages2To4Ref = useRef(false);
-  /** Pump open after restart (stages 2–4); CLOSE only when water_level >= 18. */
   const [isRestartPumpOpen, setIsRestartPumpOpen] = useState(false);
   const autoCloseRestartPumpTriggeredRef = useRef(false);
-  /** Prevent auto-complete from firing more than once per treatment. */
   const autoCompleteStageOneTreatmentIdRef = useRef<number | null>(null);
-  /** Prevent auto-close from firing multiple times while valve stays open and water_level >= 18. */
   const autoCloseStageOneTriggeredRef = useRef(false);
   const autoCloseDrainWaterTriggeredRef = useRef(false);
-  /** Stage 1 valve: false = closed (button "Complete" → OPEN), true = open (button "Close Valve" → CLOSE). */
   const [isStageOneValveOpen, setIsStageOneValveOpen] = useState(false);
-  /** Drain water valve: false = closed (button "Drain Water" → OPEN), true = open (button "Close Drain" → CLOSE). */
   const [isDrainWaterValveOpen, setIsDrainWaterValveOpen] = useState(false);
+  const [isWaitingForStartAck, setIsWaitingForStartAck] = useState(false);
+  const [isWaitingForRestartAck, setIsWaitingForRestartAck] = useState(false);
 
   // Initialize all stages as pending
   const [filtrationStages, setFiltrationStages] = useState<FiltrationStage[]>([
@@ -150,6 +152,18 @@ export default function Filtration() {
 
   const clearStatus = () => AsyncStorage.removeItem('filtration_status');
 
+  /** Persist stage "in progress" to backend when a stage starts. */
+  const reportStageInProgress = (stageId: number) => {
+    const map = STAGE_API_MAP[stageId];
+    if (map) saveStage({ ...map, status: 'processing' });
+  };
+
+  /** Update stage result in backend (passed = completed, failed = failed). */
+  const reportStageResult = (stageId: number, status: 'passed' | 'failed') => {
+    const map = STAGE_API_MAP[stageId];
+    if (map) updateStage({ stage_order: map.stage_order, status });
+  };
+
   {/* ========================== GET Device Serial ========================== */}
  
 const startTreatment = async () => {
@@ -192,62 +206,111 @@ const startTreatment = async () => {
     getDeviceSerial();
   }, [userId]);
 
+  // Subscribe to /state topics so all users' UIs stay in sync with hardware (multi-user)
+  useEffect(() => {
+    if (!deviceSerial) return;
+
+    const unsubs: (() => void)[] = [];
+
+    unsubs.push(
+      subscribeMessage(`mfc/${deviceSerial}/valve/1/state`, (_topic, payload) => {
+        const value = payload.toString().trim();
+        setIsStageOneValveOpen(value === '1');
+      })
+    );
+    unsubs.push(
+      subscribeMessage(`mfc_fallback/${deviceSerial}/valve/2/state`, (_topic, payload) => {
+        const value = payload.toString().trim();
+        setIsDrainWaterValveOpen(value === '1');
+      })
+    );
+    unsubs.push(
+      subscribeMessage(`reservoir_fallback/${deviceSerial}/pump/2/state`, (_topic, payload) => {
+        const value = payload.toString().trim();
+        setIsRestartPumpOpen(value === '1');
+      })
+    );
+    unsubs.push(
+      subscribeMessage(`mfc/${deviceSerial}/pump/3/state`, (_topic, payload) => {
+        const value = payload.toString().trim();
+        if (value === '1') {
+          setIsProcessStarted(true);
+          setButtonText("On process...");
+          setIsWaitingForStartAck(false);
+        } else if (value === '0') {
+          setIsProcessStarted(false);
+          setButtonText("Start Process");
+        }
+      })
+    );
+
+    return () => unsubs.forEach((u) => u());
+  }, [deviceSerial]);
+
   {/* ========================== FUNCTIONALITY TESTING ========================== */}
 
   // Function to start the process
   const startProcess = () => {
-    setIsProcessStarted(true);
-    setIsProcessFailed(false);
-    setButtonText("On process...");
-    setCurrentStage(1);
-    saveStatus(1, 0);
-    setTotalCycles((c) => c + 1);
-    
-    // Set Stage 1 to active
-    updateStageStatus(1, "active", "In Progress", "bg-blue-300", "bg-blue-50", "border-blue-200", "bg-blue-500");
-    
-  {/* ========================== PUBLISH MESSAGE ========================== */}
-
-    publishMessage(`mfc/${deviceSerial}/pump/3`, 'OPEN', 1);
+    setIsWaitingForStartAck(true);
+    publishWithAck(`mfc/${deviceSerial}/pump/3`, 'OPEN', async (success) => {
+      setIsWaitingForStartAck(false);
+      if (success) {
+        setIsProcessStarted(true);
+        setIsProcessFailed(false);
+        setButtonText("On process...");
+        setCurrentStage(1);
+        saveStatus(1, 0);
+        setTotalCycles((c) => c + 1);
+        updateStageStatus(1, "active", "In Progress", "bg-blue-300", "bg-blue-50", "border-blue-200", "bg-blue-500");
+        // Create treatment first so backend has an active treatment; then report stage.
+        await startTreatment();
+        reportStageInProgress(1);
+        toast.success("Pump opened");
+      } else {
+        toast.error("Failed to open pump");
+      }
+    });
     console.log(`Published message to mfc/${deviceSerial}/pump/3`);
-    {/* ========================== PUBLISH MESSAGE ========================== */}
-
-    startTreatment();
   };
 
   // Restart stages 2–4 only (Stage 1 stays complete). Pump OPEN; CLOSE when cleanWater.water_level >= 18.
   const restartProcess = () => {
-    setIsProcessFailed(false);
-    setButtonText("On process...");
+    setIsWaitingForRestartAck(true);
     hasFailedStages2To4Ref.current = false;
     autoCloseRestartPumpTriggeredRef.current = false;
 
-    // Reset only stages 2–4 to pending; Stage 1 stays complete
-    setFiltrationStages(prev =>
-      prev.map((stage) =>
-        stage.id >= 2
-          ? {
-              ...stage,
-              status: "pending" as const,
-              statusText: "Pending",
-              bgColor: "bg-gray-300",
-              cardBgColor: "bg-gray-50",
-              borderColor: "border-gray-200",
-              statusBgColor: "bg-gray-400",
-            }
-          : stage
-      )
-    );
-
-    setCurrentStage(2);
-    saveStatus(2, 25);
-    updateStageStatus(2, "active", "In Progress", "bg-blue-300", "bg-blue-50", "border-blue-200", "bg-blue-500");
-
-    publishMessage(`reservoir_fallback/${deviceSerial}/pump/2`, 'OPEN', 1);
+    publishWithAck(`reservoir_fallback/${deviceSerial}/pump/2`, 'OPEN', (success) => {
+      setIsWaitingForRestartAck(false);
+      if (success) {
+        setIsProcessFailed(false);
+        setButtonText("On process...");
+        setFiltrationStages(prev =>
+          prev.map((stage) =>
+            stage.id >= 2
+              ? {
+                  ...stage,
+                  status: "pending" as const,
+                  statusText: "Pending",
+                  bgColor: "bg-gray-300",
+                  cardBgColor: "bg-gray-50",
+                  borderColor: "border-gray-200",
+                  statusBgColor: "bg-gray-400",
+                }
+              : stage
+          )
+        );
+        setCurrentStage(2);
+        saveStatus(2, 25);
+        updateStageStatus(2, "active", "In Progress", "bg-blue-300", "bg-blue-50", "border-blue-200", "bg-blue-500");
+        reportStageInProgress(2);
+        setIsRestartPumpOpen(true);
+        scheduleStages2To4Progress();
+        toast.success("Restart pump opened");
+      } else {
+        toast.error("Failed to open restart pump");
+      }
+    });
     console.log(`Published message to reservoir_fallback/${deviceSerial}/pump/2 OPEN (restart stages 2–4)`);
-    setIsRestartPumpOpen(true);
-
-    scheduleStages2To4Progress();
   };
 
   // Function to update stage status
@@ -326,6 +389,9 @@ const startTreatment = async () => {
       await AsyncStorage.setItem('filtration_list', JSON.stringify(filtrations));
       
       toast.success("Mark successfully");
+      if (deviceSerial) {
+        publishMessage(`mfc/${deviceSerial}/pump/3`, 'CLOSE', 1);
+      }
       resetProcess();
     } catch (error) {
       console.error('Error saving filtration:', error);
@@ -342,6 +408,8 @@ const startTreatment = async () => {
     setTotalCycles(0);
     setIsStageOneValveOpen(false);
     setIsDrainWaterValveOpen(false);
+    setIsWaitingForStartAck(false);
+    setIsWaitingForRestartAck(false);
     setIsRestartPumpOpen(false);
     autoCloseStageOneTriggeredRef.current = false;
     autoCloseDrainWaterTriggeredRef.current = false;
@@ -419,33 +487,52 @@ const startTreatment = async () => {
   // Function to handle drain water action
   const handleDrainWater = () => {
     if (isDrainWaterValveOpen) {
-      toast.success("Closing drain water valve");
-      publishMessage(`mfc_fallback/${deviceSerial}/valve/2`, 'CLOSE', 1);
+      publishWithAck(`mfc_fallback/${deviceSerial}/valve/2`, 'CLOSE', (success) => {
+        if (success) {
+          setIsDrainWaterValveOpen(false);
+          toast.success("Drain water valve closed");
+        } else {
+          autoCloseDrainWaterTriggeredRef.current = false; // Allow retry
+          toast.error("Failed to close drain water valve");
+        }
+      });
       console.log(`Published message to mfc_fallback/${deviceSerial}/valve/2 CLOSE`);
-      setIsDrainWaterValveOpen(false);
     } else {
-      toast.success("Draining water from Stage MFC");
-      publishMessage(`mfc_fallback/${deviceSerial}/valve/2`, 'OPEN', 1);
+      publishWithAck(`mfc_fallback/${deviceSerial}/valve/2`, 'OPEN', (success) => {
+        if (success) {
+          setIsDrainWaterValveOpen(true);
+          toast.success("Draining water from Stage MFC");
+        } else {
+          toast.error("Failed to open drain water valve");
+        }
+      });
       console.log(`Published message to mfc_fallback/${deviceSerial}/valve/2 OPEN`);
-      setIsDrainWaterValveOpen(true);
     }
   };
 
-  const handleCompleteStageOne = (isAutoClose = false) => {
+  const handleCompleteStageOne = () => {
     if (isStageOneValveOpen) {
-      toast.success("Closing Stage MFC valve");
-      publishMessage(`mfc/${deviceSerial}/valve/1`, 'CLOSE', 1);
+      publishWithAck(`mfc/${deviceSerial}/valve/1`, 'CLOSE', (success) => {
+        if (success) {
+          setIsStageOneValveOpen(false);
+          toast.success("Stage MFC valve closed");
+          markStageOneComplete();
+        } else {
+          autoCloseStageOneTriggeredRef.current = false; // Allow retry
+          toast.error("Failed to close Stage MFC valve");
+        }
+      });
       console.log(`Published message to mfc/${deviceSerial}/valve/1 CLOSE`);
-      setIsStageOneValveOpen(false);
-      // Mark Stage 1 complete on manual close (auto-close handles it separately)
-      if (!isAutoClose) {
-        markStageOneComplete();
-      }
     } else {
-      toast.success("Opening Stage MFC valve");
-      publishMessage(`mfc/${deviceSerial}/valve/1`, 'OPEN', 1);
+      publishWithAck(`mfc/${deviceSerial}/valve/1`, 'OPEN', (success) => {
+        if (success) {
+          setIsStageOneValveOpen(true);
+          toast.success("Stage MFC valve opened");
+        } else {
+          toast.error("Failed to open Stage MFC valve");
+        }
+      });
       console.log(`Published message to mfc/${deviceSerial}/valve/1 OPEN`);
-      setIsStageOneValveOpen(true);
     }
   };
 
@@ -465,27 +552,32 @@ const startTreatment = async () => {
         updateStageStatus(3, "active", "In Progress", "bg-blue-300", "bg-blue-50", "border-blue-200", "bg-blue-500");
         setCurrentStage(3);
         saveStatus(3, 50);
+        reportStageInProgress(3);
       }, 5000)
     );
     ids.push(
       setTimeout(() => {
         console.log('[Filtration] Stage 2 completed, Stage 4 now In Progress');
         updateStageStatus(2, "completed", "Completed", "bg-green-300", "bg-green-50", "border-green-100", "bg-green-500");
+        reportStageResult(2, 'passed');
         updateStageStatus(4, "active", "In Progress", "bg-blue-300", "bg-blue-50", "border-blue-200", "bg-blue-500");
         setCurrentStage(4);
         saveStatus(4, 75);
+        reportStageInProgress(4);
       }, 10000)
     );
     ids.push(
       setTimeout(() => {
         console.log('[Filtration] Stage 3 completed');
         updateStageStatus(3, "completed", "Completed", "bg-green-300", "bg-green-50", "border-green-100", "bg-green-500");
+        reportStageResult(3, 'passed');
       }, 15000)
     );
     ids.push(
       setTimeout(() => {
         console.log('[Filtration] Stage 4 completed, process complete');
         updateStageStatus(4, "completed", "Completed", "bg-green-300", "bg-green-50", "border-green-100", "bg-green-500");
+        reportStageResult(4, 'passed');
         setButtonText("Process Complete");
         saveStatus(4, 100);
         setTimeout(() => setShowSuccessModal(true), 500);
@@ -499,9 +591,11 @@ const startTreatment = async () => {
     console.log('[Filtration] markStageOneComplete: Stage 1 completed, moving to Stage 2');
     hasFailedStages2To4Ref.current = false;
     updateStageStatus(1, "completed", "Completed", "bg-green-300", "bg-green-50", "border-green-100", "bg-green-500");
+    reportStageResult(1, 'passed');
     setCurrentStage(2);
     saveStatus(2, 25);
     updateStageStatus(2, "active", "In Progress", "bg-blue-300", "bg-blue-50", "border-blue-200", "bg-blue-500");
+    reportStageInProgress(2);
     toast.success("Stage 1 MFC Treatment completed!");
     scheduleStages2To4Progress();
   };
@@ -533,7 +627,7 @@ const startTreatment = async () => {
   }, [currentTreatment?.id]);
 
   // Auto-close Stage 1 valve when valve is open and dirtyWater.water_level >= 18
-  // Also marks Stage 1 as complete and moves to Stage 2
+  // Also marks Stage 1 as complete and moves to Stage 2 (only on ack success)
   useEffect(() => {
     if (!isStageOneValveOpen) {
       autoCloseStageOneTriggeredRef.current = false;
@@ -545,9 +639,7 @@ const startTreatment = async () => {
     if (waterLevel >= 18) {
       autoCloseStageOneTriggeredRef.current = true;
       console.log('[Filtration] auto-close Stage 1 valve: water_level=', waterLevel);
-      handleCompleteStageOne(true); // Pass true to indicate auto-close
-      // Mark Stage 1 as complete and move to Stage 2
-      markStageOneComplete();
+      handleCompleteStageOne(); // Publishes CLOSE; on ack true: setIsStageOneValveOpen(false), markStageOneComplete()
     }
   }, [isStageOneValveOpen, dirtyWater?.water_level, deviceSerial]);
 
@@ -582,6 +674,7 @@ const startTreatment = async () => {
     hasFailedStages2To4Ref.current = true;
     clearStages2To4Timeouts();
     updateStageStatus(4, "failed", "Failed", "bg-red-500", "bg-red-50", "border-red-200", "bg-red-400");
+    reportStageResult(4, 'failed');
     setIsProcessFailed(true);
     saveStatus(4, 75, true);
     console.log('[Filtration] Stage 4 failed (cleanWater.ai_classification bad), Restart required');
@@ -598,9 +691,16 @@ const startTreatment = async () => {
     const waterLevel = cleanWater?.water_level ?? 0;
     if (waterLevel >= 18) {
       autoCloseRestartPumpTriggeredRef.current = true;
-      publishMessage(`reservoir_fallback/${deviceSerial}/pump/2`, 'CLOSE', 1);
+      publishWithAck(`reservoir_fallback/${deviceSerial}/pump/2`, 'CLOSE', (success) => {
+        if (success) {
+          setIsRestartPumpOpen(false);
+          toast.success("Restart pump closed");
+        } else {
+          autoCloseRestartPumpTriggeredRef.current = false; // Allow retry
+          toast.error("Failed to close restart pump");
+        }
+      });
       console.log('[Filtration] auto-close restart pump: cleanWater.water_level=', waterLevel);
-      setIsRestartPumpOpen(false);
     }
   }, [isRestartPumpOpen, cleanWater?.water_level, deviceSerial]);
 
@@ -656,10 +756,10 @@ const startTreatment = async () => {
             {!isProcessFailed && !isProcessCompleted && (
               <Button 
                 onPress={handleButtonClick}
-                disabled={(isProcessStarted && !isProcessFailed) || buttonText === "Process Complete"}
-                className={(isProcessStarted && !isProcessFailed) || buttonText === "Process Complete" ? "opacity-50" : ""}
+                disabled={isWaitingForStartAck || (isProcessStarted && !isProcessFailed) || buttonText === "Process Complete"}
+                className={isWaitingForStartAck || (isProcessStarted && !isProcessFailed) || buttonText === "Process Complete" ? "opacity-50" : ""}
               >
-                <Text>{buttonText}</Text>
+                <Text>{isWaitingForStartAck ? "Starting..." : buttonText}</Text>
               </Button>
             )}
             
@@ -826,9 +926,10 @@ const startTreatment = async () => {
           {isProcessFailed && (
             <Button 
               onPress={handleButtonClick}
-              className="mt-4"
+              disabled={isWaitingForRestartAck}
+              className={`mt-4 ${isWaitingForRestartAck ? "opacity-50" : ""}`}
             >
-              <Text>Re-start Process</Text>
+              <Text>{isWaitingForRestartAck ? "Restarting..." : "Re-start Process"}</Text>
             </Button>
           )}
           
