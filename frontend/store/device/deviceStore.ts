@@ -11,6 +11,46 @@ export const useDeviceStore = create<DeviceStore>((set, get) => ({
   loading: false,
   error: null,
 
+generateQrPayload: async () => {
+  set({ loading: true, error: null });
+  try {
+    const response = await axiosInstance.post("/devices/generate-qr-payload");
+    console.log("Generate QR payload response:", response.data);
+
+    const payload = response?.data?.qr_payload;
+    if (!payload) {
+      throw new Error("Missing qr_payload in response");
+    }
+
+    return payload;
+  } catch (error: any) {
+    const { message } = handleAxiosError(error);
+    set({ error: message });
+    console.error("Failed to generate QR payload:", message, error?.response?.data);
+    throw error;
+  } finally {
+    set({ loading: false });
+  }
+},
+
+pairDeviceByQr: async (payload: { serial_number: string; device_name: string; model: string }) => {
+  set({ loading: true, error: null });
+  try {
+    const response = await axiosInstance.post("/devices/pair-by-qr", payload);
+    console.log("Pair device by QR response:", response.data);
+
+    // If backend returns the paired device, you could optionally store it here.
+    return response.data;
+  } catch (error: any) {
+    const { message } = handleAxiosError(error);
+    set({ error: message });
+    console.error("Failed to pair device via QR:", message, error?.response?.data);
+    throw error;
+  } finally {
+    set({ loading: false });
+  }
+},
+
 getPairingToken: async () => {
   set({ loading: true, error: null });
   try {
