@@ -467,10 +467,10 @@ const onSubmit = async () => {
                     )}
                     
                     {formData.harvestDate && isDateInRecommendedRange(formData.harvestDate, formData.cropName, formData.setupDate) === true && (
-                      <View className="mt-3 p-3  bg-muted-foreground/15 rounded-xl">
-                        <View className="flex-row items-center gap-2">
+                      <View className="mt-2 sm:mt-3 p-2 sm:p-3 bg-muted-foreground/15 rounded-xl">
+                        <View className="flex-row items-center gap-1.5 sm:gap-2">
                           <Icon as={CheckCircle} size={14} className="text-primary" />
-                          <Text className="text-sm text-foreground">
+                          <Text className="text-xs sm:text-sm text-foreground flex-1">
                             Perfect! This date is within the ideal harvest window.
                           </Text>
                         </View>
