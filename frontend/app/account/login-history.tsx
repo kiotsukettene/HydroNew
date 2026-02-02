@@ -1,9 +1,9 @@
 import { PageHeader } from '@/components/ui/page-header'
 import React, { useState } from 'react'
-import { ScrollView, View, Text, Pressable, TextInput, Keyboard, TouchableOpacity, Image } from 'react-native'
+import { ScrollView, View, Text, Pressable, TextInput, Keyboard, TouchableOpacity} from 'react-native'
 import { THEME } from '@/lib/theme'
 import { Card, CardContent } from '@/components/ui/card'
-import { Search } from 'lucide-react-native'
+import { Search, UserRoundCheck } from 'lucide-react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 export default function LoginHistory() {
 
@@ -55,20 +55,20 @@ export default function LoginHistory() {
         <PageHeader title="Login History" showNotificationButton={true} />
         {/* ===== Search Bar ===== */}
         <View className="w-full px-5 mt-4">
-          <View className="bg-gray-200 rounded-full px-4 py-3 flex-row items-center">
-            <TextInput
-              placeholder="Search Here"
-              placeholderTextColor="#9CA3AF"
-              className="flex-1 text-base"
-              value={query}
-              onChangeText={setQuery}
-              returnKeyType="search"
-              onSubmitEditing={triggerSearch}
-            />
-            <TouchableOpacity onPress={triggerSearch} accessibilityRole="button" accessibilityLabel="Search">
-              <Search size={20} color="#6B7280" />
-            </TouchableOpacity>
-          </View>
+              {/* Search + Filter */}
+            <View className="mt-1 mb-3 flex-row items-center gap-2">
+              <View className="flex-1 flex-row items-center rounded-xl border border-muted-foreground/30 px-3 py-2">
+                <Search size={30} color="#888" />
+                <TextInput
+                  placeholder="Search here…"
+                  placeholderTextColor="#9CA3AF"
+                  className="ml-2 flex-1 text-base "
+                  returnKeyType="search"
+                />
+              </View>
+             
+            </View>
+         
         </View>
         <ScrollView className="mt-4 px-2" showsVerticalScrollIndicator={true} contentContainerStyle={{ flexGrow: 1 }}>
           {filteredHistory.map((entry) => {
@@ -90,15 +90,13 @@ export default function LoginHistory() {
                   }}
                 >
                   <CardContent className="py-2 px-2">
-                    <View className="flex-row items-center">
+                    <View className="flex-row items-center gap-3">
                       {/* Profile Image beside time */}
-                      <Image
-                        source={profileImage ? { uri: profileImage } : require('@/assets/images/no-profile.jpg')}
-                        resizeMode="contain"
-                        className="w-10 h-10 rounded-full mr-3"
-                      />
+                      <View className='rounded-full items-center  p-3 bg-muted border border-green-100 justify-center overflow-hidden'>
+                        <UserRoundCheck color="#71717a" />
+                      </View>
                       <View className="flex-1">
-                        <Text className="text-base font-semibold text-gray-900">
+                        <Text className="text-base  text-gray-900">
                           You've logged in at {new Date(entry.created_at).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })} | {new Date(entry.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                         </Text>
                       </View>

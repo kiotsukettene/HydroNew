@@ -12,6 +12,10 @@ import {
   AtSign,
   Calendar,
   ArrowLeft,
+  UserRound,
+  Pencil,
+  Check,
+  X,
 } from 'lucide-react-native'
 import { InputWithIcon } from '@/components/ui/input-with-icon';
 import { Text } from '@/components/ui/text';
@@ -29,15 +33,16 @@ import { toast } from 'sonner-native';
 
 export default function ManageAccount() {
 
-  const { account, updateAccount, updateProfilePicture, fetchAccount } = useAccountStore();
+  const { account, updateAccount, fetchAccount } = useAccountStore();
 
   const [editable, isEditable] = useState(false);
   const [firstName, setFirstName] = useState(account?.first_name || "Juan");
   const [lastName, setLastName] = useState(account?.last_name || "Dela Cruz");
   const [email, setEmail] = useState(account?.email || "juan.delacruz@example.com");
-  const [address, setAddress] = useState(account?.address || "123 Main St, Anytown, USA");
+  const [address, setAddress] = useState(account?.address || "Bagong Silang, Caloocan City");
   const [profileImage, setProfileImage] = useState<string | null>(null);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [initialEditValues, setInitialEditValues] = useState<{ firstName: string; lastName: string; address: string } | null>(null);
 
   const openImagePicker = async () => {
     const result = await ImagePicker.launchImageLibraryAsync({
@@ -88,7 +93,23 @@ const handleUpdateAccount = async () => {
   }
 };
 
+  const hasChanges = editable && initialEditValues && (
+    firstName !== initialEditValues.firstName ||
+    lastName !== initialEditValues.lastName ||
+    address !== initialEditValues.address
+  );
 
+  const handleCancelEdit = () => {
+    if (initialEditValues) {
+      setFirstName(initialEditValues.firstName);
+      setLastName(initialEditValues.lastName);
+      setAddress(initialEditValues.address);
+    }
+    setErrors({});
+    setProfileImage(null);
+    setInitialEditValues(null);
+    isEditable(false);
+  };
 
   return (
     <SafeAreaView className='flex-1'>
@@ -105,19 +126,16 @@ const handleUpdateAccount = async () => {
              
                 {/* ================= Profile Image  ==================== */}
                 <View className="relative items-center mt-3">
-                  <Image
+                  {/* <Image
                     source={profileImage ? { uri: profileImage } : require('@/assets/images/no-profile.jpg')}
                     resizeMode="contain"
                     className="size-32 rounded-full"
-                  />
-                  {editable && (
-                    <Pressable
-                      className="absolute bottom-0 right-2 bg-primary size-10 rounded-full items-center justify-center border-2 border-white shadow-md"
-                      onPress={openImagePicker}
-                      >
-                      <Camera size={24} color="white" />
-                    </Pressable>
-                  )}
+                  /> */}
+
+                  <UserRound size={96} color="#a1a1aa" />
+
+
+                 
                 </View>
               </View>
               {/* ================= Main Body ==================== */}
@@ -133,7 +151,6 @@ const handleUpdateAccount = async () => {
                       }
                     }}
                   editable={editable}
-                  rightIcon={<AtSign size={20} color="#6B7280" />}
                   placeholder='First Name'
                   autoCapitalize='none'
                   className={`border text-base text-black ${
@@ -144,6 +161,7 @@ const handleUpdateAccount = async () => {
                   <Text className="text-red-500 text-sm">{errors.first_name}</Text>
                 )}
               </View>
+
               {/*lastname */}
               <View className='mt-2 gap-1'>
                 <Label className="font-normal text-muted-foreground">Last Name</Label>
@@ -157,7 +175,6 @@ const handleUpdateAccount = async () => {
                   }}
                   editable={editable}
                   placeholder='Last Name'
-                  rightIcon={<User size={20} color="#6B7280" />}
                   autoCapitalize='none'
                   className={`border text-base text-black ${
                     errors.last_name ? 'border-red-500' : 'border-muted-foreground/50'
@@ -167,6 +184,7 @@ const handleUpdateAccount = async () => {
                   <Text className="text-red-500 text-sm">{errors.last_name}</Text>
                 )}
               </View>
+
               {/*email */}
               <View className='mt-2 gap-1'>
                 <Label className="font-normal text-muted-foreground">Email</Label>
@@ -189,8 +207,10 @@ const handleUpdateAccount = async () => {
                   <Text className="text-red-500 text-sm">{errors.email}</Text>
                 )}
               </View>
+
               {/*contact */}
-              {/*birthdate */}
+
+              {/*Address */}
               <View className='mt-2 gap-1'>
                 <Label className="font-normal text-muted-foreground">Address</Label>
                 <InputWithIcon
@@ -212,25 +232,48 @@ const handleUpdateAccount = async () => {
                   <Text className="text-red-500 text-sm">{errors.address}</Text>
                 )}
               </View>
-            </View>
-            <View className='mb-4'>
-              <Button
-                onPress={async () => {
-                  if (editable) {
-                    const result = await handleUpdateAccount();
-                    if (!result) return; // Stay in edit mode if errors exist
-                    isEditable(false);
-                  } else {
+
+
+              {/* ================= Buttons ==================== */}
+              <View className='mt-16 gap-3'>
+              {editable ? (
+                <View className="flex-col gap-3">
+                  <Button
+                    variant="outline"
+                    className="flex-1"
+                    onPress={handleCancelEdit}
+                  >
+                    <X size={18} className="mr-2" />
+                    <Text>Cancel</Text>
+                  </Button>
+                  <Button
+                    className="flex-1"
+                    disabled={!hasChanges}
+                    onPress={async () => {
+                      const result = await handleUpdateAccount();
+                      if (!result) return;
+                      isEditable(false);
+                      setInitialEditValues(null);
+                    }}
+                  >
+                    <Check size={18} color="white" className="mr-2" />
+                    <Text>Save Changes</Text>
+                  </Button>
+                </View>
+              ) : (
+                <Button
+                  onPress={() => {
+                    setInitialEditValues({ firstName, lastName, address });
                     isEditable(true);
-                  }
-                }}
-              >
-                <Text>
-                  {editable ? 'Save Changes' : 'Edit Information'}
-                </Text>
-              </Button>
+                  }}
+                >
+                  <Pencil size={18} color="white" className="mr-2" />
+                  <Text>Edit Account Information</Text>
+                </Button>
+              )}
             </View>
-            {/* ================= end of main body  ==================== */}
+            </View>
+          
           </View>
         </ScrollView>
       </KeyboardAvoidingView>

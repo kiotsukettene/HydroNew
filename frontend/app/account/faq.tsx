@@ -79,18 +79,18 @@ export default function FAQ() {
   };
 
   return (
-    <View className="flex-1">
+    <SafeAreaView className="flex-1 bg-white/50">
+                <PageHeader title="Help Center" />
+
       <ScrollView>
-        <SafeAreaView className="flex-1">
-          <PageHeader title="Help Center" />
+        <View className="flex-1">
 
           <View className="items-center p-4">
-            <Text className="mt-7 text-2xl text-primary">
+            <Text className="mt-7 text-3xl  font-semibold text-primary mb-5">
               How can we help you?
             </Text>
 
-            <View className="mt-3 flex-row items-center rounded-xl border border-muted-foreground/30 px-3 py-1">
-              <Search size={18} color="#888" />
+            <View className="mt-3 flex-row items-center bg-white rounded-xl border border-muted-foreground/30 px-3 py-1">
               <TextInput
                 placeholder="Type your question here..."
                 value={searchTerm}
@@ -110,7 +110,7 @@ export default function FAQ() {
               )}
 
               <Button variant="ghost" onPress={handleSearch}>
-                <Text>Search</Text>
+                <Search size={20} color="#445104" />
               </Button>
             </View>
           </View>
@@ -191,7 +191,7 @@ export default function FAQ() {
               </Button>
             </View>
           )}
-        </SafeAreaView>
+        </View>
       </ScrollView>
 
       <Button
@@ -202,6 +202,6 @@ export default function FAQ() {
         <Text className="text-muted">Ask a question</Text>
         <MessageCircle size={18} color="#fff" />
       </Button>
-    </View>
+    </SafeAreaView>
   );
 }

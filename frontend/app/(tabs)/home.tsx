@@ -1,4 +1,4 @@
-import { View, Image, TouchableOpacity, ScrollView, Pressable, ActivityIndicator } from 'react-native';
+import { View, Image, TouchableOpacity, ScrollView, Pressable } from 'react-native';
 import React, { useEffect, useState } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Button } from '@/components/ui/button';
@@ -9,6 +9,8 @@ import {
   Settings,
   ChevronRight,
   Smartphone,
+  CheckCircle2,
+  ArrowRight,
 } from 'lucide-react-native';
 import { Card, CardContent } from '@/components/ui/card';
 import { Text } from '@/components/ui/text';
@@ -21,6 +23,7 @@ import { useRouter } from 'expo-router';
 import { useDashboardStore } from '@/store/auth/dashboardStore';
 import { useNotificationStore } from '@/store/notification/notificationStore';
 import { useSensorStore } from '@/store/sensor/sensorStore';
+import { HomeSkeleton } from '@/components/skeletons';
 
 import { db } from '@/src/firebase';
 import { onValue, ref } from 'firebase/database';
@@ -53,25 +56,45 @@ function FiltrationBanner() {
   }
 
   const hasFailed = parsed.hasFailed || false;
+  const isComplete = parsed.isComplete || false;
   const stage = parsed.currentStage || 'Stage 1';
   const progress = parsed.progress || '25% Complete';
+
+  if (isComplete) {
+    return (
+      <TouchableOpacity
+        onPress={() => router.push('/(tabs)/filtration')}
+        className="mt-4 sm:mt-5 rounded-xl p-3 sm:p-4 flex-row items-center justify-between"
+        style={{ backgroundColor: '#16a34a' }}
+        activeOpacity={0.8}
+      >
+        <View className="flex-row items-center flex-1">
+          <CheckCircle2 size={20} color="#ffffff" strokeWidth={2.5} />
+          <Text className="ml-2 sm:ml-3 text-sm sm:text-base font-bold text-white">
+            Filtration Complete
+          </Text>
+        </View>
+        <ArrowRight size={18} color="#ffffff" />
+      </TouchableOpacity>
+    );
+  }
 
   return (
     <TouchableOpacity
       onPress={() => router.push('/(tabs)/filtration')}
-      className="mt-5 rounded-xl p-4 flex-row items-center justify-between"
+      className="mt-4 sm:mt-5 rounded-xl p-3 sm:p-4 flex-row items-center justify-between"
       style={{ backgroundColor: hasFailed ? '#dc2626' : '#16a34a' }}
       activeOpacity={0.8}
     >
       <View className="flex-row items-center flex-1">
-        <Settings size={20} color="#ffffff" strokeWidth={2.5} />
-        <Text className="ml-3 text-base font-bold text-white">
+        <Settings size={18} color="#ffffff" strokeWidth={2.5} />
+        <Text className="ml-2 sm:ml-3 text-sm sm:text-base font-bold text-white">
           {hasFailed ? 'Filtration Failed' : 'Filtration Running'}
         </Text>
       </View>
       <View className="flex-row items-center">
-        <Text className="text-sm text-white mr-2">{stage} - {progress}</Text>
-        <ChevronRight size={18} color="#ffffff" />
+        <Text className="text-xs sm:text-sm text-white mr-1 sm:mr-2">{stage} - {progress}</Text>
+        <ChevronRight size={16} color="#ffffff" />
       </View>
     </TouchableOpacity>
   );
@@ -113,12 +136,7 @@ export default function Home() {
   }, []);
 
   if (loading) {
-     return (
-      <SafeAreaView className="flex-1 items-center justify-center">
-        <ActivityIndicator size="large" color="#2D7D7D" />
-        <Text className="mt-2 text-lg text-gray-600">Loading dashboard...</Text>
-      </SafeAreaView>
-    );
+    return <HomeSkeleton />;
   }
 
   if (error) {
@@ -142,7 +160,9 @@ export default function Home() {
   const userName = data?.user || 'User';
   const nearestToHarvest = data?.nearest_to_harvest || null;
   const growth = { 
-    cropName: nearestToHarvest?.crop_name || 'No Active Crops',
+    cropName: nearestToHarvest?.crop_name
+      ? nearestToHarvest.crop_name.charAt(0).toUpperCase() + nearestToHarvest.crop_name.slice(1)
+      : 'No Active Crops',
     percentage: nearestToHarvest?.growth_percentage ?? 0
   };
 
@@ -262,7 +282,7 @@ export default function Home() {
             <View className="mt-6 sm:mt-7 md:mt-8">
               <Text className="px-2 text-lg sm:text-xl md:text-2xl font-semibold text-gray-800">Quick Actions</Text>
 
-              <View className="mt-3 sm:mt-4 md:mt-5 flex-row gap-2 sm:gap-3 md:gap-4">
+              <View className="h-auto mt-3 sm:mt-4 md:mt-5 flex-row gap-2 sm:gap-3 md:gap-4">
                 <Pressable onPress={() => {router.push('/(tabs)/hydroponics')}} className='relative flex-1 justify-between overflow-hidden rounded-2xl bg-green-50 p-4 sm:p-5 md:p-6 min-h-24 sm:min-h-28 md:min-h-32'>
                   <Leaf color={'#15803D'} strokeWidth={2} size={24} className="sm:w-7 sm:h-7 md:w-8 md:h-8" />
                   <View>

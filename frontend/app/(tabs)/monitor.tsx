@@ -25,6 +25,7 @@ import PhScale from '@/components/ui/ph-meter';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import TurbidityDetailsModal from '../water-monitor/turbidity-details';
 import { useSensorStore } from '@/store/sensor/sensorStore';
+import { MonitorSkeleton } from '@/components/skeletons';
 
 export default function Monitor() {
   const router = useRouter();
@@ -39,6 +40,12 @@ export default function Monitor() {
   const cleanWater = useSensorStore((state) => state.cleanWater);
   const dirtyWater = useSensorStore((state) => state.dirtyWater);
   const lastUpdated = useSensorStore((state) => state.lastUpdated);
+  const loading = useSensorStore((state) => state.loading);
+
+  // Show skeleton while initial data is loading
+  if (loading && !cleanWater && !dirtyWater) {
+    return <MonitorSkeleton />;
+  }
 
   const handleGenerateInsights = async () => {
     // If already showing recommendations, just toggle them off
