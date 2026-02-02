@@ -12,6 +12,7 @@ import NoSetup from '@/app/hydroponics-monitoring/no-setup';
 import { useFocusEffect } from '@react-navigation/native';
 
 import { useHydroponicSetupStore } from '@/store/hydroponics/hydroponicSetupStore';
+import { HydroponicsSkeleton } from '@/components/skeletons';
 
 const { height: screenHeight } = Dimensions.get('window');
 
@@ -43,6 +44,11 @@ export default function Hydroponics() {
     setRefreshing(false);
   }, [fetchHydroponicSetups]);
 
+  if (loading && hydroponicSetups.length === 0) {
+    return <HydroponicsSkeleton />;
+  }
+  
+  if (!loading && hydroponicSetups.length === 0) return <NoSetup />;
   const handleLoadMore = useCallback(() => {
     if (hasMore && !loadingMore && !loading) {
       loadMore();
