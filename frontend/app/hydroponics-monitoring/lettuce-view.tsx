@@ -1,5 +1,6 @@
 import { View, Image, ScrollView, TouchableOpacity } from 'react-native';
 import React, { useEffect, useState } from 'react';
+import { toast } from 'sonner-native';
 import { Button } from '@/components/ui/button';
 import { Icon } from '@/components/ui/icon';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -11,7 +12,7 @@ import { Card } from '@/components/ui/card';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useHydroponicSetupStore } from '@/store/hydroponics/hydroponicSetupStore';
 import { useSensorStore } from '@/store/sensor/sensorStore';
-import { subscribeMessage, publishMessage } from '@/service/mqtt.client';
+import { subscribeMessage, publishWithAck } from '@/service/mqtt.client';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useAuthStore } from '@/store/auth/authStore';
 
@@ -23,6 +24,10 @@ export default function LettuceView() {
   const [activeTab, setActiveTab] = useState<'details' | 'monitoring'>('monitoring');
   const userId = useAuthStore((state) => state.user?.id);
   const [deviceSerial, setDeviceSerial] = useState('');
+  /** Pump running (from /state); when true, button muted for all users. */
+  const [isHydroponicsPumpRunning, setIsHydroponicsPumpRunning] = useState(false);
+  /** Waiting for ack after clicking Start Pump. */
+  const [isWaitingForPumpAck, setIsWaitingForPumpAck] = useState(false);
   
   // Real-time hydroponics sensor data - read directly from store (subscription is in _layout.tsx via useEchoSetup)
   const hydroponicsWater = useSensorStore((state) => state.hydroponicsWater);
@@ -77,11 +82,30 @@ export default function LettuceView() {
     }
   }, [setupId]);
 
+  // Subscribe to pump state so all users see button muted when pump is running
+  useEffect(() => {
+    if (!deviceSerial) return;
+    const topic = `hydroponics/${deviceSerial}/pump/1/state`;
+    const unsubscribe = subscribeMessage(topic, (_t, payload) => {
+      const value = payload.toString().trim();
+      setIsHydroponicsPumpRunning(value === '1');
+    });
+    return unsubscribe;
+  }, [deviceSerial]);
+
   const pumpWater = () => {
-    publishMessage(`hydroponics/${deviceSerial}/pump/1`, 'OPEN', 1);
+    if (!deviceSerial) return;
+    setIsWaitingForPumpAck(true);
+    publishWithAck(`hydroponics/${deviceSerial}/pump/1`, 'OPEN', (success) => {
+      setIsWaitingForPumpAck(false);
+      if (success) {
+        toast.success('Pump started');
+        router.push('/hydroponics-monitoring/pump-screen');
+      } else {
+        toast.error('Failed to start pump');
+      }
+    });
     console.log(`Published message to hydroponics/${deviceSerial}/pump/1`);
-    router.push('/hydroponics-monitoring/pump-screen')
-    console.log('Pumping water...');
   };
 
   return (
@@ -167,13 +191,13 @@ export default function LettuceView() {
 
               <View className="mt-7">
                 <Button
-                  className="w-full rounded-xl bg-emerald-50"
-                  onPress={() => {
-                    pumpWater();
-                  }}
-                  disabled={loading}>
+                  className={`w-full rounded-xl bg-emerald-50 ${(isHydroponicsPumpRunning || isWaitingForPumpAck) ? 'opacity-50' : ''}`}
+                  onPress={() => pumpWater()}
+                  disabled={loading || isHydroponicsPumpRunning || isWaitingForPumpAck}>
                   <Icon as={Droplet} className="text-primary" />
-                  <Text className="ml-2 text-primary">Start Pump</Text>
+                  <Text className="ml-2 text-primary">
+                    {isWaitingForPumpAck ? 'Starting...' : isHydroponicsPumpRunning ? 'Pumping water...' : 'Start Pump'}
+                  </Text>
                 </Button>
               </View>
             </View>

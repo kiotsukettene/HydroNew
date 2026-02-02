@@ -12,6 +12,7 @@ export interface DeviceStore {
   getPairingToken: () => Promise<string | undefined>;
   fetchDevice: (userId: number) => Promise<void>;
   setDevice: (device: any) => void;
+  unpairDevice: () => Promise<{ success: boolean; message: string }>;
 }
 
 

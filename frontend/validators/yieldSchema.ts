@@ -13,7 +13,7 @@ export const yieldGradeSchema = z.object({
       const num = Number(val);
       return isNaN(num) ? null : num;
     },
-    z.number().positive("Weight must be positive").nullable()
+    z.number().nonnegative("Weight must be 0 or greater").nullable()
   ),
 });
 
@@ -27,7 +27,7 @@ export const yieldSchema = z.object({
       const num = Number(val);
       return isNaN(num) ? null : num;
     },
-    z.number().positive("Total weight must be positive").nullable()
+    z.number().nonnegative("Total weight must be 0 or greater").nullable()
   ),
   notes: z.preprocess(
     (val) => (val === '' || val === undefined ? null : val),

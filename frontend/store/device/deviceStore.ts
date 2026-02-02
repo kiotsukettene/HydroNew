@@ -4,6 +4,7 @@ import { DeviceStore } from "@/types/device";
 import { handleAxiosError } from "@/api/handleAxiosError";
 import axiosInstance from "@/api/axiosInstance";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useAuthStore } from "@/store/auth/authStore";
 
 export const useDeviceStore = create<DeviceStore>((set, get) => ({
   devices: [],
@@ -29,6 +30,15 @@ fetchDevice: async (userId: number) => {
   set({ loading: true, error: null });
   
   try {
+    // Check if email is verified
+    const { useAuthStore } = require("@/store/auth/authStore");
+    const needsVerification = useAuthStore.getState().needsVerification;
+    if (needsVerification) {
+      console.log("Skipping device fetch: Email not verified");
+      set({ loading: false });
+      return;
+    }
+
     // Check if device already exists in AsyncStorage
     const storageKey = `paired_device:${userId}`;
     const existingDevice = await AsyncStorage.getItem(storageKey);
@@ -78,6 +88,33 @@ fetchDevice: async (userId: number) => {
 setDevice: (device: any) => {
   console.log("Setting device in store:", device);
   set({ devices: [device] });
+},
+
+unpairDevice: async () => {
+  set({ loading: true, error: null });
+  try {
+    const response = await axiosInstance.post(`/devices/unpair`);
+    console.log("Unpair device response:", response.data);
+
+    if (response.status === 200) {
+      const message = response.data?.message ?? "Device unpaired successfully.";
+      const userId = useAuthStore.getState().user?.id;
+      const storageKey = `paired_device:${userId}`;
+      await AsyncStorage.removeItem(storageKey);
+      set({ devices: [] });
+      return { success: true, message };
+    }
+
+    const message = response.data?.message ?? "Failed to unpair device.";
+    return { success: false, message };
+  } catch (error: any) {
+    const { message } = handleAxiosError(error);
+    set({ error: message });
+    console.error("Failed to unpair device:", message, error.response?.data);
+    return { success: false, message };
+  } finally {
+    set({ loading: false });
+  }
 },
 
 // store/device/deviceStore.ts

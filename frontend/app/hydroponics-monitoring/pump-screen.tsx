@@ -7,7 +7,7 @@ import { Text } from '@/components/ui/text'
 import { useRouter, useFocusEffect } from 'expo-router'
 import { Stack } from 'expo-router'
 import { toast } from 'sonner-native'
-import { publishMessage } from '@/service/mqtt.client'
+import { publishWithAck } from '@/service/mqtt.client'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import { useAuthStore } from '@/store/auth/authStore'
 
@@ -16,6 +16,7 @@ export default function PumpScreen() {
   const router = useRouter()
   const userId = useAuthStore((state) => state.user?.id);
   const [deviceSerial, setDeviceSerial] = useState('');
+  const [isWaitingForStopAck, setIsWaitingForStopAck] = useState(false);
 
   useEffect(() => {
     const getDeviceSerial = async () => {
@@ -53,11 +54,18 @@ export default function PumpScreen() {
   // Auto navigate back after 7 seconds (for testing lang)
 
   const handleStopPump = () => {
-    publishMessage(`hydroponics/${deviceSerial}/pump/1`, 'CLOSE', 1);
-    console.log(`Published message to hydroponics/${deviceSerial}/pump/1`);
-    // Navigate back to previous screen
-    toast.success('Pumping completed successfully!')
-    router.back()
+    if (!deviceSerial) return;
+    setIsWaitingForStopAck(true);
+    publishWithAck(`hydroponics/${deviceSerial}/pump/1`, 'CLOSE', (success) => {
+      setIsWaitingForStopAck(false);
+      if (success) {
+        toast.success('Pumping completed successfully!');
+        router.back();
+      } else {
+        toast.error('Failed to stop pump');
+      }
+    });
+    console.log(`Published message to hydroponics/${deviceSerial}/pump/1 CLOSE`);
   }
 
   return (
@@ -92,10 +100,13 @@ export default function PumpScreen() {
           {/* Stop Pump Button */}
           <View className="absolute bottom-8 left-6 right-6">
             <Button
-              className="w-full border border-muted"
+              className={`w-full border border-muted ${isWaitingForStopAck ? 'opacity-50' : ''}`}
               onPress={handleStopPump}
+              disabled={isWaitingForStopAck}
             >
-              <Text className="font-semibold text-muted text-base">Stop Pump</Text>
+              <Text className="font-semibold text-muted text-base">
+                {isWaitingForStopAck ? 'Stopping...' : 'Stop Pump'}
+              </Text>
             </Button>
           </View>
         </View>

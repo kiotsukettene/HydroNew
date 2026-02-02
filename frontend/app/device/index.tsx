@@ -16,7 +16,7 @@ import { Button } from "@/components/ui/button";
 import { Text } from "@/components/ui/text";
 import { Separator } from "@/components/ui/separator";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { WifiOff, Smartphone, X, Settings, Star, Film, Heart, Sofa, Cpu, HardDrive } from "lucide-react-native"
+import { WifiOff, Smartphone, X, Settings, Star, Film, Heart, Sofa, Cpu, HardDrive, Trash2 } from "lucide-react-native"
 import WifiModal from "@/components/ui/wifi-connection";
 import FolderBg from "@/components/ui/folder-bg";
 import { getMQTTClient, publishMessage, subscribeMessage } from "@/service/mqtt.client";
@@ -27,11 +27,14 @@ import { Card } from "@/components/ui/card";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { PairOptionModal } from "@/components/ui/pair-option-modal";
 import { toast } from "sonner-native";
+import { ConfirmationModal } from "@/components/ui/confirmation-modal";
 
 
 export default function DeviceConnection () {
 const [wifiModal, setWifiModal] = useState(false);
 const [pairingMethodModal, setPairingMethodModal] = useState(false);
+const [showUnpairModal, setShowUnpairModal] = useState(false);
+const { unpairDevice, loading: deviceLoading } = useDeviceStore();
 
 
 // Temporary: Set to show connected device UI for testing
@@ -63,7 +66,7 @@ useEffect(() => {
       const existingDevice = await AsyncStorage.getItem(storageKey);
       if (existingDevice) {
         setPairedDevice(JSON.parse(existingDevice));
-        toast.success("Device paired successfully!");
+
       }
     } catch (err) {
       console.error("Failed to check paired device:", err);
@@ -107,6 +110,7 @@ useEffect(() => {
 
         setPairedDevice(payload.device);
         console.log("Device saved to AsyncStorage");
+        toast.success("Device paired successfully!");
         
         // Also update the deviceStore so useSensorData can react to it
         useDeviceStore.getState().setDevice(payload.device);
@@ -130,6 +134,24 @@ function publishTestMessage1() {
     publishMessage('iot/valve', 'CLOSE', 1);
     
 }
+
+const handleUnpair = async () => {
+    if (!userId) return;
+
+    try {
+        const result = await unpairDevice();
+        if (result?.success) {
+            setPairedDevice(null);
+            setShowUnpairModal(false);
+            toast.success(result.message);
+        } else {
+            toast.error(result?.message ?? "Failed to unpair device");
+        }
+    } catch (err) {
+        console.error("Unpair error:", err);
+        toast.error("An error occurred while unpairing");
+    }
+};
 
     return (
             <SafeAreaView className="flex-1 bg-gray-50">
@@ -268,9 +290,33 @@ function publishTestMessage1() {
                                 </Card>
                             </View>
 
+                            {/* Button to go to filtration page */}
+                            <View className="px-4">
+                                <Button 
+                                    className="bg-red-500 active:bg-red-600" 
+                                    onPress={() => setShowUnpairModal(true)}
+                                    disabled={deviceLoading}
+                                >
+                                    <Text className="text-white text-lg font-semibold">
+                                        {deviceLoading ? "Unpairing..." : "Unpair Device"}
+                                    </Text>
+                                </Button>
+                            </View>
                         </ScrollView>
                     )}
                 </View>
+
+                <ConfirmationModal
+                    visible={showUnpairModal}
+                    icon={<Trash2 size={40} color="#EF4444" />}
+                    modalTitle="Unpair Device"
+                    modalDescription="Are you sure you want to unpair this device? You will need to pair it again to use it."
+                    confirmText="Unpair"
+                    confirmButtonColor="bg-red-500"
+                    iconBgColor="bg-red-50"
+                    onConfirm={handleUnpair}
+                    onCancel={() => setShowUnpairModal(false)}
+                />
 
                 {/* =============== PAIRING DEVICE SELECTION BUTTON & MODAL ================== */}
                 <PairOptionModal

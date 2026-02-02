@@ -54,19 +54,26 @@ interface HydroponicSetupsResponse {
 
 interface HydroponicSetupStore {
   loading: boolean;
+  loadingMore: boolean;
   error: string | null;
   hydroponicSetups: HydroponicSetup[]; 
   currentSetup: HydroponicSetup | null; // For detailed view
   currentPage: number;
   lastPage: number;
   total: number;
-  cache: Record<string, any>;
+  hasMore: boolean;
+  cache: {
+    hydroponicSetups: HydroponicSetup[];
+    total: number;
+    hasMore: boolean;
+  } | null;
+  lastFetchTime: number | null;
   createHydroponicSetup: (data: HydroponicSetupPayload) => Promise<void>;
   updateHydroponicSetup: (setupId: number, data: HydroponicSetupPayload) => Promise<void>;
-  fetchHydroponicSetups: (page?: number, forceRefresh?: boolean) => Promise<void>; 
+  fetchHydroponicSetups: (reset?: boolean, useCache?: boolean) => Promise<void>; 
+  loadMore: () => Promise<void>;
+  refresh: () => Promise<void>;
   fetchSetupById: (setupId: number) => Promise<void>;
-  nextPage: () => Promise<void>;
-  prevPage: () => Promise<void>;
   clearCache: () => void;
   resetError: () => void;
 }

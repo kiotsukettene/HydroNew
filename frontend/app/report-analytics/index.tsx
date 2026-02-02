@@ -247,15 +247,6 @@ export default function ReportAnalytics() {
               iconClassName="text-orange-500"
               onPress={() => router.push('/report-analytics/yield-summary')}
             />
-            
-            <NavigationCard
-              title="Crop Comparison"
-              description="Compare multiple crops side-by-side"
-              icon={GitCompare}
-              iconBgClassName="bg-teal-50"
-              iconClassName="text-teal-600"
-              onPress={() => router.push('/report-analytics/crop-comparison')}
-            />
           </View>
 
           {/* Water Quality Section */}
