@@ -43,7 +43,13 @@ export const useYieldStore = create<YieldStore>((set) => ({
       // Clear the harvested store cache to refresh the harvested list
       useHarvestedStore.getState().clearCache();
       
-      set({ loading: false });
+      // Reset yield state after successful harvest
+      set({ 
+        loading: false,
+        yieldData: null,
+        yieldSaved: false,
+        error: null,
+      });
       return response.data;
     } catch (err: any) {
       const { message } = handleAxiosError(err);

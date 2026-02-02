@@ -38,15 +38,75 @@ export default function HarvestForm() {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [manuallyEditedWeights, setManuallyEditedWeights] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     if (setupId) {
+      // Reset yield state and form data when setupId changes
+      resetYieldState();
+      setFormData({
+        totalCount: '',
+        totalWeight: '',
+        sellingCount: '',
+        sellingWeight: '',
+        consumptionCount: '',
+        consumptionWeight: '',
+        notes: '',
+      });
+      setManuallyEditedWeights(new Set());
+      setErrors({});
       fetchSetupById(setupId);
     }
     return () => {
       resetYieldState();
     };
-  }, [setupId]);
+  }, [setupId, fetchSetupById, resetYieldState]);
+
+  // Auto-distribute weights when total weight or counts change
+  useEffect(() => {
+    const totalWeight = parseFloat(formData.totalWeight) || 0;
+    const sellingCount = parseInt(formData.sellingCount) || 0;
+    const consumptionCount = parseInt(formData.consumptionCount) || 0;
+    const totalCount = parseInt(formData.totalCount) || 0;
+    const gradesSum = sellingCount + consumptionCount;
+
+    // Only distribute if:
+    // 1. Total weight is provided
+    // 2. Total count matches the sum of grades
+    // 3. Total count is greater than 0
+    // 4. Weights haven't been manually edited (or total weight changed, which should redistribute)
+    if (totalWeight > 0 && gradesSum === totalCount && totalCount > 0) {
+      const sellingWeight = (sellingCount / totalCount) * totalWeight;
+      const consumptionWeight = (consumptionCount / totalCount) * totalWeight;
+
+      setFormData(prev => {
+        const updates: any = {};
+        
+        // Only update weights that weren't manually edited
+        if (!manuallyEditedWeights.has('sellingWeight')) {
+          updates.sellingWeight = sellingWeight.toFixed(2);
+        }
+        if (!manuallyEditedWeights.has('consumptionWeight')) {
+          updates.consumptionWeight = consumptionWeight.toFixed(2);
+        }
+        
+        return { ...prev, ...updates };
+      });
+    } else if (totalWeight === 0 || gradesSum !== totalCount) {
+      // Clear weights if total weight is cleared or counts don't match
+      // But only if they weren't manually edited
+      setFormData(prev => {
+        const updates: any = {};
+        if (!manuallyEditedWeights.has('sellingWeight')) {
+          updates.sellingWeight = '';
+        }
+        if (!manuallyEditedWeights.has('consumptionWeight')) {
+          updates.consumptionWeight = '';
+        }
+        return { ...prev, ...updates };
+      });
+    }
+  }, [formData.totalWeight, formData.sellingCount, formData.consumptionCount, formData.totalCount, manuallyEditedWeights]);
 
   const handleInputChange = (field: string, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
@@ -59,6 +119,17 @@ export default function HarvestForm() {
     const sanitizedValue = parts.length > 2 
       ? parts[0] + '.' + parts.slice(1).join('') 
       : numericValue;
+    
+    // Track manual edits to weight fields
+    if (field === 'sellingWeight' || field === 'consumptionWeight') {
+      setManuallyEditedWeights(prev => new Set(prev).add(field));
+    }
+    
+    // If total weight is being edited, clear manual edit flags to allow redistribution
+    if (field === 'totalWeight') {
+      setManuallyEditedWeights(new Set());
+    }
+    
     handleInputChange(field, sanitizedValue);
   };
 
@@ -89,6 +160,9 @@ export default function HarvestForm() {
     setErrors({});
 
     try {
+      const sellingCount = parseInt(formData.sellingCount) || 0;
+      const consumptionCount = parseInt(formData.consumptionCount) || 0;
+      
       const payload = {
         total_count: parseInt(formData.totalCount),
         total_weight: formData.totalWeight ? parseFloat(formData.totalWeight) : null,
@@ -96,13 +170,15 @@ export default function HarvestForm() {
         grades: [
           {
             grade: 'selling' as const,
-            count: parseInt(formData.sellingCount) || 0,
-            weight: formData.sellingWeight ? parseFloat(formData.sellingWeight) : null,
+            count: sellingCount,
+            // If count is 0, set weight to null; otherwise use the provided weight
+            weight: sellingCount > 0 && formData.sellingWeight ? parseFloat(formData.sellingWeight) : null,
           },
           {
             grade: 'consumption' as const,
-            count: parseInt(formData.consumptionCount) || 0,
-            weight: formData.consumptionWeight ? parseFloat(formData.consumptionWeight) : null,
+            count: consumptionCount,
+            // If count is 0, set weight to null; otherwise use the provided weight
+            weight: consumptionCount > 0 && formData.consumptionWeight ? parseFloat(formData.consumptionWeight) : null,
           },
         ],
       };
@@ -130,6 +206,8 @@ export default function HarvestForm() {
       await markAsHarvested(setupId);
       setShowConfirmModal(false);
       setShowSuccessModal(true);
+      // Reset yield state after successful harvest
+      resetYieldState();
     } catch (err) {
       setShowConfirmModal(false);
       toast.error(error || 'Failed to mark as harvested');
@@ -156,7 +234,7 @@ export default function HarvestForm() {
       <ScrollView className="flex-1 px-6" showsVerticalScrollIndicator={false}>
         <View className="pb-8">
           {/* Header */}
-          <View className="mb-6 mt-4">
+          <View className="mb-2 mt-4">
             <View className="flex-row items-center gap-2 mb-2">
               <Icon as={Leaf} size={24} className="text-primary" />
               <Text className="text-2xl font-bold">Harvest: {currentSetup?.crop_name ? currentSetup?.crop_name.charAt(0).toUpperCase() + currentSetup?.crop_name.slice(1) : ''}</Text>
@@ -167,8 +245,8 @@ export default function HarvestForm() {
           </View>
 
           {/* Total Harvested Count */}
-          <Card className="p-6 mb-4">
-            <View className="mb-4">
+          <Card className="p-6">
+            <View>
               <Text className="text-base font-medium mb-2">
                 Total Harvested Count <Text className="text-red-500">*</Text>
               </Text>
@@ -198,12 +276,17 @@ export default function HarvestForm() {
                   className="flex-1 border border-muted-foreground/50 rounded-xl px-3 py-4 bg-[#FAFFFA]"
                 />
               </View>
+              {formData.totalWeight && isSumValid() && (
+                <Text className="text-xs text-primary mt-1">
+                  Weight will be automatically distributed based on grade counts
+                </Text>
+              )}
             </View>
           </Card>
 
           {/* Quality Grade Breakdown */}
-          <Card className="p-6 mb-4">
-            <View className="mb-4">
+          <Card className="p-6 mb-2">
+            <View className="mb-2">
               <Text className="text-lg font-semibold mb-1">Quality Grade Breakdown</Text>
               <Text className="text-sm text-muted-foreground">
                 (Must equal total count: {totalCount})
@@ -211,7 +294,7 @@ export default function HarvestForm() {
             </View>
 
             {/* Selling Grade */}
-            <View className="mb-4">
+            <View className="mb-2">
               <Text className="text-base font-medium mb-2">Selling Grade</Text>
               <View className="flex-row gap-3">
                 <View className="flex-1">
@@ -225,7 +308,9 @@ export default function HarvestForm() {
                   />
                 </View>
                 <View className="flex-1">
-                  <Text className="text-xs text-muted-foreground mb-1">Weight (g) - Optional</Text>
+                  <Text className="text-xs text-muted-foreground mb-1">
+                    Weight (g){formData.totalWeight && isSumValid() && !manuallyEditedWeights.has('sellingWeight')}
+                  </Text>
                   <Input
                     placeholder="0"
                     value={formData.sellingWeight}
@@ -238,7 +323,7 @@ export default function HarvestForm() {
             </View>
 
             {/* Consumption Grade */}
-            <View className="mb-4">
+            <View className="mb-2">
               <Text className="text-base font-medium mb-2">Consumption Grade</Text>
               <View className="flex-row gap-3">
                 <View className="flex-1">
@@ -252,7 +337,9 @@ export default function HarvestForm() {
                   />
                 </View>
                 <View className="flex-1">
-                  <Text className="text-xs text-muted-foreground mb-1">Weight (g) - Optional</Text>
+                  <Text className="text-xs text-muted-foreground mb-1">
+                    Weight (g){formData.totalWeight && isSumValid() && !manuallyEditedWeights.has('consumptionWeight')}
+                  </Text>
                   <Input
                     placeholder="0"
                     value={formData.consumptionWeight}
@@ -267,7 +354,7 @@ export default function HarvestForm() {
             {/* Disposal (Auto-calculated) */}
             <View className="border-t border-muted-foreground/20 pt-4">
               <View className="flex-row items-center justify-between p-3 bg-gray-50 rounded-xl">
-                <Text className="text-sm text-muted-foreground">Disposal (auto-calculated)</Text>
+                <Text className="text-sm text-muted-foreground">Disposal</Text>
                 <Text className="text-base font-semibold">{disposal} crops</Text>
               </View>
             </View>
@@ -291,8 +378,8 @@ export default function HarvestForm() {
           </Card>
 
           {/* Notes */}
-          <Card className="p-6 mb-4">
-            <Text className="text-base font-medium mb-2">Notes (optional)</Text>
+          <Card className="p-6">
+            <Text className="text-base font-medium ">Notes (optional)</Text>
             <Input
               placeholder="Enter any additional notes..."
               value={formData.notes}
