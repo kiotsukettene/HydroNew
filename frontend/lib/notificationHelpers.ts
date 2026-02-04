@@ -120,20 +120,25 @@ export const getNotificationIcon = (notification: NotificationType): string => {
  * Determine if notification should show a toast
  */
 export const shouldShowToast = (notification: NotificationType): boolean => {
+  // Do NOT show toast for Clean Water notifications (still appear in list)
+  if (notification.title.toLowerCase().includes('clean water')) {
+    return false;
+  }
+
   // Show toast for warning notifications (sensor alerts, overgrown plants)
-  if (notification.type === 'warning') return true;
+  // if (notification.type === 'warning') return true;
   
   // Show toast for sensor alerts (backend uses 'sensor_alert' type)
-  if (notification.type === 'info') return true;
+ //if (notification.type === 'info') return true;
   
   // Show toast for harvest alerts
-  if (notification.type === 'success') return true;
+  //if (notification.type === 'success') return true;
   
   // Show toast for harvest-ready notifications
-  if (notification.title.toLowerCase().includes('ready to harvest')) return true;
+  //if (notification.title.toLowerCase().includes('ready to harvest')) return true;
   
   // Show toast for overgrown warnings
-  if (notification.title.toLowerCase().includes('overgrown')) return true;
+  //if (notification.title.toLowerCase().includes('overgrown')) return true;
   
   return false;
 };

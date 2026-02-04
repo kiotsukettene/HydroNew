@@ -280,7 +280,7 @@ const startTreatment = async () => {
     hasFailedStages2To4Ref.current = false;
     autoCloseRestartPumpTriggeredRef.current = false;
 
-    publishWithAck(`reservoir_fallback/${deviceSerial}/pump/2`, 'OPEN', (success) => {
+    publishWithAck(`reservoir_fallback/${deviceSerial}/pump/1`, 'OPEN', (success) => {
       setIsWaitingForRestartAck(false);
       if (success) {
         setIsProcessFailed(false);
@@ -311,7 +311,7 @@ const startTreatment = async () => {
         toast.error("Failed to open restart pump");
       }
     });
-    console.log(`Published message to reservoir_fallback/${deviceSerial}/pump/2 OPEN (restart stages 2–4)`);
+    console.log(`Published message to reservoir_fallback/${deviceSerial}/pump/1 OPEN (restart stages 2–4)`);
   };
 
   // Function to update stage status
@@ -542,7 +542,7 @@ const startTreatment = async () => {
     stages2To4TimeoutIdsRef.current = [];
   };
 
-  // Schedule stages 2–4 progression (5s / 10s / 15s / 20s). Stage 1 must already be complete.
+  // Schedule stages 2–4 progression (5s / 10s / 15s / 35s). Stage 4 in progress 25s. Stage 1 must already be complete.
   const scheduleStages2To4Progress = () => {
     clearStages2To4Timeouts();
     const ids: ReturnType<typeof setTimeout>[] = [];
@@ -582,7 +582,7 @@ const startTreatment = async () => {
         setButtonText("Process Complete");
         saveStatus(4, 100);
         setTimeout(() => setShowSuccessModal(true), 500);
-      }, 20000)
+      }, 35000)
     );
     stages2To4TimeoutIdsRef.current = ids;
   };
@@ -627,7 +627,7 @@ const startTreatment = async () => {
     }
   }, [currentTreatment?.id]);
 
-  // Auto-close Stage 1 valve when valve is open and dirtyWater.water_level >= 18
+  // Auto-close Stage 1 valve when valve is open and dirtyWater.water_level is low/empty (<= 0)
   // Also marks Stage 1 as complete and moves to Stage 2 (only on ack success)
   useEffect(() => {
     if (!isStageOneValveOpen) {
@@ -637,9 +637,9 @@ const startTreatment = async () => {
     if (autoCloseStageOneTriggeredRef.current) return;
 
     const waterLevel = dirtyWater?.water_level ?? 0;
-    if (waterLevel >= 18) {
+    if (waterLevel <= 0) {
       autoCloseStageOneTriggeredRef.current = true;
-      console.log('[Filtration] auto-close Stage 1 valve: water_level=', waterLevel);
+      console.log('[Filtration] auto-close Stage 1 valve (low/empty water level): water_level=', waterLevel);
       handleCompleteStageOne(); // Publishes CLOSE; on ack true: setIsStageOneValveOpen(false), markStageOneComplete()
     }
   }, [isStageOneValveOpen, dirtyWater?.water_level, deviceSerial]);
@@ -660,7 +660,7 @@ const startTreatment = async () => {
     }
   }, [isDrainWaterValveOpen, dirtyWater?.water_level, deviceSerial]);
 
-  // Fail (Stage 4 Failed, Restart button) when cleanWater.ai_classification === 'bad', Stage 3 complete, Stage 4 in progress
+  // Fail (Stage 4 Failed, Restart button) when cleanWater.ai_classification === 'bad', Stage 3 complete, and Stage 4 in progress
   useEffect(() => {
     if (cleanWater?.ai_classification !== 'bad') return;
     if (hasFailedStages2To4Ref.current) return;
@@ -705,7 +705,7 @@ const startTreatment = async () => {
     }
   }, [isRestartPumpOpen, cleanWater?.water_level, deviceSerial]);
 
-  // Calculate progress based on completed stages
+  // Calculate progress based on completed stagesrr
   const calculateProgress = () => {
     const completedStages = filtrationStages.filter(stage => stage.status === 'completed').length;
     return (completedStages / filtrationStages.length) * 100; // 25% per stage for 4 stages
