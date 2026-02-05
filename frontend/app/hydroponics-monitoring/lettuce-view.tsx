@@ -42,6 +42,7 @@ export default function LettuceView() {
     romaine: require('../../assets/gif-lettuce/romaine.gif'),
     butterhead: require('../../assets/gif-lettuce/butterhead.gif'),
     loose: require('../../assets/gif-lettuce/loose.gif'),
+    'loose-leaf': require('../../assets/gif-lettuce/loose.gif'),
   };
 
   const gifKey = currentSetup?.crop_name
