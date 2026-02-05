@@ -22,7 +22,7 @@ const { height: screenHeight } = Dimensions.get('window');
 export default function Hydroponics() {
   const router = useRouter();
   const userId = useAuthStore((state) => state.user?.id);
-  const { devices, fetchDevice } = useDeviceStore();
+  const { devices, fetchDevice, loading: deviceLoading } = useDeviceStore();
   const { 
     hydroponicSetups, 
     fetchHydroponicSetups, 
@@ -38,14 +38,20 @@ export default function Hydroponics() {
 
   useFocusEffect(
     useCallback(() => {
-      setDeviceChecked(false);
-      if (userId) {
-        fetchDevice(userId).finally(() => setDeviceChecked(true));
-      } else {
+      // If devices are already loaded, mark as checked and skip fetch
+      if (devices && devices.length > 0) {
         setDeviceChecked(true);
+      } else if (!deviceChecked) {
+        // Only fetch if no devices and not already checked
+        if (userId) {
+          fetchDevice(userId).finally(() => setDeviceChecked(true));
+        } else {
+          setDeviceChecked(true);
+        }
       }
+      
       fetchHydroponicSetups(true);
-    }, [userId, fetchDevice, fetchHydroponicSetups])
+    }, [userId, fetchDevice, fetchHydroponicSetups, devices, deviceChecked])
   );
 
   const onRefresh = useCallback(async () => {
@@ -61,13 +67,13 @@ export default function Hydroponics() {
     }
   }, [hasMore, loadingMore, loading, loadMore]);
 
-  // Show skeleton while checking device
-  if (!deviceChecked) {
+  // Show skeleton only on initial load (when devices haven't been fetched yet)
+  if (!deviceChecked && (!devices || devices.length === 0)) {
     return <HydroponicsSkeleton />;
   }
 
-  // Show NoDevice if no device paired
-  if (!devices || devices.length === 0) {
+  // Show NoDevice if no device paired after check
+  if (deviceChecked && (!devices || devices.length === 0)) {
     return <NoDevice />;
   }
 
