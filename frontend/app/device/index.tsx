@@ -469,10 +469,11 @@ const handleUnpair = async () => {
                         useNetworkStore.getState().setIsPairingDevice(false);
                     }}
                     onConnect={({ ssid, password, device }) => {
-                        console.log("Connecting with:", ssid, password, device);
-                        setPairedDevice(device);
+                        console.log("WiFi pairing initiated with:", ssid, password, device);
+                        // Close the WiFi modal and keep showing "No device connected"
+                        // until the MQTT pairing message arrives and updates state.
                         setWifiModal(false);
-                        // Clear pairing flag after successful connection
+                        // Clear pairing flag after successful WiFi request
                         useNetworkStore.getState().setIsPairingDevice(false);
                     }}
                 />

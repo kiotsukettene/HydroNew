@@ -50,6 +50,11 @@ const handleConnect = async () => {
     }
 
     console.log("Device connected to WiFi successfully:", device);
+
+    // Notify parent so it can set the paired device and close this modal
+    onConnect({ ssid, password, device });
+
+    // Optionally show the follow-up prompt to guide the user
     setShowPhoneWifiPrompt(true);
 
   } catch (error: any) {
@@ -136,7 +141,7 @@ const openPhoneWifiSettings = () => {
         </View>
       </Modal>
 
-      {/* Small follow-up modal prompting user phone to connect */}
+      {/* Small follow-up modal prompting user phone to connect
       <Modal visible={showPhoneWifiPrompt} animationType="fade" transparent>
         <View className="flex-1 bg-black/50 justify-center items-center">
           <View className="bg-white rounded-2xl p-6 w-11/12 max-w-md items-center">
@@ -160,7 +165,7 @@ const openPhoneWifiSettings = () => {
             </TouchableOpacity>
           </View>
         </View>
-      </Modal>
+      </Modal> */}
     </>
   );
 }
