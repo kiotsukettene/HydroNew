@@ -22,9 +22,9 @@ interface NearestToHarvest {
 
 interface DashboardData {
   user: string;
-  pHLevel: number;
-  unit: string;
-  status: string;
+  pHLevel: number | null;
+  unit: string | null;
+  status: string | null;
   nearest_to_harvest: NearestToHarvest | null;
 }
 

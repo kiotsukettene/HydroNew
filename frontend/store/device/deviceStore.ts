@@ -5,6 +5,7 @@ import { handleAxiosError } from "@/api/handleAxiosError";
 import axiosInstance from "@/api/axiosInstance";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useAuthStore } from "@/store/auth/authStore";
+import { useSensorStore } from "@/store/sensor/sensorStore";
 
 export const useDeviceStore = create<DeviceStore>((set, get) => ({
   devices: [],
@@ -127,7 +128,6 @@ fetchDevice: async (userId: number) => {
   } catch (error: any) {
     const { message } = handleAxiosError(error);
     set({ error: message });
-    console.error("Failed to fetch devices:", message, error.response?.data);
   } finally {
     set({ loading: false });
   }
@@ -150,6 +150,8 @@ unpairDevice: async () => {
       const storageKey = `paired_device:${userId}`;
       await AsyncStorage.removeItem(storageKey);
       set({ devices: [] });
+      // Clear sensor data so UI doesn't show stale readings and we stop treating as "receiving"
+      useSensorStore.getState().reset();
       return { success: true, message };
     }
 

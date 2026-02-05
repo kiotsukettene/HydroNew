@@ -1,34 +1,16 @@
 import React from 'react';
-import { ScrollView, View, Image } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { ScrollView, View } from 'react-native';
 import { Skeleton, SkeletonText, SkeletonCircle, SkeletonCard } from '@/components/ui/skeleton';
 
 export const FiltrationSkeleton: React.FC = () => {
   return (
-    <SafeAreaView className="flex-1 relative bg-background">
-      <Image
-        source={require('@/assets/images/filtration-bg.png')}
-        className="absolute w-full"
-        style={{ top: 0, height: 300 }}
-      />
-      
-      {/* Page Header Skeleton */}
-      <View className="relative z-10 px-4 pt-2">
-        <View className="flex-row items-center justify-between">
-          <SkeletonCircle size={24} />
-          <SkeletonText width={120} height={24} />
-          <SkeletonCircle size={24} />
-        </View>
-      </View>
-
-      {/* Main Content Skeleton */}
-      <View className="flex-1 relative">
-        <ScrollView 
-          className="flex-1"
-          showsVerticalScrollIndicator={false}
-          contentContainerStyle={{ paddingBottom: 100 }}
-        >
-          <View className="mt-36 relative z-10">
+    <View className="flex-1 relative">
+      <ScrollView
+        className="flex-1"
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ paddingBottom: 100 }}
+      >
+        <View className="mt-36 relative z-10">
             <SkeletonCard className="rounded-t-3xl border-transparent p-5 sm:p-6">
               {/* Title Skeleton */}
               <View className="mb-4">
@@ -75,9 +57,8 @@ export const FiltrationSkeleton: React.FC = () => {
                 </View>
               </SkeletonCard>
             </SkeletonCard>
-          </View>
-        </ScrollView>
-      </View>
-    </SafeAreaView>
+        </View>
+      </ScrollView>
+    </View>
   );
 };

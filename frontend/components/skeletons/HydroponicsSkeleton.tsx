@@ -1,31 +1,17 @@
 import React from 'react';
-import { ScrollView, View, Image } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { ScrollView, View } from 'react-native';
 import { Skeleton, SkeletonText, SkeletonCircle, SkeletonCard } from '@/components/ui/skeleton';
 import { Card } from '@/components/ui/card';
 
 export const HydroponicsSkeleton: React.FC = () => {
   return (
-    <SafeAreaView className="relative flex-1 bg-white">
-      {/* Background Image */}
-      <Image
-        source={require('@/assets/images/list-bg.png')}
-        className="absolute w-full"
-        style={{ top: 0, height: 300 }}
-      />
-
-      {/* Page Header Skeleton */}
-      <View className="relative z-10 flex-row items-center justify-center py-4">
-        <Skeleton className="h-7 w-56 rounded-md" />
-      </View>
-
-      <View className="relative flex-1">
-        <ScrollView
-          className="flex-1"
-          showsVerticalScrollIndicator={false}
-          contentContainerStyle={{ paddingBottom: 100 }}
-        >
-          <View className="relative z-10 mt-36">
+    <View className="relative flex-1">
+      <ScrollView
+        className="flex-1"
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ paddingBottom: 100 }}
+      >
+        <View className="relative z-10 mt-36">
             <Card className="rounded-t-3xl border-transparent">
               <View className="mb-2 mt-4 px-6">
                 {/* Title */}
@@ -61,8 +47,7 @@ export const HydroponicsSkeleton: React.FC = () => {
               </View>
             </Card>
           </View>
-        </ScrollView>
-      </View>
-    </SafeAreaView>
+      </ScrollView>
+    </View>
   );
 };
