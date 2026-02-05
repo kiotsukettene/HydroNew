@@ -226,7 +226,7 @@ const startTreatment = async () => {
       })
     );
     unsubs.push(
-      subscribeMessage(`reservoir_fallback/${deviceSerial}/pump/2/state`, (_topic, payload) => {
+      subscribeMessage(`reservoir_fallback/${deviceSerial}/pump/1/state`, (_topic, payload) => {
         const value = payload.toString().trim();
         setIsRestartPumpOpen(value === '1');
       })
@@ -252,10 +252,11 @@ const startTreatment = async () => {
 
   // Function to start the process
   const startProcess = () => {
-    setIsWaitingForStartAck(true);
     publishWithAck(`mfc/${deviceSerial}/pump/3`, 'OPEN', async (success) => {
-      setIsWaitingForStartAck(false);
       if (success) {
+        // Only when we receive a positive ACK do we show "Starting..."
+        // (button remains enabled until /state reports pump ON).
+        setIsWaitingForStartAck(true);
         setIsProcessStarted(true);
         setIsProcessFailed(false);
         setButtonText("On process...");
@@ -268,6 +269,7 @@ const startTreatment = async () => {
         reportStageInProgress(1);
         toast.success("Pump opened");
       } else {
+        setIsWaitingForStartAck(false);
         toast.error("Failed to open pump");
       }
     });
@@ -579,6 +581,17 @@ const startTreatment = async () => {
         console.log('[Filtration] Stage 4 completed, process complete');
         updateStageStatus(4, "completed", "Completed", "bg-green-300", "bg-green-50", "border-green-100", "bg-green-500");
         reportStageResult(4, 'passed');
+        // When restart process (stages 2–4) completes, also attempt to CLOSE the restart pump
+        if (isRestartPumpOpen) {
+          publishWithAck(`reservoir_fallback/${deviceSerial}/pump/1`, 'CLOSE', (success) => {
+            if (success) {
+              setIsRestartPumpOpen(false);
+              toast.success("Restart pump closed");
+            } else {
+              toast.error("Failed to close restart pump");
+            }
+          });
+        }
         setButtonText("Process Complete");
         saveStatus(4, 100);
         setTimeout(() => setShowSuccessModal(true), 500);
@@ -586,7 +599,6 @@ const startTreatment = async () => {
     );
     stages2To4TimeoutIdsRef.current = ids;
   };
-
   // Mark Stage 1 as complete and move to Stage 2, then progress through stages with timeouts
   const markStageOneComplete = () => {
     console.log('[Filtration] markStageOneComplete: Stage 1 completed, moving to Stage 2');
@@ -600,7 +612,6 @@ const startTreatment = async () => {
     toast.success("Stage 1 MFC Treatment completed!");
     scheduleStages2To4Progress();
   };
-
   // Auto-open Stage 1 valve when: (electric_current < 10 and treatment >= 1 day) OR treatment >= 3 days
   useEffect(() => {
     const treatment = currentTreatment;
@@ -628,7 +639,6 @@ const startTreatment = async () => {
   }, [currentTreatment?.id]);
 
   // Auto-close Stage 1 valve when valve is open and dirtyWater.water_level is low/empty (<= 0)
-  // Also marks Stage 1 as complete and moves to Stage 2 (only on ack success)
   useEffect(() => {
     if (!isStageOneValveOpen) {
       autoCloseStageOneTriggeredRef.current = false;
@@ -643,7 +653,6 @@ const startTreatment = async () => {
       handleCompleteStageOne(); // Publishes CLOSE; on ack true: setIsStageOneValveOpen(false), markStageOneComplete()
     }
   }, [isStageOneValveOpen, dirtyWater?.water_level, deviceSerial]);
-
   // Auto-close drain water valve when valve is open and dirtyWater.water_level >= 18
   useEffect(() => {
     if (!isDrainWaterValveOpen) {
@@ -736,8 +745,6 @@ const startTreatment = async () => {
         <PageHeader title="Filtration" />
       </View>
 
-
-
       {/* ===== Main Content ===== */}
 
       <View className="flex-1 relative">
@@ -757,8 +764,10 @@ const startTreatment = async () => {
             {!isProcessFailed && !isProcessCompleted && (
               <Button 
                 onPress={handleButtonClick}
-                disabled={isWaitingForStartAck || (isProcessStarted && !isProcessFailed) || buttonText === "Process Complete"}
-                className={isWaitingForStartAck || (isProcessStarted && !isProcessFailed) || buttonText === "Process Complete" ? "opacity-50" : ""}
+                // Disable only when /state says pump is ON (multi-user safety) or process is complete.
+                // While waiting for ACK, keep button enabled but show "Starting..." label.
+                disabled={(isProcessStarted && !isProcessFailed) || buttonText === "Process Complete"}
+                className={(isProcessStarted && !isProcessFailed) || buttonText === "Process Complete" ? "opacity-50" : ""}
               >
                 <Text>{isWaitingForStartAck ? "Starting..." : buttonText}</Text>
               </Button>
@@ -782,8 +791,6 @@ const startTreatment = async () => {
               ? 'bg-red-50' 
               : 'bg-emerald-50'
           }`}>
-
-
             <View className="flex-1 flex-row items-center">
               <View className="text mr-2 sm:mr-3 h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-full bg-primary/40">
                 <Loader className="text-muted" size={18} />
@@ -795,7 +802,6 @@ const startTreatment = async () => {
           
               </View>
             </View>
-
             {/* ===== Progress Indicator ===== */}
             <View className="ml-2 sm:ml-3 md:ml-4">
               <View className="relative h-12 w-12 sm:h-14 sm:w-14 md:h-16 md:w-16">
@@ -852,8 +858,7 @@ const startTreatment = async () => {
               <Text>Mark as Complete</Text>
             </Button>
           )}
-          
-
+        
           {/* ================= Main Content Card  ==================== */}
           <Card className=" border-2 border-gray-200 shadow-lg rounded-2xl">
               <View className="relative px-2 sm:px-4">
@@ -872,8 +877,6 @@ const startTreatment = async () => {
                     }`}>
                       <IconComponent className={stage.status === 'pending' ? 'text-foreground/70' : stage.status === 'failed' ? 'text-white' : 'text-muted'} size={18} />
                     </View>
-                    
-                  
                     
                     {/* Stage Card */}
                     <Pressable 
