@@ -1,5 +1,5 @@
 import { View, Image, ScrollView, Pressable, LayoutAnimation, Platform, UIManager } from 'react-native';
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { PageHeader } from '@/components/ui/page-header';
 import { Card } from '@/components/ui/card';
@@ -23,6 +23,9 @@ import { publishWithAck, publishMessage, subscribeMessage } from '@/service/mqtt
 import { useAuthStore } from '@/store/auth/authStore';
 import { useTreatmentStore } from '@/store/treatment/treatmentStore';
 import { useSensorStore } from '@/store/sensor/sensorStore';
+import { useDeviceStore } from '@/store/device/deviceStore';
+import NoDevice from '@/components/ui/no-device';
+import { useFocusEffect } from '@react-navigation/native';
 
 // Enable LayoutAnimation on Android
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
@@ -58,6 +61,21 @@ interface FiltrationStage {
 }
 
 export default function Filtration() {
+  const userId = useAuthStore((state) => state.user?.id);
+  const { devices, fetchDevice } = useDeviceStore();
+  const [deviceChecked, setDeviceChecked] = useState(false);
+
+  useFocusEffect(
+    useCallback(() => {
+      setDeviceChecked(false);
+      if (userId) {
+        fetchDevice(userId).finally(() => setDeviceChecked(true));
+      } else {
+        setDeviceChecked(true);
+      }
+    }, [userId, fetchDevice])
+  );
+
   // Process control states
   const [isProcessStarted, setIsProcessStarted] = useState(false);
   const [isProcessFailed, setIsProcessFailed] = useState(false);
@@ -70,7 +88,6 @@ export default function Filtration() {
   const [deviceSerial, setDeviceSerial] = useState('');
   const [totalCycles, setTotalCycles] = useState(0);
   const { saveTreatment, updateTreatment, saveStage, updateStage, currentTreatment } = useTreatmentStore();
-  const userId = useAuthStore((state) => state.user?.id);
   const dirtyWater = useSensorStore((state) => state.dirtyWater);
   const cleanWater = useSensorStore((state) => state.cleanWater);
   const stages2To4TimeoutIdsRef = useRef<ReturnType<typeof setTimeout>[]>([]);
@@ -730,7 +747,10 @@ const startTreatment = async () => {
     return 'Not Started';
   };
 
- 
+  if (!deviceChecked || !devices || devices.length === 0) {
+    return <NoDevice />;
+  }
+
   return (  
     <SafeAreaView className="flex-1 relative bg-background">
       <Image

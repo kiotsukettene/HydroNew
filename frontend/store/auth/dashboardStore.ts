@@ -66,10 +66,11 @@ export const useDashboardStore = create<DashboardState>((set) => ({
         loading: false,
       });
     } catch (error: any) {
+      if (error.__authRedirect) {
+        set({ loading: false });
+        return;
+      }
       console.error('Dashboard fetch error:', error);
-      console.error('Error response:', error.response?.data);
-      console.error('Error status:', error.response?.status);
-      
       set({
         loading: false,
         error: error.response?.data?.message || error.message || 'Failed to load dashboard data',

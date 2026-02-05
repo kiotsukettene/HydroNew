@@ -100,7 +100,6 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       await storage.setItem("token", responseData.token);
 
     } catch (err: any) {
-      console.error(' Register error:', err);
       const { message, fieldErrors } = handleAxiosError(err);
       set({ loading: false, error: message, fieldErrors });
     }
@@ -226,8 +225,16 @@ login: async (email, password) => {
     }
   },
 
-logout: async () => {
+logout: async (options?: { skipApiCall?: boolean }) => {
   const user = get().user;
+
+  if (!options?.skipApiCall) {
+    try {
+      await axiosInstance.post("/logout");
+    } catch {
+      // Proceed with local logout even if API fails (e.g. token expired)
+    }
+  }
 
   // Stop listening safely
   if (user?.id) {

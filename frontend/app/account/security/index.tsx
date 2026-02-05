@@ -18,18 +18,29 @@ import {
   FileClock,
   UserRoundCheck,
   Pencil,
+  LogOut,
 } from 'lucide-react-native'
-import React, { useEffect} from 'react'
+import React, { useEffect, useState } from 'react'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { Separator } from '@/components/ui/separator';
 import { Card, CardContent } from '@/components/ui/card';
 import { Text } from '@/components/ui/text';
-import { Link } from 'expo-router';
+import { Link, useRouter } from 'expo-router';
 import { PageHeader } from '@/components/ui/page-header';
 import { useAccountStore } from '@/store/account/accountStore';
- 
+import { useAuthStore } from '@/store/auth/authStore';
+import { ConfirmationModal } from '@/components/ui/confirmation-modal';
 export default function Index() {
-  const { account, error, fetchAccount } = useAccountStore();
+  const router = useRouter();
+  const logout = useAuthStore((s) => s.logout);
+  const [showLogoutModal, setShowLogoutModal] = useState(false);
+  const { account, fetchAccount } = useAccountStore();
+
+  const confirmLogout = async () => {
+    setShowLogoutModal(false);
+    await logout();
+    router.replace('/(auth)/login');
+  };
 
 const settings = [
   { icon: UserRoundPen, title: 'My Account', link: '/account/manage-account' },
@@ -166,6 +177,21 @@ const settings = [
                   </Pressable>
                 </Link>
               ))}
+              <Pressable
+                className="active:bg-muted/30"
+                onPress={() => setShowLogoutModal(true)}
+              >
+                <View className="flex-col">
+                  <Separator className="bg-muted-foreground/10" />
+                  <View className="flex-row items-center justify-between py-4 px-5">
+                    <View className="flex-row items-center gap-3">
+                      <LogOut size={22} color="#166534" />
+                      <Text className="text-base text-foreground">Log Out</Text>
+                    </View>
+                    <ChevronRight size={20} color="#166534" />
+                  </View>
+                </View>
+              </Pressable>
 
               </ScrollView>
             </CardContent>
@@ -173,6 +199,18 @@ const settings = [
         </View>
             {/* ================= end of main body  ==================== */}
         </View>
+
+        <ConfirmationModal
+          visible={showLogoutModal}
+          icon={<LogOut size={40} color="#fff" />}
+          modalTitle="Logout"
+          modalDescription="Are you sure you want to logout?"
+          confirmText="Logout"
+          iconBgColor="bg-destructive"
+          confirmButtonColor="bg-destructive"
+          onCancel={() => setShowLogoutModal(false)}
+          onConfirm={confirmLogout}
+        />
     
     </SafeAreaView>
   )
