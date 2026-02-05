@@ -38,19 +38,19 @@ export default function Hydroponics() {
 
   useFocusEffect(
     useCallback(() => {
-      // If devices are already loaded, mark as checked and skip fetch
+      // Check device status first
       if (devices && devices.length > 0) {
         setDeviceChecked(true);
+        // Fetch hydroponic setups when device is confirmed
+        fetchHydroponicSetups(true);
       } else if (!deviceChecked) {
-        // Only fetch if no devices and not already checked
+        // Only fetch device if not already checked
         if (userId) {
           fetchDevice(userId).finally(() => setDeviceChecked(true));
         } else {
           setDeviceChecked(true);
         }
       }
-      
-      fetchHydroponicSetups(true);
     }, [userId, fetchDevice, fetchHydroponicSetups, devices, deviceChecked])
   );
 
