@@ -15,6 +15,7 @@ import { useSensorStore } from '@/store/sensor/sensorStore';
 import { subscribeMessage, publishWithAck } from '@/service/mqtt.client';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useAuthStore } from '@/store/auth/authStore';
+import { LettuceViewSkeleton } from '@/components/skeletons';
 
 export default function LettuceView() {
   const router = useRouter();
@@ -113,6 +114,23 @@ export default function LettuceView() {
     });
     console.log(`Published message to hydroponics/${deviceSerial}/pump/2`);
   };
+
+  const requestedId = setupId != null ? Number(setupId) : null;
+  const isShowingWrongSetup = requestedId != null && currentSetup != null && currentSetup.id !== requestedId;
+  if ((loading && !currentSetup) || isShowingWrongSetup) {
+    return (
+      <SafeAreaView className="flex-1 bg-background">
+        <View className="relative z-10">
+          <PageHeader
+            title="Hydroponics Monitoring"
+            showBackButton={true}
+            showNotificationButton={false}
+          />
+        </View>
+        <LettuceViewSkeleton />
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView className="flex-1 bg-background">

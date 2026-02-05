@@ -155,7 +155,7 @@ export const useHydroponicSetupStore = create<HydroponicSetupStore>((set, get) =
   },
 
   fetchSetupById: async (setupId: number) => {
-    set({ loading: true, error: null });
+    set({ loading: true, error: null, currentSetup: null });
     try {
       const response = await axiosInstance.get(`/hydroponic-setups/${setupId}`);
       set({ 

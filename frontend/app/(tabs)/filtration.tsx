@@ -758,7 +758,19 @@ const startTreatment = async () => {
 
   // Show skeleton only on initial load (when devices haven't been fetched yet)
   if (!deviceChecked && (!devices || devices.length === 0)) {
-    return <FiltrationSkeleton />;
+    return (
+      <SafeAreaView className="flex-1 relative bg-background">
+        <Image
+          source={require('@/assets/images/filtration-bg.png')}
+          className="absolute w-full"
+          style={{ top: 0, height: 300 }}
+        />
+        <View className="relative z-10">
+          <PageHeader title="Filtration" />
+        </View>
+        <FiltrationSkeleton />
+      </SafeAreaView>
+    );
   }
 
   // Show NoDevice component if no devices found after check

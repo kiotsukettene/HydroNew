@@ -12,7 +12,7 @@ import { useDeviceStore } from '@/store/device/deviceStore';
  * @param fallbackDeviceId - Optional fallback device ID if no device is paired (defaults to null)
  */
 export const useSensorData = (fallbackDeviceId: number | null = null) => {
-  const { updateCleanWater, updateDirtyWater, updateHydroponicsWater, setError } = useSensorStore();
+  const { updateCleanWater, updateDirtyWater, updateHydroponicsWater, setError, reset: resetSensorStore } = useSensorStore();
   const isListeningRef = useRef(false);
   const channelRef = useRef<any>(null);
   const token = useAuthStore((state) => state.token);
@@ -92,7 +92,9 @@ export const useSensorData = (fallbackDeviceId: number | null = null) => {
     }
 
     if (deviceId === null) {
-      console.log(' No device ID available, skipping sensor data subscription');
+      console.log(' [useSensorData] No device ID available, skipping sensor data subscription');
+      // Clear any stale sensor data when we have no paired device
+      resetSensorStore();
       return;
     }
 
@@ -284,9 +286,11 @@ export const useSensorData = (fallbackDeviceId: number | null = null) => {
       }
       
       isListeningRef.current = false;
+      // Clear sensor data when unsubscribing (e.g. after unpair) so UI doesn't show stale data
+      resetSensorStore();
       console.log('✅ [useSensorData] Sensor listeners cleaned up');
     };
-  }, [deviceId, token, echoReady, updateCleanWater, updateDirtyWater, updateHydroponicsWater, setError]);
+  }, [deviceId, token, echoReady, updateCleanWater, updateDirtyWater, updateHydroponicsWater, setError, resetSensorStore]);
 
   return {
     // Return the store data for convenience

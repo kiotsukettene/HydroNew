@@ -69,7 +69,19 @@ export default function Hydroponics() {
 
   // Show skeleton only on initial load (when devices haven't been fetched yet)
   if (!deviceChecked && (!devices || devices.length === 0)) {
-    return <HydroponicsSkeleton />;
+    return (
+      <SafeAreaView className="relative flex-1 bg-background">
+        <Image
+          source={require('@/assets/images/list-bg.png')}
+          className="absolute w-full"
+          style={{ top: 0, height: 300 }}
+        />
+        <View className="relative z-10">
+          <PageHeader title="Hydroponics Monitoring" />
+        </View>
+        <HydroponicsSkeleton />
+      </SafeAreaView>
+    );
   }
 
   // Show NoDevice if no device paired after check
@@ -79,7 +91,19 @@ export default function Hydroponics() {
 
   // Show skeleton while loading initially
   if (loading && (!hydroponicSetups || !Array.isArray(hydroponicSetups) || hydroponicSetups.length === 0)) {
-    return <HydroponicsSkeleton />;
+    return (
+      <SafeAreaView className="relative flex-1 bg-background">
+        <Image
+          source={require('@/assets/images/list-bg.png')}
+          className="absolute w-full"
+          style={{ top: 0, height: 300 }}
+        />
+        <View className="relative z-10">
+          <PageHeader title="Hydroponics Monitoring" />
+        </View>
+        <HydroponicsSkeleton />
+      </SafeAreaView>
+    );
   }
   
   // Show NoSetup page if no setups exist (but device exists)

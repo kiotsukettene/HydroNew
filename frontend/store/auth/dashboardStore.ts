@@ -16,14 +16,15 @@ export const useDashboardStore = create<DashboardState>((set) => ({
       // Fetch devices first to ensure device store is populated (backup if not loaded in _layout)
       const devicesResponse = await axiosInstance.get('/devices');
       console.log('📱 [Dashboard] Devices API Response:', JSON.stringify(devicesResponse.data, null, 2));
-      
-      // Ensure device store is populated with the correct device
-      if (devicesResponse.data?.status === 'success' && devicesResponse.data?.devices?.length > 0) {
+
+      const hasDevice = devicesResponse.data?.status === 'success' && devicesResponse.data?.devices?.length > 0;
+
+      // Ensure device store is populated with the correct device only when user has a device
+      if (hasDevice) {
         const firstDevice = devicesResponse.data.devices[0];
         const userDeviceId = firstDevice.id;
         console.log('📱 [Dashboard] User\'s device ID from /devices endpoint:', userDeviceId);
-        
-        // Update device store if needed
+
         const currentDevices = useDeviceStore.getState().devices;
         if (currentDevices.length === 0 || currentDevices[0]?.id !== userDeviceId) {
           console.log('📱 [Dashboard] Updating device store with device from /devices endpoint');
@@ -38,30 +39,51 @@ export const useDashboardStore = create<DashboardState>((set) => ({
         }
       }
 
-      // Fetch dashboard data (ignore device_id from this endpoint, use /devices endpoint instead)
-      const response = await axiosInstance.get('/dashboard'); 
+      // Fetch dashboard data (user, nearest_to_harvest; pH only when user has a device)
+      const response = await axiosInstance.get('/dashboard');
 
       console.log('📊 [Dashboard] Dashboard API Response:', JSON.stringify(response.data, null, 2));
 
-      const { user, ph_levels, nearest_to_harvest } = response.data;
+      const { user, ph_levels, nearest_to_harvest } = response.data ?? {};
 
-      // Check if ph_levels exists and has clean_water data
-      if (!ph_levels || !ph_levels.clean_water) {
-        console.error('Invalid response structure:', response.data);
+      // When no device, show -- for pH (don't use API ph_levels)
+      if (!hasDevice) {
         set({
+          data: {
+            user: user ?? 'User',
+            pHLevel: null,
+            unit: null,
+            status: null,
+            nearest_to_harvest: nearest_to_harvest ?? null,
+          },
           loading: false,
-          error: 'Invalid data structure from server',
         });
         return;
       }
 
+      // When device exists, use ph_levels from API if present
+      if (!ph_levels?.clean_water) {
+        set({
+          data: {
+            user: user ?? 'User',
+            pHLevel: null,
+            unit: null,
+            status: null,
+            nearest_to_harvest: nearest_to_harvest ?? null,
+          },
+          loading: false,
+        });
+        return;
+      }
+
+      const value = parseFloat(ph_levels.clean_water.value);
       set({
         data: {
-          user,
-          pHLevel: parseFloat(ph_levels.clean_water.value),
-          unit: ph_levels.clean_water.unit,
-          status: ph_levels.clean_water.status,
-          nearest_to_harvest: nearest_to_harvest || null,
+          user: user ?? 'User',
+          pHLevel: Number.isNaN(value) ? null : value,
+          unit: ph_levels.clean_water.unit ?? null,
+          status: ph_levels.clean_water.status ?? null,
+          nearest_to_harvest: nearest_to_harvest ?? null,
         },
         loading: false,
       });
