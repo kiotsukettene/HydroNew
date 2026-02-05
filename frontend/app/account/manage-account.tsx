@@ -39,7 +39,7 @@ export default function ManageAccount() {
   const [firstName, setFirstName] = useState(account?.first_name || "Juan");
   const [lastName, setLastName] = useState(account?.last_name || "Dela Cruz");
   const [email, setEmail] = useState(account?.email || "juan.delacruz@example.com");
-  const [address, setAddress] = useState(account?.address || "Bagong Silang, Caloocan City");
+  const [address, setAddress] = useState(account?.address);
   const [profileImage, setProfileImage] = useState<string | null>(null);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [initialEditValues, setInitialEditValues] = useState<{ firstName: string; lastName: string; address: string } | null>(null);
@@ -222,7 +222,7 @@ const handleUpdateAccount = async () => {
                     }
                   }}
                   editable={editable}
-                  placeholder='address'
+                  placeholder='Enter address'
                   autoCapitalize='none'
                   className={`border text-base text-black ${
                     errors.address ? 'border-red-500' : 'border-muted-foreground/50'
@@ -263,7 +263,7 @@ const handleUpdateAccount = async () => {
               ) : (
                 <Button
                   onPress={() => {
-                    setInitialEditValues({ firstName, lastName, address });
+                    setInitialEditValues({ firstName, lastName, address: address || ""});
                     isEditable(true);
                   }}
                 >

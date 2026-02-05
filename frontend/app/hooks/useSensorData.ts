@@ -68,18 +68,21 @@ export const useSensorData = (fallbackDeviceId: number | null = null) => {
     return () => clearInterval(interval);
   }, [echoReady]);
 
-  // Log when device becomes available
+  // Log when device becomes available (only log once when deviceId changes)
+  const previousDeviceIdRef = useRef<number | null>(null);
   useEffect(() => {
-    if (deviceId) {
-      console.log(' [useSensorData] Device ID available for sensor subscription:', deviceId);
-      console.log(' [useSensorData] Will subscribe to channel: sensor.device.' + deviceId);
-    } else {
-      console.log(' [useSensorData] No device ID available for sensor subscription');
-      console.log(' [useSensorData] Devices in store:', devices);
+    // Only log if deviceId actually changed
+    if (deviceId !== previousDeviceIdRef.current) {
+      if (deviceId) {
+        console.log(' [useSensorData] Device ID available for sensor subscription:', deviceId);
+        console.log(' [useSensorData] Will subscribe to channel: sensor.device.' + deviceId);
+      } else {
+        console.log(' [useSensorData] No device ID available for sensor subscription');
+      }
+      console.log(' [useSensorData] Echo ready status:', echoReady);
+      previousDeviceIdRef.current = deviceId;
     }
-    
-    console.log(' [useSensorData] Echo ready status:', echoReady);
-  }, [deviceId, devices, echoReady]);
+  }, [deviceId, echoReady]);
 
   useEffect(() => {
     // Only proceed if we have a token, device ID, and Echo is ready

@@ -42,6 +42,7 @@ export default function Login() {
   const resetErrors = useAuthStore((state) => state.resetErrors);
   const loading = useAuthStore((state) => state.loading);
   const needsVerification = useAuthStore((state) => state.needsVerification);
+  const setUserEmail = useAuthStore((state) => state.setUserEmail);
   const [zodErrors, setZodErrors] = useState<{ email?: string; password?: string }>({});
 
   const [email, setEmail] = useState("");
@@ -95,7 +96,8 @@ export default function Login() {
         return;
       }
       if (response?.needs_verification) {
-        toast.error("Please verify your email to continue.");
+        // Set the email in store for the verification page
+        setUserEmail(validated.email);
         router.push("/(auth)/signup/email-verification");
         return;
       }

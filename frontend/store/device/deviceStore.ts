@@ -79,12 +79,20 @@ fetchDevice: async (userId: number) => {
       return;
     }
 
-    // Check if device already exists in AsyncStorage
+    // Check if device already exists in store first (to avoid unnecessary AsyncStorage reads)
+    const currentDevices = get().devices;
+    if (currentDevices && currentDevices.length > 0) {
+      console.log("Device already loaded in store, skipping fetch");
+      set({ loading: false });
+      return;
+    }
+
+    // Check if device exists in AsyncStorage
     const storageKey = `paired_device:${userId}`;
     const existingDevice = await AsyncStorage.getItem(storageKey);
     
     if (existingDevice) {
-      console.log("Device already exists in AsyncStorage, skipping fetch");
+      console.log("Device found in AsyncStorage, loading to store");
       const device = JSON.parse(existingDevice);
       set({ devices: [device], loading: false });
       return;

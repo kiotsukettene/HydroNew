@@ -26,6 +26,7 @@ import { useSensorStore } from '@/store/sensor/sensorStore';
 import { useDeviceStore } from '@/store/device/deviceStore';
 import NoDevice from '@/components/ui/no-device';
 import { useFocusEffect } from '@react-navigation/native';
+import { FiltrationSkeleton } from '@/components/skeletons';
 
 // Enable LayoutAnimation on Android
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
@@ -62,18 +63,26 @@ interface FiltrationStage {
 
 export default function Filtration() {
   const userId = useAuthStore((state) => state.user?.id);
-  const { devices, fetchDevice } = useDeviceStore();
+  const { devices, fetchDevice, loading: deviceLoading } = useDeviceStore();
   const [deviceChecked, setDeviceChecked] = useState(false);
 
   useFocusEffect(
     useCallback(() => {
-      setDeviceChecked(false);
-      if (userId) {
-        fetchDevice(userId).finally(() => setDeviceChecked(true));
-      } else {
+      // If devices are already loaded, mark as checked and skip fetch
+      if (devices && devices.length > 0) {
         setDeviceChecked(true);
+        return;
       }
-    }, [userId, fetchDevice])
+      
+      // Only fetch if no devices and not already checked
+      if (!deviceChecked) {
+        if (userId) {
+          fetchDevice(userId).finally(() => setDeviceChecked(true));
+        } else {
+          setDeviceChecked(true);
+        }
+      }
+    }, [userId, fetchDevice, devices, deviceChecked])
   );
 
   // Process control states
@@ -747,7 +756,13 @@ const startTreatment = async () => {
     return 'Not Started';
   };
 
-  if (!deviceChecked || !devices || devices.length === 0) {
+  // Show skeleton only on initial load (when devices haven't been fetched yet)
+  if (!deviceChecked && (!devices || devices.length === 0)) {
+    return <FiltrationSkeleton />;
+  }
+
+  // Show NoDevice component if no devices found after check
+  if (deviceChecked && (!devices || devices.length === 0)) {
     return <NoDevice />;
   }
 
