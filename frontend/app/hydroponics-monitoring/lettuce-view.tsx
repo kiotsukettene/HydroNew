@@ -85,7 +85,7 @@ export default function LettuceView() {
   // Subscribe to pump state so all users see button muted when pump is running
   useEffect(() => {
     if (!deviceSerial) return;
-    const topic = `hydroponics/${deviceSerial}/pump/1/state`;
+    const topic = `hydroponics/${deviceSerial}/pump/2/state`;
     const unsubscribe = subscribeMessage(topic, (_t, payload) => {
       const value = payload.toString().trim();
       setIsHydroponicsPumpRunning(value === '1');
@@ -96,7 +96,7 @@ export default function LettuceView() {
   const pumpWater = () => {
     if (!deviceSerial) return;
     setIsWaitingForPumpAck(true);
-    publishWithAck(`hydroponics/${deviceSerial}/pump/1`, 'OPEN', (success) => {
+    publishWithAck(`hydroponics/${deviceSerial}/pump/2`, 'OPEN', (success) => {
       setIsWaitingForPumpAck(false);
       if (success) {
         toast.success('Pump started');
@@ -105,7 +105,7 @@ export default function LettuceView() {
         toast.error('Failed to start pump');
       }
     });
-    console.log(`Published message to hydroponics/${deviceSerial}/pump/1`);
+    console.log(`Published message to hydroponics/${deviceSerial}/pump/2`);
   };
 
   return (

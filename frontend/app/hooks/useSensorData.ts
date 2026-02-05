@@ -163,6 +163,7 @@ export const useSensorData = (fallbackDeviceId: number | null = null) => {
               temperature: parseNumericValue(data.readings.temperature),
               ec: parseNumericValue(data.readings.ec),
               electric_current: parseNumericValue(data.readings.electric_current),
+              ai_classification: data.readings.ai_classification ?? null,
               reading_time: data.reading_time,
               created_at: data.reading_time, // Use reading_time as fallback
               updated_at: data.reading_time,
@@ -210,6 +211,7 @@ export const useSensorData = (fallbackDeviceId: number | null = null) => {
               temperature: parseNumericValue(data.readings.temperature),
               ec: parseNumericValue(data.readings.ec),
               electric_current: parseNumericValue(data.readings.electric_current),
+              ai_classification: data.readings.ai_classification ?? null,
               reading_time: data.reading_time,
               created_at: data.reading_time,
               updated_at: data.reading_time,

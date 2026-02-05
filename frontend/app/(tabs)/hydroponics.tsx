@@ -44,17 +44,21 @@ export default function Hydroponics() {
     setRefreshing(false);
   }, [fetchHydroponicSetups]);
 
-  if (loading && hydroponicSetups.length === 0) {
-    return <HydroponicsSkeleton />;
-  }
-  
-  if (!loading && hydroponicSetups.length === 0) return <NoSetup />;
   const handleLoadMore = useCallback(() => {
     if (hasMore && !loadingMore && !loading) {
       loadMore();
     }
   }, [hasMore, loadingMore, loading, loadMore]);
 
+  // Show skeleton while loading initially
+  if (loading && (!hydroponicSetups || !Array.isArray(hydroponicSetups) || hydroponicSetups.length === 0)) {
+    return <HydroponicsSkeleton />;
+  }
+  
+  // Show NoSetup page if no setups exist
+  if (!hydroponicSetups || !Array.isArray(hydroponicSetups) || hydroponicSetups.length === 0) {
+    return <NoSetup />;
+  }
 
   const renderPlantItem = (item: any) => (
     <View key={item.id}>
@@ -137,9 +141,9 @@ export default function Hydroponics() {
                     Loading...
                   </Text>
                 </View>
-              ) : hydroponicSetups && hydroponicSetups.length > 0 ? (
+              ) : (
                 <>
-                  {hydroponicSetups.map((item) => renderPlantItem(item))}
+                  {hydroponicSetups && Array.isArray(hydroponicSetups) && hydroponicSetups.map((item) => renderPlantItem(item))}
                   
                   {loadingMore && (
                     <View className="py-4 items-center">
@@ -158,8 +162,6 @@ export default function Hydroponics() {
                     </Button>
                   )}
                 </>
-              ) : (
-                <NoSetup />
               )}
             </Card>
           </View>
