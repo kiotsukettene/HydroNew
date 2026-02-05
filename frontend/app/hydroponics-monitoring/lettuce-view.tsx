@@ -82,13 +82,18 @@ export default function LettuceView() {
     }
   }, [setupId]);
 
-  // Subscribe to pump state so all users see button muted when pump is running
+  // Subscribe to pump state so all users see button muted when pump is running (multi-user safety)
   useEffect(() => {
     if (!deviceSerial) return;
     const topic = `hydroponics/${deviceSerial}/pump/2/state`;
     const unsubscribe = subscribeMessage(topic, (_t, payload) => {
       const value = payload.toString().trim();
-      setIsHydroponicsPumpRunning(value === '1');
+      const isRunning = value === '1';
+      setIsHydroponicsPumpRunning(isRunning);
+      // Mirror filtration behavior: if we were "waiting", but a state update arrives
+      // (either from our own ack or another user), stop showing "Starting..." and
+      // just reflect the real running state.
+      setIsWaitingForPumpAck(false);
     });
     return unsubscribe;
   }, [deviceSerial]);

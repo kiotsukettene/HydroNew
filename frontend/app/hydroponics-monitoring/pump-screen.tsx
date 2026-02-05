@@ -56,7 +56,9 @@ export default function PumpScreen() {
   const handleStopPump = () => {
     if (!deviceSerial) return;
     setIsWaitingForStopAck(true);
-    publishWithAck(`hydroponics/${deviceSerial}/pump/1`, 'CLOSE', (success) => {
+    // Use same pump index (2) as the Start command in lettuce-view, and wait for ACK
+    // before navigating back, mirroring filtration CLOSE behavior.
+    publishWithAck(`hydroponics/${deviceSerial}/pump/2`, 'CLOSE', (success) => {
       setIsWaitingForStopAck(false);
       if (success) {
         toast.success('Pumping completed successfully!');
@@ -65,7 +67,7 @@ export default function PumpScreen() {
         toast.error('Failed to stop pump');
       }
     });
-    console.log(`Published message to hydroponics/${deviceSerial}/pump/1 CLOSE`);
+    console.log(`Published message to hydroponics/${deviceSerial}/pump/2 CLOSE`);
   }
 
   return (
