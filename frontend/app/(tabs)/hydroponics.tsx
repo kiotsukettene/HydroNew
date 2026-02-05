@@ -9,8 +9,11 @@ import { Label } from '@/components/ui/label';
 import { useRouter } from 'expo-router';
 import { Button } from '@/components/ui/button';
 import NoSetup from '@/app/hydroponics-monitoring/no-setup';
+import NoDevice from '@/components/ui/no-device';
 import { useFocusEffect } from '@react-navigation/native';
 
+import { useAuthStore } from '@/store/auth/authStore';
+import { useDeviceStore } from '@/store/device/deviceStore';
 import { useHydroponicSetupStore } from '@/store/hydroponics/hydroponicSetupStore';
 import { HydroponicsSkeleton } from '@/components/skeletons';
 
@@ -18,6 +21,8 @@ const { height: screenHeight } = Dimensions.get('window');
 
 export default function Hydroponics() {
   const router = useRouter();
+  const userId = useAuthStore((state) => state.user?.id);
+  const { devices, fetchDevice } = useDeviceStore();
   const { 
     hydroponicSetups, 
     fetchHydroponicSetups, 
@@ -29,12 +34,18 @@ export default function Hydroponics() {
   } = useHydroponicSetupStore();
 
   const [refreshing, setRefreshing] = useState(false);
+  const [deviceChecked, setDeviceChecked] = useState(false);
 
   useFocusEffect(
     useCallback(() => {
-      // Fetch data on focus
+      setDeviceChecked(false);
+      if (userId) {
+        fetchDevice(userId).finally(() => setDeviceChecked(true));
+      } else {
+        setDeviceChecked(true);
+      }
       fetchHydroponicSetups(true);
-    }, [fetchHydroponicSetups])
+    }, [userId, fetchDevice, fetchHydroponicSetups])
   );
 
   const onRefresh = useCallback(async () => {
@@ -50,12 +61,22 @@ export default function Hydroponics() {
     }
   }, [hasMore, loadingMore, loading, loadMore]);
 
+  // Show skeleton while checking device
+  if (!deviceChecked) {
+    return <HydroponicsSkeleton />;
+  }
+
+  // Show NoDevice if no device paired
+  if (!devices || devices.length === 0) {
+    return <NoDevice />;
+  }
+
   // Show skeleton while loading initially
   if (loading && (!hydroponicSetups || !Array.isArray(hydroponicSetups) || hydroponicSetups.length === 0)) {
     return <HydroponicsSkeleton />;
   }
   
-  // Show NoSetup page if no setups exist
+  // Show NoSetup page if no setups exist (but device exists)
   if (!hydroponicSetups || !Array.isArray(hydroponicSetups) || hydroponicSetups.length === 0) {
     return <NoSetup />;
   }
