@@ -33,7 +33,7 @@ type AuthState = {
   resetErrors: () => void;
   verifyOtp: (otp: string) => Promise<void>;
   resendOtp: () => Promise<void>;
-  logout: () => Promise<void>;
+  logout: (options?: { skipApiCall?: boolean }) => Promise<void>;
   userEmail: string;
   setUserEmail: (userEmail: string) => void;
   setNeedsVerification: (value: boolean) => void;
