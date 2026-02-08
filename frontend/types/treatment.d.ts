@@ -87,6 +87,31 @@ export interface TreatmentStore {
   saveStage: (payload: SaveStagePayload) => Promise<TreatmentStageRecord | null>;
   /** Update stage result — PUT /treatment/update-stages (passed when completed, failed when failed). */
   updateStage: (payload: UpdateStagePayload) => Promise<TreatmentStageRecord | null>;
+  /** Fetch latest treatment from GET /treatment/latest for state sync. */
+  fetchLatestTreatment: () => Promise<LatestTreatmentData | null>;
   resetError: () => void;
   clearCurrentTreatment: () => void;
+}
+
+/** Stage data from GET /treatment/latest */
+export interface LatestTreatmentStage {
+  id: number;
+  stage_name: TreatmentStageName;
+  stage_order: number;
+  status: 'passed' | 'processing' | 'pending' | 'failed';
+  ph: number | null;
+  tds: number | null;
+  turbidity: number | null;
+  notes: string | null;
+}
+
+/** Treatment data from GET /treatment/latest */
+export interface LatestTreatmentData {
+  id: number;
+  device_id: number;
+  start_time: string;
+  end_time: string | null;
+  final_status: 'pending' | 'success' | 'failed';
+  total_cycles: number | null;
+  stages: LatestTreatmentStage[];
 }
