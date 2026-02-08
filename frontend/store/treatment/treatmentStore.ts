@@ -11,6 +11,7 @@ import type {
   UpdateStageResponse,
   TreatmentStageRecord,
   LatestTreatmentData,
+  FiltrationCommandResponse,
 } from '@/types/treatment';
 
 export const useTreatmentStore = create<TreatmentStore>((set, get) => ({
@@ -94,78 +95,77 @@ export const useTreatmentStore = create<TreatmentStore>((set, get) => ({
     }
   },
 
-  saveStage: async (payload: SaveStagePayload) => {
-    set({ loading: true, error: null });
-    const url = '/treatment/stages';
-    const fullUrl = `${axiosInstance.defaults.baseURL ?? ''}${url}`;
-    console.log('[Treatment] saveStage: calling POST', fullUrl, 'payload', payload);
-
-    try {
-      const response = await axiosInstance.post<SaveStageResponse>(url, payload);
-      console.log('[Treatment] saveStage: response status', response.status, 'data', JSON.stringify(response.data));
-
-      const { success, message, data } = response.data;
-      if (!success || !data) {
-        console.warn('[Treatment] saveStage: backend returned success=false or no data', { success, message, data });
-        set({ error: message || 'Failed to save stage', loading: false });
-        return null;
-      }
-
-      set({ loading: false });
-      return data;
-    } catch (err: unknown) {
-      const axiosErr = err as { response?: { status: number; data?: { message?: string; error?: string } }; request?: unknown; message?: string };
-      const responseData = axiosErr.response?.data;
-      const backendError = responseData && typeof responseData === 'object' && 'error' in responseData ? (responseData as { error?: string }).error : undefined;
-      console.error('[Treatment] saveStage: request failed', {
-        status: axiosErr.response?.status,
-        backendMessage: responseData && typeof responseData === 'object' && 'message' in responseData ? (responseData as { message?: string }).message : undefined,
-        backendError,
-        responseData: axiosErr.response?.data,
-      });
-      const { message } = handleAxiosError(err);
-      set({ error: message, loading: false });
-      return null;
-    }
-  },
-
-  updateStage: async (payload: UpdateStagePayload) => {
-    set({ loading: true, error: null });
-    const url = '/treatment/update-stages';
-    const fullUrl = `${axiosInstance.defaults.baseURL ?? ''}${url}`;
-    console.log('[Treatment] updateStage: calling PUT', fullUrl, 'payload', payload);
-
-    try {
-      const response = await axiosInstance.put<UpdateStageResponse>(url, payload);
-      console.log('[Treatment] updateStage: response status', response.status, 'data', JSON.stringify(response.data));
-
-      const { success, message, data } = response.data;
-      if (!success || !data) {
-        console.warn('[Treatment] updateStage: backend returned success=false or no data', { success, message, data });
-        set({ error: message || 'Failed to update stage', loading: false });
-        return null;
-      }
-
-      set({ loading: false });
-      return data;
-    } catch (err: unknown) {
-      const axiosErr = err as { response?: { status: number; data?: { message?: string; error?: string } }; request?: unknown; message?: string };
-      const responseData = axiosErr.response?.data;
-      const backendError = responseData && typeof responseData === 'object' && 'error' in responseData ? (responseData as { error?: string }).error : undefined;
-      console.error('[Treatment] updateStage: request failed', {
-        status: axiosErr.response?.status,
-        backendMessage: responseData && typeof responseData === 'object' && 'message' in responseData ? (responseData as { message?: string }).message : undefined,
-        backendError,
-        responseData: axiosErr.response?.data,
-      });
-      const { message } = handleAxiosError(err);
-      set({ error: message, loading: false });
-      return null;
-    }
-  },
 
   resetError: () => set({ error: null }),
   clearCurrentTreatment: () => set({ currentTreatment: null }),
+
+  startProcess: async () => {
+    const url = '/filtration/commands/start-process';
+    try {
+      const response = await axiosInstance.post<FiltrationCommandResponse>(url);
+      const ok = response.data?.success === true;
+      if (!ok) console.warn('[Treatment] startProcess: backend returned success=false', response.data);
+      return ok;
+    } catch (err) {
+      console.error('[Treatment] startProcess failed', err);
+      return false;
+    }
+  },
+
+  openValve1: async () => {
+    const url = '/filtration/commands/open-valve-1';
+    try {
+      const response = await axiosInstance.post<FiltrationCommandResponse>(url);
+      return response.data?.success === true;
+    } catch (err) {
+      console.error('[Treatment] openValve1 failed', err);
+      return false;
+    }
+  },
+
+  closeValve1: async () => {
+    const url = '/filtration/commands/close-valve-1';
+    try {
+      const response = await axiosInstance.post<FiltrationCommandResponse>(url);
+      return response.data?.success === true;
+    } catch (err) {
+      console.error('[Treatment] closeValve1 failed', err);
+      return false;
+    }
+  },
+
+  openDrainValve: async () => {
+    const url = '/filtration/commands/open-drain-valve';
+    try {
+      const response = await axiosInstance.post<FiltrationCommandResponse>(url);
+      return response.data?.success === true;
+    } catch (err) {
+      console.error('[Treatment] openDrainValve failed', err);
+      return false;
+    }
+  },
+
+  closeDrainValve: async () => {
+    const url = '/filtration/commands/close-drain-valve';
+    try {
+      const response = await axiosInstance.post<FiltrationCommandResponse>(url);
+      return response.data?.success === true;
+    } catch (err) {
+      console.error('[Treatment] closeDrainValve failed', err);
+      return false;
+    }
+  },
+
+  restartFiltration: async () => {
+    const url = '/filtration/commands/restart';
+    try {
+      const response = await axiosInstance.post<FiltrationCommandResponse>(url);
+      return response.data?.success === true;
+    } catch (err) {
+      console.error('[Treatment] restartFiltration failed', err);
+      return false;
+    }
+  },
 
   fetchLatestTreatment: async () => {
     set({ loading: true, error: null });

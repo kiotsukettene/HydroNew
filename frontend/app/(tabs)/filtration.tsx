@@ -23,6 +23,16 @@ import { subscribeMessage, publishMessage, onMQTTConnect } from '@/service/mqtt.
 import { useAuthStore } from '@/store/auth/authStore';
 import { useDeviceStore } from '@/store/device/deviceStore';
 import { useTreatmentStore } from '@/store/treatment/treatmentStore';
+
+/** Pending toast: show only when MQTT state is received for the last action. */
+type PendingFiltrationToast =
+  | 'start_process'
+  | 'open_valve_1'
+  | 'close_valve_1'
+  | 'open_drain'
+  | 'close_drain'
+  | 'restart'
+  | null;
 import NoDevice from '@/components/ui/no-device';
 import { useFocusEffect } from '@react-navigation/native';
 import { FiltrationSkeleton } from '@/components/skeletons';
@@ -50,8 +60,18 @@ interface FiltrationStage {
 export default function Filtration() {
   const userId = useAuthStore((state) => state.user?.id);
   const { devices, fetchDevice } = useDeviceStore();
-  const { updateTreatment, fetchLatestTreatment } = useTreatmentStore();
+  const {
+    updateTreatment,
+    fetchLatestTreatment,
+    startProcess: apiStartProcess,
+    openValve1: apiOpenValve1,
+    closeValve1: apiCloseValve1,
+    openDrainValve: apiOpenDrainValve,
+    closeDrainValve: apiCloseDrainValve,
+    restartFiltration: apiRestartFiltration,
+  } = useTreatmentStore();
   const [deviceChecked, setDeviceChecked] = useState(false);
+  const pendingToastRef = useRef<PendingFiltrationToast>(null);
 
   useFocusEffect(
     useCallback(() => {
@@ -365,7 +385,7 @@ export default function Filtration() {
           // Remove quotes if present
           const state = rawState.replace(/^"|"$/g, '').toLowerCase();
           
-          console.log(`[Filtration] 📨 Message received on ${topic}:`, {
+          console.log(`[Filtration] Message received on ${topic}:`, {
             raw: rawState,
             cleaned: state,
             timestamp: new Date().toISOString()
@@ -382,12 +402,20 @@ export default function Filtration() {
               'border-blue-200',
               'bg-blue-500'
             );
-            console.log(`[Filtration] ✅ Stage ${stageId} is now processing`);
+            console.log(`[Filtration]  Stage ${stageId} is now processing`);
             
             // If stage 1 is processing, disable start button and show "In Progress"
             if (stageId === 1) {
               setIsProcessStarted(true);
               setButtonText("In Progress");
+              // Toast only when we received state for a pending action
+              if (pendingToastRef.current === 'start_process') {
+                toast.success('Starting Filtration');
+                pendingToastRef.current = null;
+              } else if (pendingToastRef.current === 'restart') {
+                toast.success('Restarting filtration');
+                pendingToastRef.current = null;
+              }
             }
           } else if (state === 'passed') {
             // Mark stage as completed
@@ -400,7 +428,7 @@ export default function Filtration() {
               'border-green-100',
               'bg-green-500'
             );
-            console.log(`[Filtration] ✅ Stage ${stageId} passed`);
+            console.log(`[Filtration]  Stage ${stageId} passed`);
             
             // If all stages are completed, show success modal
             if (stageId === 4) {
@@ -420,7 +448,7 @@ export default function Filtration() {
               'border-red-200',
               'bg-red-400'
             );
-            console.log(`[Filtration] ❌ Stage ${stageId} failed`);
+            console.log(`[Filtration]  Stage ${stageId} failed`);
             
             // If stage 4 failed, show restart option
             if (stageId === 4) {
@@ -437,16 +465,16 @@ export default function Filtration() {
               'border-gray-200',
               'bg-gray-400'
             );
-            console.log(`[Filtration] ⏸️ Stage ${stageId} reset to pending`);
+            console.log(`[Filtration] ⏸ Stage ${stageId} reset to pending`);
           } else {
-            console.warn(`[Filtration] ⚠️ Unknown state received for Stage ${stageId}:`, state);
+            console.warn(`[Filtration]  Unknown state received for Stage ${stageId}:`, state);
           }
         }, 1); // QoS 1 for guaranteed delivery
         
         unsubs.push(unsubscribe);
-        console.log(`[Filtration] ✅ Successfully subscribed to ${topic} with QoS 1`);
+        console.log(`[Filtration]  Successfully subscribed to ${topic} with QoS 1`);
       } catch (error) {
-        console.error(`[Filtration] ❌ Failed to subscribe to ${topic}:`, error);
+        console.error(`[Filtration]  Failed to subscribe to ${topic}:`, error);
       }
     }
 
@@ -459,14 +487,14 @@ export default function Filtration() {
         const rawValue = payload.toString().trim();
         const value = rawValue.replace(/^"|"$/g, '');
         
-        console.log(`[Filtration] 📨 Message received on ${restartTopic}:`, {
+        console.log(`[Filtration]  Message received on ${restartTopic}:`, {
           raw: rawValue,
           cleaned: value,
           timestamp: new Date().toISOString()
         });
         
         if (value === '1') {
-          console.log('[Filtration] 🔄 Restart signal received - Stage 4 failed');
+          console.log('[Filtration]  Restart signal received - Stage 4 failed');
           
           // Mark Stage 4 as failed (red)
           updateStageStatus(
@@ -485,9 +513,9 @@ export default function Filtration() {
       }, 1); // QoS 1 for guaranteed delivery
       
       unsubs.push(unsubRestart);
-      console.log(`[Filtration] ✅ Successfully subscribed to ${restartTopic} with QoS 1`);
+      console.log(`[Filtration]  Successfully subscribed to ${restartTopic} with QoS 1`);
     } catch (error) {
-      console.error(`[Filtration] ❌ Failed to subscribe to ${restartTopic}:`, error);
+      console.error(`[Filtration]  Failed to subscribe to ${restartTopic}:`, error);
     }
 
     // Subscribe to pump state (main process pump)
@@ -497,7 +525,7 @@ export default function Filtration() {
     try {
       const unsubPump = subscribeMessage(pumpTopic, (_topic, payload) => {
         const value = payload.toString().trim();
-        console.log(`[Filtration] 📨 Message received on ${pumpTopic}:`, {
+        console.log(`[Filtration]  Message received on ${pumpTopic}:`, {
           value,
           state: value === '1' ? 'ON' : 'OFF',
           timestamp: new Date().toISOString()
@@ -506,18 +534,22 @@ export default function Filtration() {
         if (value === '1') {
           setIsProcessStarted(true);
           setButtonText("On process...");
-          console.log(`[Filtration] 🟢 Pump is ON`);
+          console.log(`[Filtration]  Pump is ON`);
+          if (pendingToastRef.current === 'start_process') {
+            toast.success('Starting Filtration');
+            pendingToastRef.current = null;
+          }
         } else if (value === '0') {
           setIsProcessStarted(false);
           setButtonText("Start Process");
-          console.log(`[Filtration] 🔴 Pump is OFF`);
+          console.log(`[Filtration]  Pump is OFF`);
         }
       }, 1); // QoS 1 for guaranteed delivery
       
       unsubs.push(unsubPump);
-      console.log(`[Filtration] ✅ Successfully subscribed to ${pumpTopic} with QoS 1`);
+      console.log(`[Filtration]  Successfully subscribed to ${pumpTopic} with QoS 1`);
     } catch (error) {
-      console.error(`[Filtration] ❌ Failed to subscribe to ${pumpTopic}:`, error);
+      console.error(`[Filtration]  Failed to subscribe to ${pumpTopic}:`, error);
     }
 
     // Subscribe to Stage 1 valve state
@@ -528,13 +560,20 @@ export default function Filtration() {
       const unsubValve1 = subscribeMessage(valve1Topic, (_topic, payload) => {
         const value = payload.toString().trim();
         setIsStageOneValveOpen(value === '1');
-        console.log(`[Filtration] 📨 Stage 1 valve: ${value === '1' ? 'OPEN' : 'CLOSED'} (${value})`);
+        console.log(`[Filtration]  Stage 1 valve: ${value === '1' ? 'OPEN' : 'CLOSED'} (${value})`);
+        if (value === '1' && pendingToastRef.current === 'open_valve_1') {
+          toast.success('Opening Stage 1 valve');
+          pendingToastRef.current = null;
+        } else if (value === '0' && pendingToastRef.current === 'close_valve_1') {
+          toast.success('Closing Stage 1 valve');
+          pendingToastRef.current = null;
+        }
       }, 1); // QoS 1 for guaranteed delivery
       
       unsubs.push(unsubValve1);
-      console.log(`[Filtration] ✅ Successfully subscribed to ${valve1Topic} with QoS 1`);
+      console.log(`[Filtration]  Successfully subscribed to ${valve1Topic} with QoS 1`);
     } catch (error) {
-      console.error(`[Filtration] ❌ Failed to subscribe to ${valve1Topic}:`, error);
+      console.error(`[Filtration]  Failed to subscribe to ${valve1Topic}:`, error);
     }
 
     // Subscribe to drain water valve state
@@ -545,19 +584,26 @@ export default function Filtration() {
       const unsubValve2 = subscribeMessage(valve2Topic, (_topic, payload) => {
         const value = payload.toString().trim();
         setIsDrainWaterValveOpen(value === '1');
-        console.log(`[Filtration] 📨 Drain valve: ${value === '1' ? 'OPEN' : 'CLOSED'} (${value})`);
+        console.log(`[Filtration]  Drain valve: ${value === '1' ? 'OPEN' : 'CLOSED'} (${value})`);
+        if (value === '1' && pendingToastRef.current === 'open_drain') {
+          toast.success('Opening drain valve');
+          pendingToastRef.current = null;
+        } else if (value === '0' && pendingToastRef.current === 'close_drain') {
+          toast.success('Closing drain valve');
+          pendingToastRef.current = null;
+        }
       }, 1); // QoS 1 for guaranteed delivery
       
       unsubs.push(unsubValve2);
-      console.log(`[Filtration] ✅ Successfully subscribed to ${valve2Topic} with QoS 1`);
+      console.log(`[Filtration]  Successfully subscribed to ${valve2Topic} with QoS 1`);
     } catch (error) {
-      console.error(`[Filtration] ❌ Failed to subscribe to ${valve2Topic}:`, error);
+      console.error(`[Filtration]  Failed to subscribe to ${valve2Topic}:`, error);
     }
 
-    console.log(`[Filtration] 🎯 Total subscriptions established: ${unsubs.length}`);
+    console.log(`[Filtration]  Total subscriptions established: ${unsubs.length}`);
 
     return () => {
-      console.log(`[Filtration] 🧹 Cleaning up ${unsubs.length} MQTT subscriptions`);
+      console.log(`[Filtration]  Cleaning up ${unsubs.length} MQTT subscriptions`);
       unsubs.forEach((u) => u());
     };
   }, [deviceSerial]);
@@ -568,36 +614,34 @@ export default function Filtration() {
     setIsStageOneExpanded(!isStageOneExpanded);
   };
 
-  // Function to start the process (publishes to pump/3)
-  const startProcess = () => {
+  // Function to start the process (calls backend API; toast when MQTT state received)
+  const startProcess = async () => {
     if (!deviceSerial) {
       toast.error("Device not found");
       return;
     }
-    
-    // Publish OPEN command to pump 3
-    publishMessage(`mfc/${deviceSerial}/pump/3`, 'OPEN', 1);
-    console.log(`[Filtration] Published OPEN to mfc/${deviceSerial}/pump/3 with QoS 1`);
-    
-    // Don't set isProcessStarted here - wait for MQTT state confirmation
+    const ok = await apiStartProcess();
+    if (!ok) {
+      toast.error("Failed to start process");
+      return;
+    }
+    pendingToastRef.current = 'start_process';
     setIsProcessFailed(false);
-    toast.success("Starting filtration process");
   };
 
-  // Function to restart the process (publishes to pump/1)
-  const restartProcess = () => {
+  // Function to restart the process (calls backend API; toast when MQTT state received)
+  const restartProcess = async () => {
     if (!deviceSerial) {
       toast.error("Device not found");
       return;
     }
-    
-    // Publish OPEN command to restart pump 1
-    publishMessage(`reservoir_fallback/${deviceSerial}/pump/1`, 'OPEN', 1);
-    console.log(`[Filtration] Published OPEN to reservoir_fallback/${deviceSerial}/pump/1 with QoS 1`);
-    
+    const ok = await apiRestartFiltration();
+    if (!ok) {
+      toast.error("Failed to restart process");
+      return;
+    }
+    pendingToastRef.current = 'restart';
     setIsProcessFailed(false);
-    setButtonText("On process...");
-    toast.success("Restarting filtration process");
   };
 
   // Function to handle button click
@@ -611,43 +655,49 @@ export default function Filtration() {
     }
   };
 
-  // Function to handle Stage One valve control (publishes to valve/1)
-  const handleCompleteStageOne = () => {
+  // Function to handle Stage One valve control (calls backend API; toast when MQTT state received)
+  const handleCompleteStageOne = async () => {
     if (!deviceSerial) {
       toast.error("Device not found");
       return;
     }
-    
     if (isStageOneValveOpen) {
-      // Publish CLOSE command
-      publishMessage(`mfc/${deviceSerial}/valve/1`, 'CLOSE', 1);
-      console.log(`[Filtration] Published CLOSE to mfc/${deviceSerial}/valve/1 with QoS 1`);
-      toast.success("Closing Stage 1 valve");
+      const ok = await apiCloseValve1();
+      if (!ok) {
+        toast.error("Failed to close valve");
+        return;
+      }
+      pendingToastRef.current = 'close_valve_1';
     } else {
-      // Publish OPEN command
-      publishMessage(`mfc/${deviceSerial}/valve/1`, 'OPEN', 1);
-      console.log(`[Filtration] Published OPEN to mfc/${deviceSerial}/valve/1 with QoS 1`);
-      toast.success("Opening Stage 1 valve");
+      const ok = await apiOpenValve1();
+      if (!ok) {
+        toast.error("Failed to open valve");
+        return;
+      }
+      pendingToastRef.current = 'open_valve_1';
     }
   };
 
-  // Function to handle drain water action (publishes to valve/2)
-  const handleDrainWater = () => {
+  // Function to handle drain water action (calls backend API; toast when MQTT state received)
+  const handleDrainWater = async () => {
     if (!deviceSerial) {
       toast.error("Device not found");
       return;
     }
-    
     if (isDrainWaterValveOpen) {
-      // Publish CLOSE command
-      publishMessage(`mfc_fallback/${deviceSerial}/valve/2`, 'CLOSE', 1);
-      console.log(`[Filtration] Published CLOSE to mfc_fallback/${deviceSerial}/valve/2 with QoS 1`);
-      toast.success("Closing drain valve");
+      const ok = await apiCloseDrainValve();
+      if (!ok) {
+        toast.error("Failed to close drain valve");
+        return;
+      }
+      pendingToastRef.current = 'close_drain';
     } else {
-      // Publish OPEN command
-      publishMessage(`mfc_fallback/${deviceSerial}/valve/2`, 'OPEN', 1);
-      console.log(`[Filtration] Published OPEN to mfc_fallback/${deviceSerial}/valve/2 with QoS 1`);
-      toast.success("Opening drain valve");
+      const ok = await apiOpenDrainValve();
+      if (!ok) {
+        toast.error("Failed to open drain valve");
+        return;
+      }
+      pendingToastRef.current = 'open_drain';
     }
   };
 
