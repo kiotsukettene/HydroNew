@@ -14,7 +14,7 @@ import { NetworkAlert } from "@/components/ui/network-alert";
 import { useEchoSetup } from "@/app/hooks/useEchoSetup";
 
 import { useAuthStore } from "@/store/auth/authStore";
-import { getMQTTClient } from "@/service/mqtt.client";
+import { connectWithClientId } from "@/service/mqtt.client";
 
 SplashScreen.preventAutoHideAsync();
 
@@ -97,8 +97,11 @@ export default function RootLayout() {
   }, [fontsLoaded]);
 
   useEffect(() => {
-    getMQTTClient();
-  }, []);
+    const userId = user?.id;
+    if (userId) {
+      connectWithClientId(String(userId));
+    }
+  }, [user?.id]);
 
 useEffect(() => {
   console.log("Initializing NetInfo listener");

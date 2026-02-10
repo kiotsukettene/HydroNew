@@ -76,6 +76,12 @@ export interface UpdateStageResponse {
   data: TreatmentStageRecord;
 }
 
+/** Filtration command API response (success/error only). */
+export interface FiltrationCommandResponse {
+  success: boolean;
+  message?: string;
+}
+
 export interface TreatmentStore {
   loading: boolean;
   error: string | null;
@@ -84,9 +90,38 @@ export interface TreatmentStore {
 
   saveTreatment: () => Promise<TreatmentReport | null>;
   updateTreatment: (total_cycles: number) => Promise<TreatmentReport | null>;
-  saveStage: (payload: SaveStagePayload) => Promise<TreatmentStageRecord | null>;
-  /** Update stage result — PUT /treatment/update-stages (passed when completed, failed when failed). */
-  updateStage: (payload: UpdateStagePayload) => Promise<TreatmentStageRecord | null>;
+  fetchLatestTreatment: () => Promise<LatestTreatmentData | null>;
   resetError: () => void;
   clearCurrentTreatment: () => void;
+
+  /** Filtration commands (call backend API; toasts shown when MQTT state is received in UI). */
+  startProcess: () => Promise<boolean>;
+  openValve1: () => Promise<boolean>;
+  closeValve1: () => Promise<boolean>;
+  openDrainValve: () => Promise<boolean>;
+  closeDrainValve: () => Promise<boolean>;
+  restartFiltration: () => Promise<boolean>;
+}
+
+/** Stage data from GET /treatment/latest */
+export interface LatestTreatmentStage {
+  id: number;
+  stage_name: TreatmentStageName;
+  stage_order: number;
+  status: 'passed' | 'processing' | 'pending' | 'failed';
+  ph: number | null;
+  tds: number | null;
+  turbidity: number | null;
+  notes: string | null;
+}
+
+/** Treatment data from GET /treatment/latest */
+export interface LatestTreatmentData {
+  id: number;
+  device_id: number;
+  start_time: string;
+  end_time: string | null;
+  final_status: 'pending' | 'success' | 'failed';
+  total_cycles: number | null;
+  stages: LatestTreatmentStage[];
 }
