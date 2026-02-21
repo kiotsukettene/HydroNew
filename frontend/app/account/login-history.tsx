@@ -1,9 +1,9 @@
 import { PageHeader } from '@/components/ui/page-header'
 import React, { useState } from 'react'
-import { ScrollView, View, Text, Pressable, TextInput, Keyboard, TouchableOpacity} from 'react-native'
+import { ScrollView, View, Text, Pressable, TextInput, Keyboard} from 'react-native'
 import { THEME } from '@/lib/theme'
 import { Card, CardContent } from '@/components/ui/card'
-import { Search, UserRoundCheck } from 'lucide-react-native'
+import { UserRoundCheck } from 'lucide-react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 export default function LoginHistory() {
 
@@ -30,24 +30,7 @@ export default function LoginHistory() {
   ];
 
   const [selectedId, setSelectedId] = useState<number | null>(null);
-  const [query, setQuery] = useState("");
 
-  const filteredHistory = loginHistory.filter(entry => {
-    const q = query.trim().toLowerCase();
-    // Format date and time for searching
-    const dateStr = new Date(entry.created_at).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' }).toLowerCase();
-    const timeStr = new Date(entry.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }).toLowerCase();
-    return (
-      entry.ip_address.toLowerCase().includes(q) ||
-      String(entry.user_id).includes(q) ||
-      dateStr.includes(q) ||
-      timeStr.includes(q)
-    );
-  });
-
-  const triggerSearch = () => {
-    Keyboard.dismiss();
-  };
 
   return (
     <SafeAreaView className="flex-1 bg-white">
@@ -55,23 +38,10 @@ export default function LoginHistory() {
         <PageHeader title="Login History" showNotificationButton={true} />
         {/* ===== Search Bar ===== */}
         <View className="w-full px-5 mt-4">
-              {/* Search + Filter */}
-            <View className="mt-1 mb-3 flex-row items-center gap-2">
-              <View className="flex-1 flex-row items-center rounded-xl border border-muted-foreground/30 px-3 py-2">
-                <Search size={30} color="#888" />
-                <TextInput
-                  placeholder="Search here…"
-                  placeholderTextColor="#9CA3AF"
-                  className="ml-2 flex-1 text-base "
-                  returnKeyType="search"
-                />
-              </View>
              
-            </View>
-         
         </View>
         <ScrollView className="mt-4 px-2" showsVerticalScrollIndicator={true} contentContainerStyle={{ flexGrow: 1 }}>
-          {filteredHistory.map((entry) => {
+          {loginHistory.map((entry) => {
             const isSelected = selectedId === entry.id;
             return (
               <Pressable
