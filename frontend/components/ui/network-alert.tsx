@@ -38,7 +38,7 @@ export function NetworkAlert() {
       {/* FOREGROUND CONTENT */}
       <View className="absolute inset-0 justify-center items-center px-6">
         <Image
-          source={require("@/assets/images/no-plants-icon.png")}
+          source={require("@/assets/images/no-connected.png")}
           className="w-48 h-48 mb-6"
           resizeMode="contain"
         />
