@@ -18,3 +18,18 @@ export interface TipsResponse {
   bullet_points: TipItem[];
 }
 
+export interface BackendTipsResponse {
+  system_type: string;
+  device_id: number | null;
+  current_reading: any;
+  insights: TipsResponse;
+  statuses: any;
+  missing_sensors: string[];
+  evidence: any[];
+  retrieved_context: any;
+  cached: boolean;
+  cached_at?: string;
+  expires_at?: string;
+  note: string;
+}
+

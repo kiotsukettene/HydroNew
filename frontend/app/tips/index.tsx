@@ -13,7 +13,7 @@ import { useDeviceStore } from '@/store/device/deviceStore';
 export default function TipsSuggestionPage() {
   const user = useAuthStore(state => state.user);
   const devices = useDeviceStore(state => state.devices);
-  const { data, loading, error, fetchTips } = useTipStore();
+  const { data, loading, error, cached, cachedAt, expiresAt, fetchTips } = useTipStore();
 
   useFocusEffect(
     useCallback(() => {
