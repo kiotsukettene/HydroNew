@@ -117,19 +117,7 @@ export default function LettuceView() {
             title="Hydroponics Monitoring" 
             showBackButton={true} 
             showNotificationButton={false}
-            rightButton={
-              <TouchableOpacity 
-                onPress={() => {
-                  if (setupId) {
-                    router.push(`/hydroponics-monitoring/hydroponics-setup-edit?id=${setupId}` as any);
-                  }
-                }}
-                className="w-10 h-10 items-center justify-center"
-                disabled={loading || !currentSetup}
-              >
-                <Icon as={Edit} size={20} className="text-primary" />
-              </TouchableOpacity>
-            }
+            
           />
         </View>
 
@@ -154,7 +142,8 @@ export default function LettuceView() {
 
         {/* =========== Folder Section =========== */}
         <View className="flex-1 px-4 pt-5 pb-5">
-          <FolderBg>
+          <View style={{ position: 'relative' }}>
+            <FolderBg>
             <View className="flex-1 justify-between p-4">
               <View>
                 <Text className="mb-4 text-xl font-bold text-white">
@@ -202,6 +191,30 @@ export default function LettuceView() {
               </View>
             </View>
           </FolderBg>
+            <Button
+              style={{
+                position: 'absolute',
+                top: '2.2%',
+                right: '1.85%',
+                width: '24.6%',
+                height: '19.3%',
+                borderRadius: 20,
+                backgroundColor: '#D9D9D9',
+                
+              }}
+              disabled={loading || !currentSetup}
+              className="rounded-[20px] bg-[#D9D9D9]"
+              onPress={() => {
+                  if (setupId) {
+                    router.push(`/hydroponics-monitoring/hydroponics-setup-edit?id=${setupId}` as any);
+                  }
+                }}>
+
+              <Edit size={16} className="text-foreground" />
+              <Text className="text-foreground font-semibold">Edit</Text>
+            </Button>
+           
+          </View>
 
           {/* Mark as Harvested Button - Outside FolderBg */}
           <View>
