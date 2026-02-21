@@ -15,6 +15,7 @@ import { useSensorStore } from '@/store/sensor/sensorStore';
 import { subscribeMessage, publishWithAck } from '@/service/mqtt.client';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useAuthStore } from '@/store/auth/authStore';
+import { Separator } from '@/components/ui/separator';
 
 export default function LettuceView() {
   const router = useRouter();
@@ -141,18 +142,18 @@ export default function LettuceView() {
         </View>
 
         {/* =========== Folder Section =========== */}
-        <View className="flex-1 px-4 pt-5 pb-5">
+        <View className="flex-1 px-4  pb-5">
           <View style={{ position: 'relative' }}>
             <FolderBg>
             <View className="flex-1 justify-between p-4">
               <View>
-                <Text className="mb-4 text-xl font-bold text-white">
+                <Text className="mb-4 text-2xl font-bold text-white">
                   {currentSetup?.crop_name
                     ? currentSetup.crop_name.charAt(0).toUpperCase() +
                       currentSetup.crop_name.slice(1)
                     : 'Loading...'}
                 </Text>
-
+                <Separator className='mb-3 -mt-3 w-32 opacity-40'/>
                 <View className="flex-row justify-between">
                   <View className="flex-1">
                     <Text className="text-xl font-bold text-white">
@@ -220,7 +221,7 @@ export default function LettuceView() {
           <View>
             <Button
               variant="outline"
-              className={`w-full rounded-xl mt-2 ${!canHarvest ? 'opacity-50 border-muted-foreground' : 'border-primary'}`}
+              className={`w-full rounded-xl mt-4 ${!canHarvest ? 'opacity-50 border-muted-foreground' : 'border-primary border-2'}`}
               onPress={() => {
                 router.push({
                   pathname: '/hydroponics-monitoring/harvest-form',
@@ -247,7 +248,7 @@ export default function LettuceView() {
         <View className="px-4 pb-4">
           <View className="flex-row bg-gray-100 rounded-xl p-1">
             <TouchableOpacity
-              activeOpacity={0.7}
+              activeOpacity={1}
               className={`flex-1 py-3 rounded-lg ${activeTab === 'monitoring' ? 'bg-primary' : 'bg-transparent'}`}
               onPress={() => setActiveTab('monitoring')}
             >
@@ -256,7 +257,7 @@ export default function LettuceView() {
               </Text>
             </TouchableOpacity>
             <TouchableOpacity
-              activeOpacity={0.7}
+              activeOpacity={1}
               className={`flex-1 py-3 rounded-lg ${activeTab === 'details' ? 'bg-primary' : 'bg-transparent'}`}
               onPress={() => setActiveTab('details')}
             >
@@ -282,7 +283,7 @@ export default function LettuceView() {
                   <View className="flex-1">
                     <View className="flex-row items-center gap-2 mb-1">
                       <Icon as={Activity} size={16} className="text-muted-foreground" />
-                      <Text className="text-sm text-muted-foreground">pH Level</Text>
+                      <Text className="text-base text-muted-foreground">pH Level</Text>
                     </View>
                     <Text className="text-3xl font-bold">
                       {hydroponicsWater?.ph != null && !isNaN(hydroponicsWater.ph) ? hydroponicsWater.ph.toFixed(2) : '--'}
@@ -346,8 +347,8 @@ export default function LettuceView() {
         {activeTab === 'details' && (
           <View className="px-4 pb-5">
             <Card className="rounded-2xl p-6">
-              <Text className="mb-4 text-lg font-semibold">Crop Details</Text>
-
+              <Text className="text-base font-semibold">Your Crop Details:</Text>
+              <Separator className='w-full '/>
               {/* Basic Info */}
               <View className="mb-4 flex-row justify-between">
                 <View className="flex-1">
