@@ -7,7 +7,7 @@ import { Icon } from '@/components/ui/icon';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { PageHeader } from '@/components/ui/page-header';
 import FolderBg from '@/components/ui/folder-bg';
-import { Droplet, Leaf, Activity, Thermometer, Wind, Edit } from 'lucide-react-native';
+import { Droplet, Leaf, Activity, Thermometer, Wind, Edit, AlertTriangle } from 'lucide-react-native';
 import { Text } from '@/components/ui/text';
 import { Card } from '@/components/ui/card';
 import { useLocalSearchParams, useRouter } from 'expo-router';
@@ -17,6 +17,7 @@ import { subscribeMessage, publishWithAck } from '@/service/mqtt.client';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useAuthStore } from '@/store/auth/authStore';
 import { Separator } from '@/components/ui/separator';
+import { ConfirmationModal } from '@/components/ui/confirmation-modal';
 
 export default function LettuceView() {
   const router = useRouter();
@@ -30,9 +31,11 @@ export default function LettuceView() {
   const [isHydroponicsPumpRunning, setIsHydroponicsPumpRunning] = useState(false);
   /** Waiting for ack after clicking Start Pump. */
   const [isWaitingForPumpAck, setIsWaitingForPumpAck] = useState(false);
-  
+  const [isLowWaterWarningVisible, setIsLowWaterWarningVisible] = useState(false);
+
   // Real-time hydroponics sensor data - read directly from store (subscription is in _layout.tsx via useEchoSetup)
   const hydroponicsWater = useSensorStore((state) => state.hydroponicsWater);
+  const cleanWater = useSensorStore((state) => state.cleanWater);
 
   // Check if harvest is allowed (plant age must be >= 14 days)
   const canHarvest = currentSetup ? (currentSetup.plant_age ?? 0) >= 14 : false;
@@ -238,13 +241,34 @@ export default function LettuceView() {
               <View className="mt-7">
                 <Button
                   className={`w-full rounded-xl bg-emerald-50 ${(isHydroponicsPumpRunning || isWaitingForPumpAck) ? 'opacity-50' : ''}`}
-                  onPress={() => pumpWater()}
+                  onPress={() => {
+                    const waterLevel = cleanWater?.water_level ?? 0;
+                    if (waterLevel <= 10) {
+                      setIsLowWaterWarningVisible(true);
+                    } else {
+                      pumpWater();
+                    }
+                  }}
                   disabled={loading || isHydroponicsPumpRunning || isWaitingForPumpAck}>
                   <Icon as={Droplet} className="text-primary" />
                   <Text className="ml-2 text-primary">
                     {isWaitingForPumpAck ? 'Starting...' : isHydroponicsPumpRunning ? 'Pumping water...' : 'Start Pump'}
                   </Text>
                 </Button>
+                <ConfirmationModal
+                  visible={isLowWaterWarningVisible}
+                  icon={<Icon as={AlertTriangle} size={40} color="#eab308" />}
+                  iconBgColor="bg-yellow-100"
+                  modalTitle="Low Water Warning"
+                  modalDescription={`Your clean water tank is ${cleanWater?.water_level != null && !isNaN(cleanWater.water_level) ? cleanWater.water_level.toFixed(0) : ' '}running low. Pumping now may not be enough to irrigate your crops properly. Are you sure you want to continue?`}
+                  confirmText="Yes, Pump it"
+                  confirmButtonColor="bg-primary"
+                  onCancel={() => setIsLowWaterWarningVisible(false)}
+                  onConfirm={() => {
+                    setIsLowWaterWarningVisible(false);
+                    pumpWater();
+                  }}
+                />
               </View>
             </View>
           </FolderBg>
