@@ -1,5 +1,7 @@
 import { View, Image, ScrollView, Pressable, LayoutAnimation, Platform, UIManager } from 'react-native';
+import { Skeleton } from '@/components/ui/skeleton';
 import React, { useState, useEffect, useRef } from 'react';
+import { FiltrationSkeleton } from '@/components/skeletons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { PageHeader } from '@/components/ui/page-header';
 import { Card } from '@/components/ui/card';
@@ -78,12 +80,14 @@ export default function Filtration() {
   const [isRestartPumpOpen, setIsRestartPumpOpen] = useState(false);
   const autoCloseRestartPumpTriggeredRef = useRef(false);
   const autoCompleteStageOneTreatmentIdRef = useRef<number | null>(null);
+  const [bgImageLoaded, setBgImageLoaded] = useState(false);
   const autoCloseStageOneTriggeredRef = useRef(false);
   const autoCloseDrainWaterTriggeredRef = useRef(false);
   const [isStageOneValveOpen, setIsStageOneValveOpen] = useState(false);
   const [isDrainWaterValveOpen, setIsDrainWaterValveOpen] = useState(false);
   const [isWaitingForStartAck, setIsWaitingForStartAck] = useState(false);
   const [isWaitingForRestartAck, setIsWaitingForRestartAck] = useState(false);
+  const [isInitialLoad, setIsInitialLoad] = useState(true);
 
   // Initialize all stages as pending
   const [filtrationStages, setFiltrationStages] = useState<FiltrationStage[]>([
@@ -189,7 +193,10 @@ const startTreatment = async () => {
 
   useEffect(() => {
     const getDeviceSerial = async () => {
-      if (!userId) return;
+      if (!userId) {
+        setIsInitialLoad(false);
+        return;
+      }
       
       try {
         const storageKey = `paired_device:${userId}`;
@@ -201,6 +208,8 @@ const startTreatment = async () => {
         }
       } catch (error) {
         console.error("Failed to retrieve device serial:", error);
+      } finally {
+        setIsInitialLoad(false);
       }
     };
 
@@ -722,6 +731,10 @@ const startTreatment = async () => {
   };
 
  
+  if (isInitialLoad) {
+    return <FiltrationSkeleton />;
+  }
+
   return (  
     <SafeAreaView className="flex-1 relative bg-background">
       <Image
