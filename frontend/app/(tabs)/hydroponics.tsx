@@ -1,5 +1,13 @@
-import { View, Image, Pressable, ScrollView, ActivityIndicator, RefreshControl } from 'react-native';
-import React, { useCallback, useState } from 'react';
+import {
+  View,
+  Image,
+  Pressable,
+  ScrollView,
+  ActivityIndicator,
+  RefreshControl,
+  TextInput,
+} from 'react-native';
+import React, { useCallback, useMemo, useState } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { PageHeader } from '@/components/ui/page-header';
 import { Dimensions } from 'react-native';
@@ -10,17 +18,17 @@ import { useRouter } from 'expo-router';
 import { Button } from '@/components/ui/button';
 import NoSetup from '@/app/hydroponics-monitoring/no-setup';
 import { useFocusEffect } from '@react-navigation/native';
-
 import { useHydroponicSetupStore } from '@/store/hydroponics/hydroponicSetupStore';
 import { HydroponicsSkeleton } from '@/components/skeletons';
+import { Search } from 'lucide-react-native';
 
 const { height: screenHeight } = Dimensions.get('window');
 
 export default function Hydroponics() {
   const router = useRouter();
-  const { 
-    hydroponicSetups, 
-    fetchHydroponicSetups, 
+  const {
+    hydroponicSetups,
+    fetchHydroponicSetups,
     loading,
     loadingMore,
     hasMore,
@@ -29,6 +37,23 @@ export default function Hydroponics() {
   } = useHydroponicSetupStore();
 
   const [refreshing, setRefreshing] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+
+  const filteredSetups = useMemo(() => {
+    const q = searchQuery.trim().toLowerCase();
+    if (!q) return hydroponicSetups;
+    return hydroponicSetups.filter((item) => {
+      const cropMatch = item.crop_name?.toLowerCase().includes(q);
+      const idMatch = String(item.id).includes(q);
+      const dateStr = new Date(item.setup_date).toLocaleDateString('en-US', {
+        month: 'long',
+        day: 'numeric',
+        year: 'numeric',
+      });
+      const dateMatch = dateStr.toLowerCase().includes(q);
+      return cropMatch || idMatch || dateMatch;
+    });
+  }, [hydroponicSetups, searchQuery]);
 
   useFocusEffect(
     useCallback(() => {
@@ -47,7 +72,7 @@ export default function Hydroponics() {
   if (loading && hydroponicSetups.length === 0) {
     return <HydroponicsSkeleton />;
   }
-  
+
   if (!loading && hydroponicSetups.length === 0) return <NoSetup />;
   const handleLoadMore = useCallback(() => {
     if (hasMore && !loadingMore && !loading) {
@@ -55,37 +80,51 @@ export default function Hydroponics() {
     }
   }, [hasMore, loadingMore, loading, loadMore]);
 
-
-  const renderPlantItem = (item: any) => (
-    <View key={item.id}>
-      <Pressable 
-        onPress={() => router.push({
-          pathname: "/hydroponics-monitoring/lettuce-view",
-          params: { id: item.id }
-        })}>
-        <Card className="relative items-center justify-center overflow-hidden border-muted-foreground/30 bg-white py-6 px-6 sm:p-6">
-          <View className="relative flex w-full flex-row items-center justify-between">
-            <View className="flex-1 pr-4">
-              <Text className="text-xl font-semibold sm:text-xl">
-                Setup {item.id}: {item.crop_name.charAt(0).toUpperCase() + item.crop_name.slice(1)}
-              </Text>
-              <Label className="text-sm font-normal text-muted-foreground">
-                {new Date(item.setup_date).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
-              </Label>
-              <Text className="mt-1 text-sm font-medium text-primary">
-                Growth: {item.growth_percentage}% • {item.growth_stage ? item.growth_stage.charAt(0).toUpperCase() + item.growth_stage.slice(1) : ''}
-              </Text>
+  const renderPlantItem = (item: any) => {
+    return (
+      <View key={item.id}>
+        <Pressable
+          onPress={() =>
+            router.push({
+              pathname: '/hydroponics-monitoring/lettuce-view',
+              params: { id: item.id },
+            })
+          }>
+          <Card className="relative items-center justify-center overflow-hidden border-muted-foreground/30 bg-white px-6 py-6 sm:p-6">
+            <View className="relative flex w-full flex-row items-center justify-between">
+              <View className="flex-1 pr-4">
+                <Text className="text-xl font-semibold sm:text-xl">
+                  Setup {item.id}:{' '}
+                  {item.crop_name.charAt(0).toUpperCase() + item.crop_name.slice(1)}
+                </Text>
+                <Label className="text-sm font-normal text-muted-foreground">
+                  {new Date(item.setup_date).toLocaleDateString('en-US', {
+                    month: 'long',
+                    day: 'numeric',
+                    year: 'numeric',
+                  })}
+                </Label>
+                <Text className="mt-1 text-sm font-medium text-primary">
+                  Growth:{' '}
+                  <Text className="bg-muted text-sm text-muted-foreground/80">
+                    {item.growth_percentage}% •{' '}
+                    {item.growth_stage
+                      ? item.growth_stage.charAt(0).toUpperCase() + item.growth_stage.slice(1)
+                      : ''}
+                  </Text>
+                </Text>
+              </View>
+              <Image
+                source={require('@/assets/images/lettuce-2.png')}
+                className="size-12 opacity-55 sm:h-20 sm:w-20 md:h-24 md:w-24"
+                resizeMode="contain"
+              />
             </View>
-            <Image
-              source={require('@/assets/images/lettuce-2.png')}
-              className="size-12 opacity-55 sm:h-20 sm:w-20 md:h-24 md:w-24"
-              resizeMode="contain"
-            />
-          </View>
-        </Card>
-      </Pressable>
-    </View>
-  );
+          </Card>
+        </Pressable>
+      </View>
+    );
+  };
 
   return (
     <SafeAreaView className="relative flex-1 bg-background">
@@ -111,49 +150,67 @@ export default function Hydroponics() {
               colors={['#2D7D7D']}
               tintColor="#2D7D7D"
             />
-          }
-        >
-          <View className="mt-36 relative z-10">
+          }>
+          <View className="relative z-10 mt-36">
             <Card className="rounded-t-3xl border-transparent p-5 sm:p-6">
-              <View className="mb-2">
+              <View className="mb-1">
                 <Text className="text-2xl font-bold">My Plants</Text>
                 <Text className="mt-1 text-base text-muted-foreground">
                   Add and select your hydroponic plants to monitor their growth and health.
                 </Text>
 
-                <Button className="mt-4" onPress={() => router.push('/hydroponics-monitoring/hydroponics-setup')}>
+                <Button
+                  className="mt-4"
+                  onPress={() => router.push('/hydroponics-monitoring/hydroponics-setup')}>
                   <Text>Add New Plant</Text>
                 </Button>
 
-                <Button variant={'outline'} className="mt-4" onPress={() => router.push('/hydroponics-monitoring/harvested-list')}>
+                <Button
+                  variant={'outline'}
+                  className="mt-3"
+                  onPress={() => router.push('/hydroponics-monitoring/harvested-list')}>
                   <Text>View Harvested Crops</Text>
                 </Button>
+
+               
               </View>
+               <View className="mt-1 flex-row items-center rounded-xl border border-muted-foreground/30 px-3 py-2">
+                  <Search size={18} color="#888" />
+                  <TextInput
+                    placeholder="Search here..."
+                    placeholderTextColor="#9CA3AF"
+                    className="ml-2 flex-1 text-base"
+                    value={searchQuery}
+                    onChangeText={setSearchQuery}
+                    returnKeyType="search"
+                    editable={!loading}
+                  />
+                </View>
 
               {loading ? (
                 <View className="mt-10 items-center py-10">
                   <ActivityIndicator size="large" color="#2D7D7D" />
-                  <Text className="mt-4 text-center text-muted-foreground">
-                    Loading...
-                  </Text>
+                  <Text className="mt-4 text-center text-muted-foreground">Loading...</Text>
                 </View>
               ) : hydroponicSetups && hydroponicSetups.length > 0 ? (
                 <>
-                  {hydroponicSetups.map((item) => renderPlantItem(item))}
-                  
+                  {filteredSetups.length === 0 ? (
+                    <Text className="py-6 text-center text-muted-foreground">
+                      No setups match your search.
+                    </Text>
+                  ) : (
+                    <>{filteredSetups.map((item) => renderPlantItem(item))}</>
+                  )}
+
                   {loadingMore && (
-                    <View className="py-4 items-center">
+                    <View className="items-center py-4">
                       <ActivityIndicator size="small" color="#2D7D7D" />
                       <Text className="mt-2 text-xs text-muted-foreground">Loading more...</Text>
                     </View>
                   )}
-                  
+
                   {hasMore && !loadingMore && (
-                    <Button 
-                      variant="outline" 
-                      className="mt-4"
-                      onPress={handleLoadMore}
-                    >
+                    <Button variant="outline" className="mt-4" onPress={handleLoadMore}>
                       <Text>Load More</Text>
                     </Button>
                   )}

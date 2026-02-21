@@ -429,11 +429,11 @@ export default function HarvestForm() {
       {/* Confirmation Modal */}
       <ConfirmationModal
         visible={showConfirmModal}
-        icon={<Icon as={CheckCircle} size={32} className="text-white" />}
+        icon={<Icon as={CheckCircle} size={32} className="text-primary " />}
         modalTitle="Mark as Harvested?"
         modalDescription="This action will mark this setup as harvested and move it to your harvest history. This cannot be undone."
         confirmText="Confirm Harvest"
-        iconBgColor="bg-primary"
+        iconBgColor="bg-green-50"
         confirmButtonColor="bg-primary"
         onConfirm={handleMarkAsHarvested}
         onCancel={() => setShowConfirmModal(false)}
