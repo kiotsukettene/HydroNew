@@ -5,9 +5,8 @@ import {
   ScrollView,
   ActivityIndicator,
   RefreshControl,
-  TextInput,
 } from 'react-native';
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { PageHeader } from '@/components/ui/page-header';
 import { Dimensions } from 'react-native';
@@ -20,7 +19,6 @@ import NoSetup from '@/app/hydroponics-monitoring/no-setup';
 import { useFocusEffect } from '@react-navigation/native';
 import { useHydroponicSetupStore } from '@/store/hydroponics/hydroponicSetupStore';
 import { HydroponicsSkeleton } from '@/components/skeletons';
-import { Search } from 'lucide-react-native';
 
 const { height: screenHeight } = Dimensions.get('window');
 
@@ -37,23 +35,6 @@ export default function Hydroponics() {
   } = useHydroponicSetupStore();
 
   const [refreshing, setRefreshing] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('');
-
-  const filteredSetups = useMemo(() => {
-    const q = searchQuery.trim().toLowerCase();
-    if (!q) return hydroponicSetups;
-    return hydroponicSetups.filter((item) => {
-      const cropMatch = item.crop_name?.toLowerCase().includes(q);
-      const idMatch = String(item.id).includes(q);
-      const dateStr = new Date(item.setup_date).toLocaleDateString('en-US', {
-        month: 'long',
-        day: 'numeric',
-        year: 'numeric',
-      });
-      const dateMatch = dateStr.toLowerCase().includes(q);
-      return cropMatch || idMatch || dateMatch;
-    });
-  }, [hydroponicSetups, searchQuery]);
 
   useFocusEffect(
     useCallback(() => {
@@ -171,21 +152,7 @@ export default function Hydroponics() {
                   onPress={() => router.push('/hydroponics-monitoring/harvested-list')}>
                   <Text>View Harvested Crops</Text>
                 </Button>
-
-               
               </View>
-               <View className="mt-1 flex-row items-center rounded-xl border border-muted-foreground/30 px-3 py-2">
-                  <Search size={18} color="#888" />
-                  <TextInput
-                    placeholder="Search here..."
-                    placeholderTextColor="#9CA3AF"
-                    className="ml-2 flex-1 text-base"
-                    value={searchQuery}
-                    onChangeText={setSearchQuery}
-                    returnKeyType="search"
-                    editable={!loading}
-                  />
-                </View>
 
               {loading ? (
                 <View className="mt-10 items-center py-10">
@@ -194,13 +161,7 @@ export default function Hydroponics() {
                 </View>
               ) : hydroponicSetups && hydroponicSetups.length > 0 ? (
                 <>
-                  {filteredSetups.length === 0 ? (
-                    <Text className="py-6 text-center text-muted-foreground">
-                      No setups match your search.
-                    </Text>
-                  ) : (
-                    <>{filteredSetups.map((item) => renderPlantItem(item))}</>
-                  )}
+                  {hydroponicSetups.map((item) => renderPlantItem(item))}
 
                   {loadingMore && (
                     <View className="items-center py-4">
