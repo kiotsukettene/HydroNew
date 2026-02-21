@@ -1,4 +1,5 @@
 import { View, Image, ScrollView, TouchableOpacity } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import React, { useEffect, useState } from 'react';
 import { toast } from 'sonner-native';
 import { Button } from '@/components/ui/button';
@@ -35,6 +36,21 @@ export default function LettuceView() {
 
   // Check if harvest is allowed (plant age must be >= 14 days)
   const canHarvest = currentSetup ? (currentSetup.plant_age ?? 0) >= 14 : false;
+
+  const isPhOutOfRange =
+    hydroponicsWater?.ph != null &&
+    currentSetup
+      ? hydroponicsWater.ph < currentSetup.target_ph_min ||
+        hydroponicsWater.ph > currentSetup.target_ph_max
+      : false;
+
+  const isTdsOutOfRange =
+    hydroponicsWater?.tds != null &&
+    currentSetup
+      ? hydroponicsWater.tds < currentSetup.target_tds_min ||
+        hydroponicsWater.tds > currentSetup.target_tds_max
+      : false;
+
 
   // mappings here for each GIF you want to support.
   const cropGifMap: Record<string, any> = {
@@ -129,15 +145,55 @@ export default function LettuceView() {
             borderBottomLeftRadius: 30,
             borderBottomRightRadius: 30,
           }}>
-          <View className="items-center justify-center py-4">
+          <View className="items-center justify-center py-2">
             {/* fixed-size container: constrains layout so only the GIF changes size */}
             <View style={{ width: imageSize, height: imageSize, alignItems: 'center', justifyContent: 'center' }}>
+              {/* Soft gradient background behind image (radial-style glow) */}
+              <LinearGradient
+                colors={[
+                  
+                  'rgba(34,197,94,0.08)',
+                  'rgba(34,197,94,0.04)',
+                ]}
+                locations={[0, 0.3, 0.5, 0.7, 1]}
+                style={{
+                  position: 'absolute',
+                  width: imageSize * 0.75,
+                  height: imageSize * 0.75,
+                  borderRadius: imageSize * 0.45,
+                }}
+                start={{ x: 0, y: 0.5 }}
+                end={{ x: 1, y: 0.5 }}
+              />
               <Image
                 source={plantImageSource}
                 style={{ width: '100%', height: '100%' }}
                 resizeMode="contain"
               />
             </View>
+            {/* Growth progress indicator */}
+            {currentSetup?.plant_age != null && currentSetup?.days_left != null && (() => {
+              const totalDays = currentSetup.plant_age + currentSetup.days_left;
+              const progressPercent = totalDays > 0
+                ? Math.min(100, Math.max(0, (currentSetup.plant_age / totalDays) * 100))
+                : 0;
+              return (
+                <View className="w-full px-6 mt-3">
+                  <View className="flex-row justify-between items-center mb-1.5">
+                    <Text className="text-xs text-muted-foreground">Growth</Text>
+                    <Text className="text-xs font-semibold text-muted-foreground">
+                      {Math.round(progressPercent)}%
+                    </Text>
+                  </View>
+                  <View className="h-1.5 w-full rounded-full bg-gray-200 overflow-hidden">
+                    <View
+                      className="h-full rounded-full bg-primary"
+                      style={{ width: `${progressPercent}%` }}
+                    />
+                  </View>
+                </View>
+              );
+            })()}
           </View>
         </View>
 
@@ -221,7 +277,7 @@ export default function LettuceView() {
           <View>
             <Button
               variant="outline"
-              className={`w-full rounded-xl mt-4 ${!canHarvest ? 'opacity-50 border-muted-foreground' : 'border-primary border-2'}`}
+              className={`w-full rounded-2xl mt-4 ${!canHarvest ? 'opacity-50 border-muted-foreground' : 'border-primary'}`}
               onPress={() => {
                 router.push({
                   pathname: '/hydroponics-monitoring/harvest-form',
@@ -278,16 +334,19 @@ export default function LettuceView() {
             {/* Monitoring Cards Grid */}
             <View className="gap-3">
               {/* pH Level Card */}
-              <Card className="p-4 border border-muted-foreground/20">
+              <Card className={`p-4 border ${isPhOutOfRange ? 'border-red-300' : 'border-muted-foreground/20'}`}>
                 <View className="flex-row items-center justify-between">
                   <View className="flex-1">
                     <View className="flex-row items-center gap-2 mb-1">
                       <Icon as={Activity} size={16} className="text-muted-foreground" />
                       <Text className="text-base text-muted-foreground">pH Level</Text>
                     </View>
-                    <Text className="text-3xl font-bold">
+                    <Text className={`text-3xl font-bold ${isPhOutOfRange ? 'text-red-500' : ''}`}>
                       {hydroponicsWater?.ph != null && !isNaN(hydroponicsWater.ph) ? hydroponicsWater.ph.toFixed(2) : '--'}
                     </Text>
+                    {isPhOutOfRange && (
+                      <Text className="text-xs text-red-500 mt-1">pH level is outside the target range</Text>
+                    )}
                   </View>
                   <View className="items-end">
                     <Text className="text-xs text-muted-foreground mb-1">Target Range</Text>
@@ -297,16 +356,19 @@ export default function LettuceView() {
               </Card>
 
               {/* TDS Card */}
-              <Card className="p-4 border border-muted-foreground/20">
+              <Card className={`p-4 border ${isTdsOutOfRange ? 'border-red-300' : 'border-muted-foreground/20'}`}>
                 <View className="flex-row items-center justify-between">
                   <View className="flex-1">
                     <View className="flex-row items-center gap-2 mb-1">
                       <Icon as={Droplet} size={16} className="text-muted-foreground" />
                       <Text className="text-sm text-muted-foreground">TDS (Total Dissolved Solids)</Text>
                     </View>
-                    <Text className="text-3xl font-bold">
-                      {hydroponicsWater?.tds ? Math.round(hydroponicsWater.tds) : '--'} <Text className="text-lg text-muted-foreground">ppm</Text>
+                    <Text className={`text-3xl font-bold ${isTdsOutOfRange ? 'text-red-500' : ''}`}>
+                      {hydroponicsWater?.tds ? Math.round(hydroponicsWater.tds) : '--'} <Text className={`text-lg ${isTdsOutOfRange ? 'text-red-500' : 'text-muted-foreground'}`}>ppm</Text>
                     </Text>
+                    {isTdsOutOfRange && (
+                      <Text className="text-xs text-red-500 mt-1">TDS is outside the target range</Text>
+                    )}
                   </View>
                   <View className="items-end">
                     <Text className="text-xs text-muted-foreground mb-1">Target Range</Text>
