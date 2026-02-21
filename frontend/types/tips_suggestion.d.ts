@@ -11,15 +11,10 @@ export interface TipsSuggestion {
 }
 
 export interface TipsResponse {
-  quality: string;
-  tips: {
-    category: string;
-    title: string;
-    description: string;
-    bullet_points: {
-      heading: string;
-      tips: string[];
-    }[];
-  };
+  category: string;
+  title: string;
+  description: string;
+  warnings: string[];
+  bullet_points: TipItem[];
 }
 

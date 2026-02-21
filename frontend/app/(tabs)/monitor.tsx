@@ -279,20 +279,7 @@ export default function Monitor() {
               </Tabs>
             </CardContent>
           </Card>
-
-          {/* ===== Generate AI Insights Button ===== */}
-          <Button
-            className="mt-4 "
-            style={{ borderColor: '#d4d4d4' }}
-            variant={'outline'}
-            disabled={isGeneratingInsights}
-            onPress={handleGenerateInsights}>
-            <Icon as={Sparkles} color="#6366f1" size={20} className="mr-2" />
-            <Text className="font-semibold text-indigo-600">
-              {isGeneratingInsights ? 'Generating...' : 'Generate AI Insights'}
-            </Text>
-          </Button>
-
+          
           {/* ===== Loading State ===== */}
           {isGeneratingInsights && (
             <Card className="mt-4 border border-gray-300 p-5 shadow-sm">
