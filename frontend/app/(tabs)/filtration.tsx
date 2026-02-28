@@ -62,7 +62,6 @@ export default function Filtration() {
   const { devices, fetchDevice } = useDeviceStore();
   const setProgress = useFiltrationProgressStore((s) => s.setProgress);
   const {
-    updateTreatment,
     fetchLatestTreatment,
     startProcess: apiStartProcess,
     openValve1: apiOpenValve1,
@@ -106,7 +105,8 @@ export default function Filtration() {
   const [isStageOneExpanded, setIsStageOneExpanded] = useState(false);
   const [isStageOneValveOpen, setIsStageOneValveOpen] = useState(false);
   const [isDrainWaterValveOpen, setIsDrainWaterValveOpen] = useState(false);
-  const [deviceSerial, setDeviceSerial] = useState('');
+  // Device serial from store so it updates when device is loaded from API or MQTT (AsyncStorage is synced there)
+  const deviceSerial = devices?.[0]?.serial_number ?? '';
 
   // Initialize all stages as pending
   const [filtrationStages, setFiltrationStages] = useState<FiltrationStage[]>([
@@ -276,81 +276,11 @@ export default function Filtration() {
     return unsub;
   }, [syncFiltrationFromBackend]);
 
-  // Function to handle Save Process button click (Mark as Complete)
-  const handleSaveProcess = async () => {
-    try {
-      // Call backend to update treatment with total_cycles = 1
-      console.log('[Filtration] handleSaveProcess: calling updateTreatment with total_cycles=1');
-      const updated = await updateTreatment(1);
-      
-      if (!updated) {
-        console.error('[Filtration] handleSaveProcess: updateTreatment failed');
-        toast.error("Failed to update treatment");
-        return;
-      }
-      
-      console.log('[Filtration] handleSaveProcess: updateTreatment successful', updated);
-      
-      // Create filtration record for local storage
-      const filtrationRecord = {
-        id: Date.now().toString(),
-        date: new Date().toISOString(),
-        stages: filtrationStages.map(stage => ({
-          id: stage.id,
-          title: stage.title,
-          name: stage.name,
-          description: stage.description,
-          status: stage.status,
-          statusText: stage.statusText,
-        })),
-        completedAt: new Date().toISOString(),
-      };
-
-      // Get existing filtrations
-      const existingData = await AsyncStorage.getItem('filtration_list');
-      const filtrations = existingData ? JSON.parse(existingData) : [];
-      
-      // Add new filtration
-      filtrations.unshift(filtrationRecord);
-      
-      // Save back to AsyncStorage
-      await AsyncStorage.setItem('filtration_list', JSON.stringify(filtrations));
-      
-      toast.success("Marked successfully");
-      
-      // Close pump 3 when marking as complete
-      if (deviceSerial) {
-        publishMessage(`mfc/${deviceSerial}/pump/3`, 'CLOSE', 1);
-        console.log(`[Filtration] Published CLOSE to mfc/${deviceSerial}/pump/3 with QoS 1`);
-      }
-      
-      resetProcess();
-    } catch (error) {
-      console.error('Error saving filtration:', error);
-      toast.error("Failed to save filtration");
-    }
+  // Function to handle Save Process button click (Mark as Complete) — no API, toast only
+  const handleSaveProcess = () => {
+    toast.success("Treatment completed");
+    resetProcess();
   };
-
-  // Get device serial from storage
-  useEffect(() => {
-    const getDeviceSerial = async () => {
-      if (!userId) return;
-      
-      try {
-        const storageKey = `paired_device:${userId}`;
-        const deviceData = await AsyncStorage.getItem(storageKey);
-        
-        if (deviceData) {
-          const device = JSON.parse(deviceData);
-          setDeviceSerial(device.serial_number);
-        }
-      } catch (error) {
-        console.error("Failed to retrieve device serial:", error);
-      }
-    };
-
-    getDeviceSerial();
-  }, [userId]);
 
   // Function to update stage status
   const updateStageStatus = (

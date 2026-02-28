@@ -12,6 +12,7 @@ import {
 } from "react-native";
 import Svg, { Circle } from "react-native-svg";
 import React, { useEffect, useState } from "react";
+import { useFocusEffect } from "expo-router";
 import { PageHeader } from '@/components/ui/page-header'
 import { Button } from "@/components/ui/button";
 import { Text } from "@/components/ui/text";
@@ -36,10 +37,10 @@ export default function DeviceConnection () {
 const [wifiModal, setWifiModal] = useState(false);
 const [pairingMethodModal, setPairingMethodModal] = useState(false);
 const [showUnpairModal, setShowUnpairModal] = useState(false);
-const { unpairDevice, generateQrPayload, pairDeviceByQr, loading: deviceLoading } = useDeviceStore();
+const { unpairDevice, generateQrPayload, pairDeviceByQr, loading: deviceLoading, devices, fetchDevice } = useDeviceStore();
 
-// if want to test no device connected UI, set to null
-const [pairedDevice, setPairedDevice] = useState<any>(null);
+  /** Paired device: from store (synced with API/AsyncStorage) so DB-added devices show after focus. */
+  const pairedDevice = devices?.[0] ?? null;
 
 const [showQrModal, setShowQrModal] = useState(false);
 const [qrValue, setQrValue] = useState<string | null>(null);
@@ -54,25 +55,12 @@ const [deviceHeartbeatStatus, setDeviceHeartbeatStatus] = useState<0 | 1 | null>
 
 const userId = useAuthStore((state) => state.user?.id);
 
-useEffect(() => {
-  // Check for existing paired device on mount
-  const checkPairedDevice = async () => {
-    if (!userId) return;
-    
-    try {
-      const storageKey = `paired_device:${userId}`;
-      const existingDevice = await AsyncStorage.getItem(storageKey);
-      if (existingDevice) {
-        setPairedDevice(JSON.parse(existingDevice));
-
-      }
-    } catch (err) {
-      console.error("Failed to check paired device:", err);
-    }
-  };
-
-  checkPairedDevice();
-}, [userId]);
+  // Sync with backend when screen is focused so device added in DB (or elsewhere) shows up
+  useFocusEffect(
+    React.useCallback(() => {
+      if (userId) fetchDevice(userId);
+    }, [userId, fetchDevice])
+  );
 
 useEffect(() => {
   if (!userId) return;
@@ -97,22 +85,13 @@ useEffect(() => {
         const existingDevice = await AsyncStorage.getItem(storageKey);
         if (existingDevice) {
           console.log("Device already paired:", JSON.parse(existingDevice));
-          setPairedDevice(JSON.parse(existingDevice));
+          useDeviceStore.getState().setDevice(JSON.parse(existingDevice));
           return;
         }
 
-        await AsyncStorage.setItem(
-          storageKey,
-          JSON.stringify(payload.device)
-        );
-
-        setPairedDevice(payload.device);
+        await useDeviceStore.getState().setDeviceAndPersist(payload.device, userId);
         console.log("Device saved to AsyncStorage");
         toast.success("Device paired successfully!");
-        
-        // Also update the deviceStore so useSensorData can react to it
-        useDeviceStore.getState().setDevice(payload.device);
-        console.log("Device updated in deviceStore");
       } catch (err) {
         console.error("Failed to handle pairing payload:", err);
       }
@@ -220,28 +199,10 @@ async function handleGenerateQr() {
         toast.success("Device paired successfully via QR.");
       }
 
-      // Refresh the paired device after successful pairing
+      // Refresh the paired device after successful pairing (store is source of truth)
       if (userId) {
-        const storageKey = `paired_device:${userId}`;
-        // Wait a moment for backend to save, then refresh
         setTimeout(async () => {
-          try {
-            const existingDevice = await AsyncStorage.getItem(storageKey);
-            if (existingDevice) {
-              const device = JSON.parse(existingDevice);
-              setPairedDevice(device);
-              useDeviceStore.getState().setDevice(device);
-            } else {
-              // If not in storage, fetch from API
-              await useDeviceStore.getState().fetchDevice(userId);
-              const devices = useDeviceStore.getState().devices;
-              if (devices.length > 0) {
-                setPairedDevice(devices[0]);
-              }
-            }
-          } catch (err) {
-            console.error("Failed to refresh device after pairing:", err);
-          }
+          await useDeviceStore.getState().fetchDevice(userId);
         }, 500);
       }
 
@@ -262,7 +223,6 @@ const handleUnpair = async () => {
     try {
         const result = await unpairDevice();
         if (result?.success) {
-            setPairedDevice(null);
             setShowUnpairModal(false);
             toast.success(result.message);
         } else {

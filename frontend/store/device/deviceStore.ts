@@ -116,11 +116,8 @@ fetchDevice: async (userId: number) => {
         status: devices[0].status,
       };
 
-      // Save to AsyncStorage
-      await AsyncStorage.setItem(storageKey, JSON.stringify(device));
-      console.log("Device saved to AsyncStorage");
-
-      set({ devices: [device] });
+      // Persist to AsyncStorage and store (setDevice does both so filtration etc. find it)
+      await get().setDeviceAndPersist(device, userId);
     } else {
       console.log("No devices returned from API");
       set({ devices: [] });
@@ -135,6 +132,14 @@ fetchDevice: async (userId: number) => {
 
 setDevice: (device: any) => {
   console.log("Setting device in store:", device);
+  set({ devices: [device] });
+},
+
+/** Set device in store and persist to AsyncStorage so screens that read from storage (e.g. filtration) see it. */
+setDeviceAndPersist: async (device: any, userId: number) => {
+  const storageKey = `paired_device:${userId}`;
+  await AsyncStorage.setItem(storageKey, JSON.stringify(device));
+  console.log("Device saved to AsyncStorage (setDeviceAndPersist)");
   set({ devices: [device] });
 },
 
