@@ -16,6 +16,7 @@ import { useAuthStore } from '@/store/auth/authStore';
 import { useDeviceStore } from '@/store/device/deviceStore';
 import { useHydroponicSetupStore } from '@/store/hydroponics/hydroponicSetupStore';
 import { HydroponicsSkeleton } from '@/components/skeletons';
+import { useFiltrationProgressStore } from '@/store/filtration/filtrationProgressStore';
 
 const { height: screenHeight } = Dimensions.get('window');
 
@@ -32,6 +33,7 @@ export default function Hydroponics() {
     loadMore,
     refresh,
   } = useHydroponicSetupStore();
+  const isFiltrationProgressActive = useFiltrationProgressStore((s) => s.isActive);
 
   const [refreshing, setRefreshing] = useState(false);
   const [deviceChecked, setDeviceChecked] = useState(false);

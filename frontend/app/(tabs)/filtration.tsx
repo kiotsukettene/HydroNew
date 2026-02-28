@@ -6,10 +6,9 @@ import { Card } from '@/components/ui/card';
 import { Text } from '@/components/ui/text';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import Svg, { Circle} from 'react-native-svg';
 import FiltrationSuccessModal from '../filtration/filtration-success';
+import { FiltrationProgressBar } from '@/components/ui/filtration-progress-bar';
 import {
-  Loader,
   CheckCircle2,
   Droplets,
   Sun,
@@ -23,6 +22,7 @@ import { subscribeMessage, publishMessage, onMQTTConnect } from '@/service/mqtt.
 import { useAuthStore } from '@/store/auth/authStore';
 import { useDeviceStore } from '@/store/device/deviceStore';
 import { useTreatmentStore } from '@/store/treatment/treatmentStore';
+import { useFiltrationProgressStore } from '@/store/filtration/filtrationProgressStore';
 
 /** Pending toast: show only when MQTT state is received for the last action. */
 type PendingFiltrationToast =
@@ -34,7 +34,7 @@ type PendingFiltrationToast =
   | 'restart'
   | null;
 import NoDevice from '@/components/ui/no-device';
-import { useFocusEffect } from '@react-navigation/native';
+import { useFocusEffect, useIsFocused } from '@react-navigation/native';
 import { FiltrationSkeleton } from '@/components/skeletons';
 
 // Enable LayoutAnimation on Android
@@ -60,6 +60,7 @@ interface FiltrationStage {
 export default function Filtration() {
   const userId = useAuthStore((state) => state.user?.id);
   const { devices, fetchDevice } = useDeviceStore();
+  const setProgress = useFiltrationProgressStore((s) => s.setProgress);
   const {
     updateTreatment,
     fetchLatestTreatment,
@@ -72,6 +73,9 @@ export default function Filtration() {
   } = useTreatmentStore();
   const [deviceChecked, setDeviceChecked] = useState(false);
   const pendingToastRef = useRef<PendingFiltrationToast>(null);
+  const lastReconnectSyncRef = useRef<number>(0);
+  const isFocusedRef = useRef(false);
+  const RECONNECT_SYNC_DEBOUNCE_MS = 15000; // Only sync on reconnect at most once per 15s, and only when screen focused
 
   useFocusEffect(
     useCallback(() => {
@@ -247,6 +251,12 @@ export default function Filtration() {
     }
   }, [fetchLatestTreatment, resetProcess]);
 
+  // Keep ref in sync with focus so reconnect callback can skip when not on this screen
+  const isFocused = useIsFocused();
+  useEffect(() => {
+    isFocusedRef.current = isFocused;
+  }, [isFocused]);
+
   // Sync on filtration page focus
   useFocusEffect(
     useCallback(() => {
@@ -254,10 +264,13 @@ export default function Filtration() {
     }, [syncFiltrationFromBackend])
   );
 
-  // Sync on MQTT reconnect
+  // Sync on MQTT reconnect only when this screen is focused, and debounced (avoids calling latest treatment on every resubscribe)
   useEffect(() => {
     const unsub = onMQTTConnect(() => {
-      console.log('[Filtration] MQTT reconnected, syncing state from backend');
+      if (!isFocusedRef.current) return;
+      const now = Date.now();
+      if (now - lastReconnectSyncRef.current < RECONNECT_SYNC_DEBOUNCE_MS) return;
+      lastReconnectSyncRef.current = now;
       syncFiltrationFromBackend();
     });
     return unsub;
@@ -707,15 +720,17 @@ export default function Filtration() {
     return (completedStages / filtrationStages.length) * 100; // 25% per stage for 4 stages
   };
 
-  // Get status text based on current state
-  const getStatusText = () => {
+  // Sync progress to global store for floating bar on other pages
+  useEffect(() => {
+    const progress = calculateProgress();
     const completedCount = filtrationStages.filter(s => s.status === 'completed').length;
-    
-    if (completedCount === 4) return 'Complete';
-    if (isProcessFailed) return 'Restart Required';
-    if (isProcessStarted) return 'In Progress...';
-    return 'Not Started';
-  };
+    let statusText = 'Not Started';
+    if (completedCount === 4) statusText = 'Complete';
+    else if (isProcessFailed) statusText = 'Restart Required';
+    else if (isProcessStarted) statusText = 'In Progress...';
+    const isActive = isProcessStarted || isProcessCompleted || isProcessFailed;
+    setProgress(progress, statusText, isActive, isProcessFailed);
+  }, [filtrationStages, isProcessStarted, isProcessCompleted, isProcessFailed, setProgress]);
 
   // Show skeleton only on initial load (when devices haven't been fetched yet)
   if (!deviceChecked && (!devices || devices.length === 0)) {
@@ -792,60 +807,7 @@ export default function Filtration() {
           </View>
           
 
-          <Card className={`mt-0 flex-row items-center justify-between border-0 p-3 sm:p-4 ${
-            calculateProgress() === 100 
-              ? 'bg-emerald-100' 
-              : isProcessFailed
-              ? 'bg-red-50' 
-              : 'bg-emerald-50'
-          }`}>
-            <View className="flex-1 flex-row items-center">
-              <View className="text mr-2 sm:mr-3 h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-full bg-primary/40">
-                <Loader className="text-muted" size={18} />
-              </View>
-
-              {/* Text with background patterns */}
-              <View className="relative flex-1">
-                <Text className="text-base sm:text-sm text-primary">{getStatusText()}</Text>
-          
-              </View>
-            </View>
-            {/* ===== Progress Indicator ===== */}
-            <View className="ml-2 sm:ml-3 md:ml-4">
-              <View className="relative h-12 w-12 sm:h-14 sm:w-14 md:h-16 md:w-16">
-                {/* Outer ring */}
-                <Svg width={48} height={48} className="absolute sm:w-14 sm:h-14 md:w-16 md:h-16">
-                  <Circle
-                    cx={24}
-                    cy={24}
-                    r={20}
-                    stroke="#e5e7eb"
-                    strokeWidth={2.5}
-                    fill="transparent"
-                  />
-                  {/* Progress arc */}
-                  <Circle
-                    cx={24}
-                    cy={24}
-                    r={20}
-                    stroke="#16a34a"
-                    strokeWidth={2.5}
-                    fill="transparent"
-                    strokeDasharray={2 * Math.PI * 20}
-                    strokeDashoffset={2 * Math.PI * 20 * (1 - calculateProgress() / 100)}
-                    strokeLinecap="round"
-                    transform="rotate(-90 24 24)"
-                  />
-                </Svg>
-                {/* Percentage text */}
-                <View className="absolute inset-0 items-center justify-center">
-                  <Text className="text-xs sm:text-sm md:text-base font-bold text-emerald-800">
-                    {Math.round(calculateProgress())}%
-                  </Text>
-                </View>
-              </View>
-            </View>
-          </Card>
+          <FiltrationProgressBar floating={false} />
         
           {/* ================= Main Content Card  ==================== */}
           <Card className=" border-2 border-gray-200 shadow-lg rounded-2xl">

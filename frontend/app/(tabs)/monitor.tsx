@@ -26,9 +26,11 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import TurbidityDetailsModal from '../water-monitor/turbidity-details';
 import { useSensorStore } from '@/store/sensor/sensorStore';
 import { MonitorSkeleton } from '@/components/skeletons';
+import { useFiltrationProgressStore } from '@/store/filtration/filtrationProgressStore';
 
 export default function Monitor() {
   const router = useRouter();
+  const isFiltrationProgressActive = useFiltrationProgressStore((s) => s.isActive);
   const [isTDSDetailsModalVisible, setIsTDSDetailsModalVisible] = useState(false);
   const [isTurbidityDetailsModalVisible, setIsTurbidityDetailsModalVisible] = useState(false);
   const [isPHLevelDetailsModalVisible, setIsPHLevelDetailsModalVisible] = useState(false);
@@ -66,7 +68,12 @@ export default function Monitor() {
   };
 
   return (
-    <ScrollView>
+    <ScrollView
+      className="bg-white"
+      contentContainerStyle={{
+        paddingBottom: isFiltrationProgressActive ? 50 : 24,
+      }}
+    >
       <SafeAreaView className="bg-white">
         {/* ===== Page Header ===== */}
         <PageHeader title="Water Monitoring" />

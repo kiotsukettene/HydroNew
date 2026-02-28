@@ -23,6 +23,7 @@ import { useRouter } from 'expo-router';
 import { useDashboardStore } from '@/store/auth/dashboardStore';
 import { useNotificationStore } from '@/store/notification/notificationStore';
 import { useSensorStore } from '@/store/sensor/sensorStore';
+import { useFiltrationProgressStore } from '@/store/filtration/filtrationProgressStore';
 import { HomeSkeleton } from '@/components/skeletons';
 
 import { db } from '@/src/firebase';
@@ -107,6 +108,7 @@ export default function Home() {
 
   const { data, loading, error, fetchDashboard } = useDashboardStore();
   const unreadCount = useNotificationStore((s) => s.unreadCount);
+  const isFiltrationProgressActive = useFiltrationProgressStore((s) => s.isActive);
   
   // Real-time sensor data - read directly from store (subscription is in _layout.tsx via useEchoSetup)
   const cleanWater = useSensorStore((state) => state.cleanWater);
@@ -179,7 +181,12 @@ export default function Home() {
   };
 
   return (
-    <ScrollView className='bg-white'>
+    <ScrollView
+      className="bg-white"
+      contentContainerStyle={{
+        paddingBottom: isFiltrationProgressActive ? 50 : 24,
+      }}
+    >
       <SafeAreaView className=''>
         <View className="p-4 ">
 

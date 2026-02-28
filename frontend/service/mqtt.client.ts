@@ -9,6 +9,7 @@ const MQTT_PASS = 'Momorevillame24';
 
 let client: MqttClient | null = null;
 let currentClientId: string | null = null;
+let isConnected = false;
 const onConnectCallbacks = new Set<() => void>();
 
 /**
@@ -29,6 +30,7 @@ export function connectWithClientId(userId: string): void {
   }
 
   console.log('[MQTT] Connecting with clientId:', clientId);
+  isConnected = false;
   client = mqtt.connect(MQTT_BROKER, {
     clientId,
     username: MQTT_USER,
@@ -36,11 +38,14 @@ export function connectWithClientId(userId: string): void {
     protocol: 'wss',
     reconnectPeriod: 2000,
     connectTimeout: 30000,
+    keepalive: 30, // Send ping every 30s so broker doesn't close for idle
     clean: false, // Persistent session - broker retains subscriptions & delivers queued messages after reconnect
   });
   currentClientId = clientId;
 
   client.on('connect', () => {
+    if (isConnected) return; // Already connected, ignore duplicate connect event
+    isConnected = true;
     console.log('MQTT connected');
 
     subscribedTopics.forEach((qos, topic) => {
@@ -51,6 +56,14 @@ export function connectWithClientId(userId: string): void {
     onConnectCallbacks.forEach((cb) => {
       try { cb(); } catch (e) { console.error('[MQTT] onConnect callback error:', e); }
     });
+  });
+
+  client.on('close', () => {
+    isConnected = false;
+  });
+
+  client.on('offline', () => {
+    isConnected = false;
   });
 
   client.on('error', (err) => console.log('MQTT error:', err));
@@ -169,15 +182,18 @@ export function subscribeMessage(
   topicHandlers.get(topic)!.add(handler);
 
   if (!subscribedTopics.has(topic)) {
-    console.log(`[MQTT] Subscribing to ${topic} with QoS ${qos}`);
-    mqttClient.subscribe(topic, { qos }, (err) => {
-      if (err) {
-        console.error(`[MQTT] Failed to subscribe to ${topic}:`, err);
-      } else {
-        console.log(`[MQTT] Successfully subscribed to ${topic} with QoS ${qos}`);
-      }
-    });
-    subscribedTopics.set(topic, qos); // Store topic with its QoS level
+    subscribedTopics.set(topic, qos);
+    // Only call subscribe when client is connected; otherwise the 'connect' handler will resubscribe from subscribedTopics
+    if (mqttClient.connected) {
+      console.log(`[MQTT] Subscribing to ${topic} with QoS ${qos}`);
+      mqttClient.subscribe(topic, { qos }, (err) => {
+        if (err) {
+          console.error(`[MQTT] Failed to subscribe to ${topic}:`, err);
+        } else {
+          console.log(`[MQTT] Successfully subscribed to ${topic} with QoS ${qos}`);
+        }
+      });
+    }
   }
 
   // optional cleanup (use in useEffect return)

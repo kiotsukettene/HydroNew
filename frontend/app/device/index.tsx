@@ -49,6 +49,9 @@ const [showScannerModal, setShowScannerModal] = useState(false);
 const [hasCameraPermission, setHasCameraPermission] = useState<boolean | null>(null);
 const [isScanning, setIsScanning] = useState(false);
 
+/** 1 = Online, 0 = Offline, null = not yet received from MQTT */
+const [deviceHeartbeatStatus, setDeviceHeartbeatStatus] = useState<0 | 1 | null>(null);
+
 const userId = useAuthStore((state) => state.user?.id);
 
 useEffect(() => {
@@ -118,6 +121,27 @@ useEffect(() => {
 
   return subscribe;
 }, [userId]);
+
+// Subscribe to device heartbeat: biotech/device/{serial_number}/heartbeat → "1" = Online, "0" = Offline
+useEffect(() => {
+  const serialNumber = pairedDevice?.serial_number;
+  if (!serialNumber) {
+    setDeviceHeartbeatStatus(null);
+    return;
+  }
+
+  const topic = `biotech/device/${serialNumber}/heartbeat`;
+  const unsubscribe = subscribeMessage(topic, (_topic, message) => {
+    const value = message.toString().trim();
+    if (value === '1') setDeviceHeartbeatStatus(1);
+    else if (value === '0') setDeviceHeartbeatStatus(0);
+  });
+
+  return () => {
+    unsubscribe();
+    setDeviceHeartbeatStatus(null);
+  };
+}, [pairedDevice?.serial_number]);
 
 async function handleGenerateQr() {
     try {
@@ -309,7 +333,7 @@ const handleUnpair = async () => {
                                         width: Dimensions.get('window').width - 32,
                                         position: 'relative',
                                         shadowColor: '#000',
-                                        shadowOffset: { width: 0, height: 4 },
+                                        shadowOffset: { width: 0, height: 1 },
                                         shadowOpacity: 0.08,
                                         shadowRadius: 20,
                                         elevation: 8,
@@ -355,12 +379,12 @@ const handleUnpair = async () => {
                                 </Text>
                             </View>
 
-                            {/* Detail Cards with Soft Shadows */}
-                            <View className="flex-row gap-4 mb-4 px-4">
-                                {/* Model Card - White with Yellow Accent Icon */}
-                                <Pressable className="flex-1">
+                            {/* Detail Cards - Model and Firmware stacked full width */}
+                            <View className="gap-2 mb-4 px-4">
+                                {/* Model Card - full width row */}
+                                <Pressable className="w-full">
                                     <Card 
-                                        className=" rounded-3xl border-muted-foreground/20 px-4">
+                                        className="w-full rounded-3xl border-muted-foreground/20 px-4">
                                         <View className="flex-row justify-between items-start">
                                             <View className="flex-1 mr-3">
                                                 <Text className="text-muted-foreground text-xs font-medium mb-3" style={{ letterSpacing: 0.3 }}>
@@ -377,10 +401,10 @@ const handleUnpair = async () => {
                                     </Card>
                                 </Pressable>
 
-                                {/* Firmware Card - White */}
-                                <Pressable className="flex-1">
+                                {/* Firmware Card - full width row */}
+                                <Pressable className="w-full">
                                     <Card 
-                                        className=" rounded-3xl border-muted-foreground/20 px-4" >
+                                        className="w-full rounded-3xl border-muted-foreground/20 px-4" >
                                         <View className="flex-row justify-between items-start">
                                             <View className="flex-1 mr-3">
                                                 <Text className="text-muted-foreground text-xs font-medium mb-3" >
@@ -409,7 +433,11 @@ const handleUnpair = async () => {
                                                 Status
                                             </Text>
                                             <Text className="text-lg font-bold">
-                                                {pairedDevice.status || 'Connected'}
+                                                {deviceHeartbeatStatus === 1
+                                                  ? 'Online'
+                                                  : deviceHeartbeatStatus === 0
+                                                    ? 'Offline'
+                                                    : '—'}
                                             </Text>
                                         </View>
                                     </View>

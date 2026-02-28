@@ -3,8 +3,6 @@ import axiosInstance from '@/api/axiosInstance';
 import { handleAxiosError } from '@/api/handleAxiosError';
 import type {
   TreatmentStore,
-  SaveTreatmentResponse,
-  UpdateTreatmentResponse,
   SaveStagePayload,
   SaveStageResponse,
   UpdateStagePayload,
@@ -12,12 +10,15 @@ import type {
   TreatmentStageRecord,
   LatestTreatmentData,
   FiltrationCommandResponse,
+  TreatmentReportListItem,
+  TreatmentReportsResponse,
 } from '@/types/treatment';
 
 export const useTreatmentStore = create<TreatmentStore>((set, get) => ({
   loading: false,
   error: null,
   currentTreatment: null,
+  reports: null,
 
   saveTreatment: async () => {
     set({ loading: true, error: null });
@@ -195,6 +196,38 @@ export const useTreatmentStore = create<TreatmentStore>((set, get) => ({
       });
       const { message } = handleAxiosError(err);
       set({ error: message, loading: false });
+      return null;
+    }
+  },
+
+  fetchTreatmentReports: async () => {
+    set({ loading: true, error: null });
+    const url = '/treatment/reports';
+    const fullUrl = `${axiosInstance.defaults.baseURL ?? ''}${url}`;
+    console.log('[Treatment] fetchTreatmentReports: calling GET', fullUrl);
+
+    try {
+      const response = await axiosInstance.get<TreatmentReportsResponse>(url);
+      console.log('[Treatment] fetchTreatmentReports: response status', response.status, 'data', JSON.stringify(response.data));
+
+      const { success, data } = response.data;
+      if (!success || !Array.isArray(data)) {
+        console.warn('[Treatment] fetchTreatmentReports: backend returned success=false or non-array data', { success, data });
+        set({ reports: null, loading: false });
+        return null;
+      }
+
+      set({ reports: data, loading: false });
+      return data as TreatmentReportListItem[];
+    } catch (err: unknown) {
+      const axiosErr = err as { response?: { status: number; data?: unknown }; request?: unknown; message?: string };
+      console.error('[Treatment] fetchTreatmentReports: request failed', {
+        hasResponse: !!axiosErr.response,
+        status: axiosErr.response?.status,
+        responseData: axiosErr.response?.data,
+      });
+      const { message } = handleAxiosError(err);
+      set({ error: message, reports: null, loading: false });
       return null;
     }
   },

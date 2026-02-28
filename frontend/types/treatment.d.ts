@@ -87,6 +87,8 @@ export interface TreatmentStore {
   error: string | null;
 
   currentTreatment: TreatmentReport | null;
+  /** List of reports from GET /treatment/reports. */
+  reports: TreatmentReportListItem[] | null;
 
   saveTreatment: () => Promise<TreatmentReport | null>;
   updateTreatment: (total_cycles: number) => Promise<TreatmentReport | null>;
@@ -101,6 +103,8 @@ export interface TreatmentStore {
   openDrainValve: () => Promise<boolean>;
   closeDrainValve: () => Promise<boolean>;
   restartFiltration: () => Promise<boolean>;
+  /** Fetches GET /treatment/reports and returns the data array. */
+  fetchTreatmentReports: () => Promise<TreatmentReportListItem[] | null>;
 }
 
 /** Stage data from GET /treatment/latest */
@@ -124,4 +128,36 @@ export interface LatestTreatmentData {
   final_status: 'pending' | 'success' | 'failed';
   total_cycles: number | null;
   stages: LatestTreatmentStage[];
+}
+
+/** Stage as returned in GET /treatment/reports (each report's stages array). */
+export interface TreatmentReportStage {
+  id: number;
+  stage_name: string;
+  stage_order: number;
+  status: string;
+  ph: number;
+  tds: number;
+  turbidity: number;
+  notes: string | null;
+  started_at: string;
+  completed_at: string;
+}
+
+/** Single report item from GET /treatment/reports (data array element). */
+export interface TreatmentReportListItem {
+  id: number;
+  device_id: number;
+  start_time: string;
+  end_time: string;
+  final_status: string;
+  total_cycles: number;
+  water_liters: number;
+  stages: TreatmentReportStage[];
+}
+
+/** Response shape for GET /treatment/reports. */
+export interface TreatmentReportsResponse {
+  success: boolean;
+  data: TreatmentReportListItem[];
 }
