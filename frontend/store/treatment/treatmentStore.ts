@@ -168,6 +168,17 @@ export const useTreatmentStore = create<TreatmentStore>((set, get) => ({
     }
   },
 
+  openPump4: async () => {
+    const url = '/filtration/commands/open-pump-4';
+    try {
+      const response = await axiosInstance.post<FiltrationCommandResponse>(url);
+      return response.data?.success === true;
+    } catch (err) {
+      console.error('[Treatment] openPump4 failed', err);
+      return false;
+    }
+  },
+
   fetchLatestTreatment: async () => {
     set({ loading: true, error: null });
     const url = '/treatment/latest';

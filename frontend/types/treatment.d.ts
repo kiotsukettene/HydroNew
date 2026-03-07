@@ -103,6 +103,7 @@ export interface TreatmentStore {
   openDrainValve: () => Promise<boolean>;
   closeDrainValve: () => Promise<boolean>;
   restartFiltration: () => Promise<boolean>;
+  openPump4: () => Promise<boolean>;
   /** Fetches GET /treatment/reports and returns the data array. */
   fetchTreatmentReports: () => Promise<TreatmentReportListItem[] | null>;
 }

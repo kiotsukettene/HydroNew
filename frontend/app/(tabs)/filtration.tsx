@@ -69,6 +69,7 @@ export default function Filtration() {
     openDrainValve: apiOpenDrainValve,
     closeDrainValve: apiCloseDrainValve,
     restartFiltration: apiRestartFiltration,
+    openPump4: apiOpenPump4,
   } = useTreatmentStore();
   const [deviceChecked, setDeviceChecked] = useState(false);
   const pendingToastRef = useRef<PendingFiltrationToast>(null);
@@ -280,6 +281,20 @@ export default function Filtration() {
   const handleSaveProcess = () => {
     toast.success("Treatment completed");
     resetProcess();
+  };
+
+  // Function to handle Transfer Reservoir button click (calls openPump4 API)
+  const handleTransferReservoir = async () => {
+    if (!deviceSerial) {
+      toast.error("Device not found");
+      return;
+    }
+    const ok = await apiOpenPump4();
+    if (!ok) {
+      toast.error("Failed to transfer reservoir");
+      return;
+    }
+    toast.success("Transferring to reservoir");
   };
 
   // Function to update stage status
@@ -840,12 +855,21 @@ export default function Filtration() {
           
           {/* Save Process Button - appears below main content card after success modal */}
           {isProcessCompleted && (
-            <Button 
-              onPress={handleSaveProcess}
-              className="mt-4"
-            >
-              <Text>Mark as Complete</Text>
-            </Button>
+            <View className="gap-2">
+              <Button 
+                onPress={handleSaveProcess}
+                className="mt-4"
+              >
+                <Text>Mark as Complete</Text>
+              </Button>
+              
+              <Button 
+                variant="outline"
+                onPress={handleTransferReservoir}
+              >
+                <Text>Transfer Water</Text>
+              </Button>
+            </View>
           )}
           
           </Card>

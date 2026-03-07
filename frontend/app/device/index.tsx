@@ -109,7 +109,7 @@ useEffect(() => {
     return;
   }
 
-  const topic = `biotech/device/${serialNumber}/heartbeat`;
+  const topic = `biotech/${serialNumber}/heartbeat`;
   const unsubscribe = subscribeMessage(topic, (_topic, message) => {
     const value = message.toString().trim();
     if (value === '1') setDeviceHeartbeatStatus(1);
