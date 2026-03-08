@@ -8,20 +8,24 @@ import { Badge } from '@/components/ui/badge';
 import { useTipStore } from '@/store/tips_suggestion/tipStore';
 import { useFocusEffect } from '@react-navigation/native';
 import { useAuthStore } from '@/store/auth/authStore';
+import { useDeviceStore } from '@/store/device/deviceStore';
 
 export default function TipsSuggestionPage() {
   const user = useAuthStore(state => state.user);
-  const { data, loading, error, fetchTips, timeLeft } = useTipStore();
+  const devices = useDeviceStore(state => state.devices);
+  const { data, loading, error, cached, cachedAt, expiresAt, fetchTips } = useTipStore();
 
   useFocusEffect(
     useCallback(() => {
-      // This will run every time the screen comes into focus
-      if (user?.id) {
-      fetchTips(user.id);
-    }
-      // You can also return a cleanup function if needed
+      if (user?.id && devices.length > 0) {
+        fetchTips({
+          userId: user.id,
+          deviceId: devices[0].id,
+          systemType: 'clean_water'
+        });
+      }
       return () => {};
-    }, [fetchTips, user?.id]) // Add fetchTips as a dependency
+    }, [fetchTips, user?.id, devices])
   );
 
   const colorPairs = [
@@ -57,17 +61,26 @@ export default function TipsSuggestionPage() {
       {/* ✅ Data Loaded */}
       {!loading && data && (
         <ScrollView>
-          <Text className="mt-1 text-center text-sm text-gray-500">
-              New tips available in {timeLeft}
-          </Text>
           <View className="gap-1 p-4">
-            <Text className="text-lg font-semibold text-blue-600">{data.tips.category}</Text>
-            <Text className="text-3xl font-bold">{data.tips.title}</Text>
-            <Text className="text-gray-700">{data.tips.description}</Text>
+            <Text className="text-lg font-semibold text-blue-600">{data.category}</Text>
+            <Text className="text-3xl font-bold">{data.title}</Text>
+            <Text className="text-gray-700">{data.description}</Text>
           </View>
 
+          {/* ⚠️ Warnings Section */}
+          {data.warnings && data.warnings.length > 0 && (
+            <View className="mx-4 mb-3 rounded-xl bg-amber-50 border border-amber-200 p-4">
+              <Text className="mb-2 font-semibold text-amber-900">⚠️ Warnings</Text>
+              {data.warnings.map((warning, i) => (
+                <Text key={i} className="mb-1 text-amber-800">
+                  • {warning}
+                </Text>
+              ))}
+            </View>
+          )}
+
           <View className="m-4 gap-3">
-            {data.tips.bullet_points.map((bp, i) => {
+            {data.bullet_points && data.bullet_points.map((bp, i) => {
               const color = colorPairs[i % colorPairs.length];
               return (
                 <Card key={i} className={`border-transparent ${color.bg} rounded-2xl p-4`}>
@@ -79,7 +92,7 @@ export default function TipsSuggestionPage() {
                   </Badge>
 
                   <View className="mt-1 gap-2 px-4">
-                    {bp.tips.slice(0, 3).map((tip, idx) => (
+                    {bp.tips && bp.tips.slice(0, 3).map((tip, idx) => (
                       <Text key={idx} className="text-gray-700">
                         • {tip}
                       </Text>
