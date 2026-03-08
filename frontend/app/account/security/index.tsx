@@ -6,12 +6,8 @@ import {
 } from 'react-native';
 import {
   ChevronRight,
-  Share2,
-  Leaf,
-  Zap,
   UserRoundPen,
   ShieldCheck,
-  Wrench,
   Scroll,
   Lock,
   MessageSquareMore,
@@ -30,11 +26,12 @@ import { PageHeader } from '@/components/ui/page-header';
 import { useAccountStore } from '@/store/account/accountStore';
 import { useAuthStore } from '@/store/auth/authStore';
 import { ConfirmationModal } from '@/components/ui/confirmation-modal';
+ 
 export default function Index() {
-  const router = useRouter();
+  const { account, error, fetchAccount } = useAccountStore();
   const logout = useAuthStore((s) => s.logout);
+  const router = useRouter();
   const [showLogoutModal, setShowLogoutModal] = useState(false);
-  const { account, fetchAccount } = useAccountStore();
 
   const confirmLogout = async () => {
     setShowLogoutModal(false);
@@ -42,14 +39,29 @@ export default function Index() {
     router.replace('/(auth)/login');
   };
 
-const settings = [
-  { icon: UserRoundPen, title: 'My Account', link: '/account/manage-account' },
-  { icon: ShieldCheck, title: 'Security Settings', link: '/account/security-setting' },
-  { icon: Scroll, title: 'Terms and Conditions', link: '/account/terms-and-conditions' },
-  { icon: Lock, title: 'Privacy Policy', link: '/account/privacy-policy' },
-  { icon: MessageSquareMore, title: 'FAQs', link: '/account/faq' },
-  { icon: FileClock, title: 'Activity Log', link: '/account/login-history' },
-];
+  const menuGroups = [
+    {
+      label: 'Account',
+      items: [
+        { icon: UserRoundPen, title: 'My Account', link: '/account/manage-account' },
+        { icon: ShieldCheck, title: 'Security Settings', link: '/account/security-setting' },
+      ],
+    },
+    {
+      label: 'Legal',
+      items: [
+        { icon: Scroll, title: 'Terms and Conditions', link: '/account/terms-and-conditions' },
+        { icon: Lock, title: 'Privacy Policy', link: '/account/privacy-policy' },
+      ],
+    },
+    {
+      label: 'Support',
+      items: [
+        { icon: MessageSquareMore, title: 'FAQs', link: '/account/faq' },
+        { icon: FileClock, title: 'Activity Log', link: '/account/login-history' },
+      ],
+    },
+  ];
 
   useEffect(() => {
     if (!account) {
@@ -63,8 +75,8 @@ const settings = [
         <View className="flex-row items-center w-full">
           <PageHeader 
             title="Account" 
-            showNotificationButton={false} 
-            showEllipsisButton={true}
+            showNotificationButton={true} 
+        
           />
         </View>
         <View className='flex-1 px-4'>
@@ -84,10 +96,10 @@ const settings = [
             {/* Profile picture – squircle with edit badge */}
             <View className='relative'>
               <View className='rounded-full items-center  p-3 bg-muted border border-green-100 justify-center overflow-hidden'>
-                <UserRoundCheck size={55} color="#71717a" />
+                <UserRoundCheck size={45} color="#71717a" />
               </View>
               <Link href="/account/manage-account" asChild>
-                <Pressable className='absolute -top-1 -right-1 w-8 h-8 rounded-full bg-[#E91E63] items-center justify-center shadow-sm'>
+                <Pressable className='absolute -top-1 -right-1 w-8 h-8 rounded-full bg-green-500 items-center justify-center shadow-sm'>
                   <Pencil size={14} color="#fff" strokeWidth={2.5} />
                 </Pressable>
               </Link>
@@ -95,13 +107,13 @@ const settings = [
             {/* Name and details */}
             <View className='flex-1 justify-center min-w-0 '>
               <Text
-                className='text-3xl font-bold text-gray-900 leading-tight'
+                className='text-xl font-bold text-gray-900 leading-tight'
                 numberOfLines={2}
               >
                 {account?.first_name + ' '  + account?.last_name || 'Jhon Doe'}
               </Text>
               <View className='mt-1  rounded-lg w-auto'>
-                <Text className='text-base text-gray-800'>
+                <Text className='text-base text-gray-500'>
                   {account?.email || 'user.example@gmail.com'}
                 </Text>
                 <Text className='text-sm uppercase tracking-wider text-gray-400 mt-0.5'>
@@ -157,25 +169,35 @@ const settings = [
                 showsVerticalScrollIndicator={true}
                 contentContainerStyle={{ flexGrow: 1 }}
               >
-              {settings.map((item, index) => (
-                <Link href={item.link as any} asChild key={index}>
-                  <Pressable className="active:bg-muted/30">
-                    <View className="flex-col">
-                      <View className="flex-row items-center justify-between py-4  px-5">
-                        <View className="flex-row items-center gap-3">
-                          <item.icon size={22} color="#166534" />
-                          <Text className="text-base text-foreground">
-                            {item.title}
-                          </Text>
+              {menuGroups.map((group, groupIndex) => (
+                <View key={group.label}>
+                  {groupIndex > 0 && <Separator className="bg-muted-foreground/10" />}
+                  <View className="px-5 pt-4 pb-2">
+                    <Text className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                      {group.label}
+                    </Text>
+                  </View>
+                  {group.items.map((item, itemIndex) => (
+                    <Link href={item.link as any} asChild key={item.link}>
+                      <Pressable className="active:bg-muted/30">
+                        <View className="flex-col">
+                          <View className="flex-row items-center justify-between py-3 px-5">
+                            <View className="flex-row items-center gap-3">
+                              <item.icon size={22} color="#166534" />
+                              <Text className="text-base text-foreground">
+                                {item.title}
+                              </Text>
+                            </View>
+                            <ChevronRight size={20} color="#166534" />
+                          </View>
+                          {itemIndex < group.items.length - 1 && (
+                            <Separator className="bg-muted-foreground/10" />
+                          )}
                         </View>
-                        <ChevronRight size={20} color="#166534" />
-                      </View>
-                      {index < settings.length - 1 && (
-                        <Separator className="bg-muted-foreground/10" />
-                      )}
-                    </View>
-                  </Pressable>
-                </Link>
+                      </Pressable>
+                    </Link>
+                  ))}
+                </View>
               ))}
               <Pressable
                 className="active:bg-muted/30"
@@ -193,6 +215,22 @@ const settings = [
                 </View>
               </Pressable>
 
+              <Separator className="bg-muted-foreground/10" />
+              <Pressable
+                className="active:bg-muted/30"
+                onPress={() => setShowLogoutModal(true)}
+              >
+                <View className="flex-row items-center justify-between py-4 px-5">
+                  <View className="flex-row items-center gap-3">
+                    <LogOut size={22} color="#dc2626" />
+                    <Text className="text-base font-medium text-red-600">
+                      Log Out
+                    </Text>
+                  </View>
+                  <ChevronRight size={20} color="#dc2626" />
+                </View>
+              </Pressable>
+
               </ScrollView>
             </CardContent>
           </Card>
@@ -200,18 +238,17 @@ const settings = [
             {/* ================= end of main body  ==================== */}
         </View>
 
-        <ConfirmationModal
-          visible={showLogoutModal}
-          icon={<LogOut size={40} color="#fff" />}
-          modalTitle="Logout"
-          modalDescription="Are you sure you want to logout?"
-          confirmText="Logout"
-          iconBgColor="bg-destructive"
-          confirmButtonColor="bg-destructive"
-          onCancel={() => setShowLogoutModal(false)}
-          onConfirm={confirmLogout}
-        />
-    
+      <ConfirmationModal
+        visible={showLogoutModal}
+        icon={<LogOut size={40} color="#fff" />}
+        modalTitle="Logout"
+        modalDescription="Are you sure you want to logout?"
+        confirmText="Logout"
+        iconBgColor="bg-destructive"
+        confirmButtonColor="bg-destructive"
+        onCancel={() => setShowLogoutModal(false)}
+        onConfirm={confirmLogout}
+      />
     </SafeAreaView>
   )
 }

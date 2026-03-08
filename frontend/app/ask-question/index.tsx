@@ -178,7 +178,7 @@ export default function Index() {
                 <Button 
                   onPress={handleSend}
                   className="w-full rounded-full h-14"
-                  disabled={!category || !message.trim() || message.trim().length < 10 || submitting}
+                  disabled={!category || !message.trim() || submitting}
                 >
                   <View className="flex-row items-center gap-2">
                     {submitting ? (

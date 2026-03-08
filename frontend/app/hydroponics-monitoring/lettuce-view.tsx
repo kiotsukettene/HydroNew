@@ -1,4 +1,5 @@
 import { View, Image, ScrollView, TouchableOpacity } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import React, { useEffect, useState } from 'react';
 import { toast } from 'sonner-native';
 import { Button } from '@/components/ui/button';
@@ -6,7 +7,7 @@ import { Icon } from '@/components/ui/icon';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { PageHeader } from '@/components/ui/page-header';
 import FolderBg from '@/components/ui/folder-bg';
-import { Droplet, Leaf, Activity, Thermometer, Wind, Edit } from 'lucide-react-native';
+import { Droplet, Leaf, Activity, Thermometer, Wind, Edit, AlertTriangle } from 'lucide-react-native';
 import { Text } from '@/components/ui/text';
 import { Card } from '@/components/ui/card';
 import { useLocalSearchParams, useRouter } from 'expo-router';
@@ -15,6 +16,8 @@ import { useSensorStore } from '@/store/sensor/sensorStore';
 import { subscribeMessage, publishWithAck } from '@/service/mqtt.client';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useAuthStore } from '@/store/auth/authStore';
+import { Separator } from '@/components/ui/separator';
+import { ConfirmationModal } from '@/components/ui/confirmation-modal';
 import { LettuceViewSkeleton } from '@/components/skeletons';
 
 export default function LettuceView() {
@@ -29,12 +32,29 @@ export default function LettuceView() {
   const [isHydroponicsPumpRunning, setIsHydroponicsPumpRunning] = useState(false);
   /** Waiting for ack after clicking Start Pump. */
   const [isWaitingForPumpAck, setIsWaitingForPumpAck] = useState(false);
-  
+  const [isLowWaterWarningVisible, setIsLowWaterWarningVisible] = useState(false);
+
   // Real-time hydroponics sensor data - read directly from store (subscription is in _layout.tsx via useEchoSetup)
   const hydroponicsWater = useSensorStore((state) => state.hydroponicsWater);
+  const cleanWater = useSensorStore((state) => state.cleanWater);
 
   // Check if harvest is allowed (plant age must be >= 14 days)
   const canHarvest = currentSetup ? (currentSetup.plant_age ?? 0) >= 14 : false;
+
+  const isPhOutOfRange =
+    hydroponicsWater?.ph != null &&
+    currentSetup
+      ? hydroponicsWater.ph < currentSetup.target_ph_min ||
+        hydroponicsWater.ph > currentSetup.target_ph_max
+      : false;
+
+  const isTdsOutOfRange =
+    hydroponicsWater?.tds != null &&
+    currentSetup
+      ? hydroponicsWater.tds < currentSetup.target_tds_min ||
+        hydroponicsWater.tds > currentSetup.target_tds_max
+      : false;
+
 
   // mappings here for each GIF you want to support.
   const cropGifMap: Record<string, any> = {
@@ -141,19 +161,7 @@ export default function LettuceView() {
             title="Hydroponics Monitoring" 
             showBackButton={true} 
             showNotificationButton={false}
-            rightButton={
-              <TouchableOpacity 
-                onPress={() => {
-                  if (setupId) {
-                    router.push(`/hydroponics-monitoring/hydroponics-setup-edit?id=${setupId}` as any);
-                  }
-                }}
-                className="w-10 h-10 items-center justify-center"
-                disabled={loading || !currentSetup}
-              >
-                <Icon as={Edit} size={20} className="text-primary" />
-              </TouchableOpacity>
-            }
+            
           />
         </View>
 
@@ -164,30 +172,71 @@ export default function LettuceView() {
             borderBottomLeftRadius: 30,
             borderBottomRightRadius: 30,
           }}>
-          <View className="items-center justify-center py-4">
+          <View className="items-center justify-center py-2">
             {/* fixed-size container: constrains layout so only the GIF changes size */}
             <View style={{ width: imageSize, height: imageSize, alignItems: 'center', justifyContent: 'center' }}>
+              {/* Soft gradient background behind image (radial-style glow) */}
+              <LinearGradient
+                colors={[
+                  
+                  'rgba(34,197,94,0.08)',
+                  'rgba(34,197,94,0.04)',
+                ]}
+                locations={[0, 0.3, 0.5, 0.7, 1]}
+                style={{
+                  position: 'absolute',
+                  width: imageSize * 0.75,
+                  height: imageSize * 0.75,
+                  borderRadius: imageSize * 0.45,
+                }}
+                start={{ x: 0, y: 0.5 }}
+                end={{ x: 1, y: 0.5 }}
+              />
               <Image
                 source={plantImageSource}
                 style={{ width: '100%', height: '100%' }}
                 resizeMode="contain"
               />
             </View>
+            {/* Growth progress indicator */}
+            {currentSetup?.plant_age != null && currentSetup?.days_left != null && (() => {
+              const totalDays = currentSetup.plant_age + currentSetup.days_left;
+              const progressPercent = totalDays > 0
+                ? Math.min(100, Math.max(0, (currentSetup.plant_age / totalDays) * 100))
+                : 0;
+              return (
+                <View className="w-full px-6 mt-3">
+                  <View className="flex-row justify-between items-center mb-1.5">
+                    <Text className="text-xs text-muted-foreground">Growth</Text>
+                    <Text className="text-xs font-semibold text-muted-foreground">
+                      {Math.round(progressPercent)}%
+                    </Text>
+                  </View>
+                  <View className="h-1.5 w-full rounded-full bg-gray-200 overflow-hidden">
+                    <View
+                      className="h-full rounded-full bg-primary"
+                      style={{ width: `${progressPercent}%` }}
+                    />
+                  </View>
+                </View>
+              );
+            })()}
           </View>
         </View>
 
         {/* =========== Folder Section =========== */}
-        <View className="flex-1 px-4 pt-5 pb-5">
-          <FolderBg>
+        <View className="flex-1 px-4  pb-5">
+          <View style={{ position: 'relative' }}>
+            <FolderBg>
             <View className="flex-1 justify-between p-4">
               <View>
-                <Text className="mb-4 text-xl font-bold text-white">
+                <Text className="mb-4 text-2xl font-bold text-white">
                   {currentSetup?.crop_name
                     ? currentSetup.crop_name.charAt(0).toUpperCase() +
                       currentSetup.crop_name.slice(1)
                     : 'Loading...'}
                 </Text>
-
+                <Separator className='mb-3 -mt-3 w-32 opacity-40'/>
                 <View className="flex-row justify-between">
                   <View className="flex-1">
                     <Text className="text-xl font-bold text-white">
@@ -216,22 +265,67 @@ export default function LettuceView() {
               <View className="mt-7">
                 <Button
                   className={`w-full rounded-xl bg-emerald-50 ${(isHydroponicsPumpRunning || isWaitingForPumpAck) ? 'opacity-50' : ''}`}
-                  onPress={() => pumpWater()}
+                  onPress={() => {
+                    const waterLevel = cleanWater?.water_level ?? 0;
+                    if (waterLevel <= 10) {
+                      setIsLowWaterWarningVisible(true);
+                    } else {
+                      pumpWater();
+                    }
+                  }}
                   disabled={loading || isHydroponicsPumpRunning || isWaitingForPumpAck}>
                   <Icon as={Droplet} className="text-primary" />
                   <Text className="ml-2 text-primary">
                     {isWaitingForPumpAck ? 'Starting...' : isHydroponicsPumpRunning ? 'Pumping water...' : 'Start Pump'}
                   </Text>
                 </Button>
+                <ConfirmationModal
+                  visible={isLowWaterWarningVisible}
+                  icon={<Icon as={AlertTriangle} size={40} color="#eab308" />}
+                  iconBgColor="bg-yellow-100"
+                  modalTitle="Low Water Warning"
+                  modalDescription={`Your clean water tank is ${cleanWater?.water_level != null && !isNaN(cleanWater.water_level) ? cleanWater.water_level.toFixed(0) : ' '}running low. Pumping now may not be enough to irrigate your crops properly. Are you sure you want to continue?`}
+                  confirmText="Yes, Pump it"
+                  confirmButtonColor="bg-primary"
+                  onCancel={() => setIsLowWaterWarningVisible(false)}
+                  onConfirm={() => {
+                    setIsLowWaterWarningVisible(false);
+                    pumpWater();
+                  }}
+                />
               </View>
             </View>
           </FolderBg>
+            <Button
+              style={{
+                position: 'absolute',
+                top: '2.2%',
+                right: '1.85%',
+                width: '24.6%',
+                height: '19.3%',
+                borderRadius: 20,
+                backgroundColor: '#D9D9D9',
+                
+              }}
+              disabled={loading || !currentSetup}
+              className="rounded-[20px] bg-[#D9D9D9]"
+              onPress={() => {
+                  if (setupId) {
+                    router.push(`/hydroponics-monitoring/hydroponics-setup-edit?id=${setupId}` as any);
+                  }
+                }}>
+
+              <Edit size={16} className="text-foreground" />
+              <Text className="text-foreground font-semibold">Edit</Text>
+            </Button>
+           
+          </View>
 
           {/* Mark as Harvested Button - Outside FolderBg */}
           <View>
             <Button
               variant="outline"
-              className={`w-full rounded-xl mt-2 ${!canHarvest ? 'opacity-50 border-muted-foreground' : 'border-primary'}`}
+              className={`w-full rounded-2xl mt-4 ${!canHarvest ? 'opacity-50 border-muted-foreground' : 'border-primary'}`}
               onPress={() => {
                 router.push({
                   pathname: '/hydroponics-monitoring/harvest-form',
@@ -258,7 +352,7 @@ export default function LettuceView() {
         <View className="px-4 pb-4">
           <View className="flex-row bg-gray-100 rounded-xl p-1">
             <TouchableOpacity
-              activeOpacity={0.7}
+              activeOpacity={1}
               className={`flex-1 py-3 rounded-lg ${activeTab === 'monitoring' ? 'bg-primary' : 'bg-transparent'}`}
               onPress={() => setActiveTab('monitoring')}
             >
@@ -267,7 +361,7 @@ export default function LettuceView() {
               </Text>
             </TouchableOpacity>
             <TouchableOpacity
-              activeOpacity={0.7}
+              activeOpacity={1}
               className={`flex-1 py-3 rounded-lg ${activeTab === 'details' ? 'bg-primary' : 'bg-transparent'}`}
               onPress={() => setActiveTab('details')}
             >
@@ -288,16 +382,19 @@ export default function LettuceView() {
             {/* Monitoring Cards Grid */}
             <View className="gap-3">
               {/* pH Level Card */}
-              <Card className="p-4 border border-muted-foreground/20">
+              <Card className={`p-4 border ${isPhOutOfRange ? 'border-red-300' : 'border-muted-foreground/20'}`}>
                 <View className="flex-row items-center justify-between">
                   <View className="flex-1">
                     <View className="flex-row items-center gap-2 mb-1">
                       <Icon as={Activity} size={16} className="text-muted-foreground" />
-                      <Text className="text-sm text-muted-foreground">pH Level</Text>
+                      <Text className="text-base text-muted-foreground">pH Level</Text>
                     </View>
-                    <Text className="text-3xl font-bold">
+                    <Text className={`text-3xl font-bold ${isPhOutOfRange ? 'text-red-500' : ''}`}>
                       {hydroponicsWater?.ph != null && !isNaN(hydroponicsWater.ph) ? hydroponicsWater.ph.toFixed(2) : '--'}
                     </Text>
+                    {isPhOutOfRange && (
+                      <Text className="text-xs text-red-500 mt-1">pH level is outside the target range</Text>
+                    )}
                   </View>
                   <View className="items-end">
                     <Text className="text-xs text-muted-foreground mb-1">Target Range</Text>
@@ -307,16 +404,19 @@ export default function LettuceView() {
               </Card>
 
               {/* TDS Card */}
-              <Card className="p-4 border border-muted-foreground/20">
+              <Card className={`p-4 border ${isTdsOutOfRange ? 'border-red-300' : 'border-muted-foreground/20'}`}>
                 <View className="flex-row items-center justify-between">
                   <View className="flex-1">
                     <View className="flex-row items-center gap-2 mb-1">
                       <Icon as={Droplet} size={16} className="text-muted-foreground" />
                       <Text className="text-sm text-muted-foreground">TDS (Total Dissolved Solids)</Text>
                     </View>
-                    <Text className="text-3xl font-bold">
-                      {hydroponicsWater?.tds ? Math.round(hydroponicsWater.tds) : '--'} <Text className="text-lg text-muted-foreground">ppm</Text>
+                    <Text className={`text-3xl font-bold ${isTdsOutOfRange ? 'text-red-500' : ''}`}>
+                      {hydroponicsWater?.tds ? Math.round(hydroponicsWater.tds) : '--'} <Text className={`text-lg ${isTdsOutOfRange ? 'text-red-500' : 'text-muted-foreground'}`}>ppm</Text>
                     </Text>
+                    {isTdsOutOfRange && (
+                      <Text className="text-xs text-red-500 mt-1">TDS is outside the target range</Text>
+                    )}
                   </View>
                   <View className="items-end">
                     <Text className="text-xs text-muted-foreground mb-1">Target Range</Text>
@@ -357,8 +457,8 @@ export default function LettuceView() {
         {activeTab === 'details' && (
           <View className="px-4 pb-5">
             <Card className="rounded-2xl p-6">
-              <Text className="mb-4 text-lg font-semibold">Crop Details</Text>
-
+              <Text className="text-base font-semibold">Your Crop Details:</Text>
+              <Separator className='w-full '/>
               {/* Basic Info */}
               <View className="mb-4 flex-row justify-between">
                 <View className="flex-1">

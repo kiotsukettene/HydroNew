@@ -1,5 +1,7 @@
 import { View, Image, ScrollView, Pressable, LayoutAnimation, Platform, UIManager } from 'react-native';
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { Skeleton } from '@/components/ui/skeleton';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { FiltrationSkeleton } from '@/components/skeletons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { PageHeader } from '@/components/ui/page-header';
 import { Card } from '@/components/ui/card';
@@ -104,9 +106,25 @@ export default function Filtration() {
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [showFailedModal, setShowFailedModal] = useState(false);
   const [isStageOneExpanded, setIsStageOneExpanded] = useState(false);
+  const [deviceSerial, setDeviceSerial] = useState('');
+  const [totalCycles, setTotalCycles] = useState(0);
+  const { saveTreatment, updateTreatment, saveStage, updateStage, currentTreatment } = useTreatmentStore();
+  const userId = useAuthStore((state) => state.user?.id);
+  const dirtyWater = useSensorStore((state) => state.dirtyWater);
+  const cleanWater = useSensorStore((state) => state.cleanWater);
+  const stages2To4TimeoutIdsRef = useRef<ReturnType<typeof setTimeout>[]>([]);
+  const hasFailedStages2To4Ref = useRef(false);
+  const [isRestartPumpOpen, setIsRestartPumpOpen] = useState(false);
+  const autoCloseRestartPumpTriggeredRef = useRef(false);
+  const autoCompleteStageOneTreatmentIdRef = useRef<number | null>(null);
+  const [bgImageLoaded, setBgImageLoaded] = useState(false);
+  const autoCloseStageOneTriggeredRef = useRef(false);
+  const autoCloseDrainWaterTriggeredRef = useRef(false);
   const [isStageOneValveOpen, setIsStageOneValveOpen] = useState(false);
   const [isDrainWaterValveOpen, setIsDrainWaterValveOpen] = useState(false);
-  // Device serial from store so it updates when device is loaded from API or MQTT (AsyncStorage is synced there)
+  const [isWaitingForStartAck, setIsWaitingForStartAck] = useState(false);
+  const [isWaitingForRestartAck, setIsWaitingForRestartAck] = useState(false);
+  const [isInitialLoad, setIsInitialLoad] = useState(true);
   const deviceSerial = devices?.[0]?.serial_number ?? '';
 
   // Initialize all stages as pending
@@ -196,6 +214,26 @@ export default function Filtration() {
       return;
     }
 
+  useEffect(() => {
+    const getDeviceSerial = async () => {
+      if (!userId) {
+        setIsInitialLoad(false);
+        return;
+      }
+      
+      try {
+        const storageKey = `paired_device:${userId}`;
+        const deviceData = await AsyncStorage.getItem(storageKey);
+        
+        if (deviceData) {
+          const device = JSON.parse(deviceData);
+          setDeviceSerial(device.serial_number);
+        }
+      } catch (error) {
+        console.error("Failed to retrieve device serial:", error);
+      } finally {
+        setIsInitialLoad(false);
+      }
     const mapBackendToUI = (s: string): 'completed' | 'active' | 'pending' | 'failed' => {
       if (s === 'passed') return 'completed';
       if (s === 'processing') return 'active';
@@ -697,6 +735,11 @@ export default function Filtration() {
   // Show NoDevice component if no devices found after check
   if (deviceChecked && (!devices || devices.length === 0)) {
     return <NoDevice />;
+  }
+
+ 
+  if (isInitialLoad) {
+    return <FiltrationSkeleton />;
   }
 
   return (  

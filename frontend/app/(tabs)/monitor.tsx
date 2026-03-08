@@ -174,7 +174,7 @@ export default function Monitor() {
                         <Badge variant="secondary" className="bg-blue-500 dark:bg-blue-600">
                           <Icon as={BadgeCheckIcon} className="text-white" />
                           <Text className="text-white">
-                            {dirtyWater?.water_level ? (dirtyWater.water_level < 30 ? 'Low' : dirtyWater.water_level < 70 ? 'Medium' : 'High') : 'Low'}
+                            {dirtyWater?.water_level ? (dirtyWater.water_level < 30 ? 'Low' : dirtyWater.water_level < 70 ? 'Medium' : 'High') : 'Low - Refill Needed'}
                           </Text>
                         </Badge>
                       </View>
@@ -256,7 +256,7 @@ export default function Monitor() {
                       <View className="items-center">
                         <View className="size-36 items-center justify-center rounded-full bg-white">
                           <Text className="text-4xl font-bold text-gray-800">
-                            {cleanWater?.water_level != null && !isNaN(cleanWater.water_level) ? cleanWater.water_level.toFixed(0) : '75'}%
+                            {cleanWater?.water_level != null && !isNaN(cleanWater.water_level) ? cleanWater.water_level.toFixed(0) : '20'}%
                           </Text>
                           <Text className="text-sm text-gray-600">Water Tank Level</Text>
                         </View>
@@ -265,7 +265,7 @@ export default function Monitor() {
                         <Badge variant="secondary" className="bg-blue-500 dark:bg-blue-600">
                           <Icon as={BadgeCheckIcon} className="text-white" />
                           <Text className="text-white">
-                            {cleanWater?.water_level ? (cleanWater.water_level < 30 ? 'Low' : cleanWater.water_level < 70 ? 'Good' : 'High') : 'Good'}
+                            {cleanWater?.water_level ? (cleanWater.water_level < 20 ? 'Low' : cleanWater.water_level < 70 ? 'Good' : 'High') : 'Good'}
                           </Text>
                         </Badge>
                       </View>

@@ -248,15 +248,16 @@ export default function HarvestForm() {
           <Card className="p-6">
             <View>
               <Text className="text-base font-medium mb-2">
-                Total Harvested Count <Text className="text-red-500">*</Text>
+                Total Crop Harvested <Text className="text-red-500">*</Text>
               </Text>
               <Input
-                placeholder="Enter total harvested count"
+                placeholder="Enter total harvested count per cup"
                 value={formData.totalCount}
                 onChangeText={(value) => handleWholeNumberInput('totalCount', value)}
                 keyboardType="numeric"
                 className="border border-muted-foreground/50 rounded-xl px-3 py-4 bg-[#FAFFFA]"
               />
+              
               <Text className="text-xs text-muted-foreground mt-1">
                 Max: {maxCrops} crops
               </Text>
@@ -266,7 +267,7 @@ export default function HarvestForm() {
             </View>
 
             <View>
-              <Text className="text-base font-medium mb-2">Total Weight (g) (optional)</Text>
+              <Text className="text-base font-medium mb-2">Total Weight (grams) <Text className='italic font-normal text-muted-foreground'>(optional)</Text></Text>
               <View className="flex-row items-center">
                 <Input
                   placeholder="e.g., 1500.50"
@@ -287,15 +288,15 @@ export default function HarvestForm() {
           {/* Quality Grade Breakdown */}
           <Card className="p-6 mb-2">
             <View className="mb-2">
-              <Text className="text-lg font-semibold mb-1">Quality Grade Breakdown</Text>
-              <Text className="text-sm text-muted-foreground">
-                (Must equal total count: {totalCount})
+              <Text className="text-xl font-bold mb-1">Quality Grade Breakdown  <Text className="text-red-500">*</Text></Text> 
+              <Text className="text-base text-muted-foreground">
+                Distribute your {totalCount} harvested crops across quality grades below:
               </Text>
             </View>
 
             {/* Selling Grade */}
             <View className="mb-2">
-              <Text className="text-base font-medium mb-2">Selling Grade</Text>
+              <Text className="text-base font-medium mb-2">Selling</Text>
               <View className="flex-row gap-3">
                 <View className="flex-1">
                   <Text className="text-xs text-muted-foreground mb-1">Count</Text>
@@ -324,7 +325,7 @@ export default function HarvestForm() {
 
             {/* Consumption Grade */}
             <View className="mb-2">
-              <Text className="text-base font-medium mb-2">Consumption Grade</Text>
+              <Text className="text-base font-medium mb-2">Consumption</Text>
               <View className="flex-row gap-3">
                 <View className="flex-1">
                   <Text className="text-xs text-muted-foreground mb-1">Count</Text>
@@ -354,7 +355,7 @@ export default function HarvestForm() {
             {/* Disposal (Auto-calculated) */}
             <View className="border-t border-muted-foreground/20 pt-4">
               <View className="flex-row items-center justify-between p-3 bg-gray-50 rounded-xl">
-                <Text className="text-sm text-muted-foreground">Disposal</Text>
+                <Text className="text-sm text-muted-foreground">Discarded/Unusable Crops</Text>
                 <Text className="text-base font-semibold">{disposal} crops</Text>
               </View>
             </View>
@@ -368,7 +369,7 @@ export default function HarvestForm() {
                   className={isSumValid() ? 'text-emerald-600' : 'text-amber-600'} 
                 />
                 <Text className={`text-sm font-medium ${isSumValid() ? 'text-emerald-800' : 'text-amber-800'}`}>
-                  Current Sum: {gradesSum}/{totalCount} {isSumValid() ? '✓' : ''}
+                  Total: {gradesSum}/{totalCount} {isSumValid() ? '✓' : ''}
                 </Text>
               </View>
             </View>
@@ -376,6 +377,7 @@ export default function HarvestForm() {
               <Text className="text-xs text-red-500 mt-2">{errors.grades}</Text>
             )}
           </Card>
+
 
           {/* Notes */}
           <Card className="p-6">
@@ -427,11 +429,11 @@ export default function HarvestForm() {
       {/* Confirmation Modal */}
       <ConfirmationModal
         visible={showConfirmModal}
-        icon={<Icon as={CheckCircle} size={32} className="text-white" />}
+        icon={<Icon as={CheckCircle} size={32} className="text-primary " />}
         modalTitle="Mark as Harvested?"
         modalDescription="This action will mark this setup as harvested and move it to your harvest history. This cannot be undone."
         confirmText="Confirm Harvest"
-        iconBgColor="bg-primary"
+        iconBgColor="bg-green-50"
         confirmButtonColor="bg-primary"
         onConfirm={handleMarkAsHarvested}
         onCancel={() => setShowConfirmModal(false)}
