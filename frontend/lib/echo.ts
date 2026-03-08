@@ -63,7 +63,7 @@ export const initializeEcho = (authToken: string) => {
     });
 
     pusherInstance.connection.bind('error', (error: any) => {
-      console.error('🔌 Pusher Connection Error:', error);
+
     });
     
     pusherInstance.connection.bind('disconnected', () => {

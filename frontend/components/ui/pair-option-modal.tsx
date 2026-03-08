@@ -61,7 +61,8 @@ export function PairOptionModal({
 
              <Separator className="my-4"/>
 
-            {/* Bluetooth Pairing Option */}
+        
+            {/* Bluetooth Pairing Option
             <Pressable
               onPress={onBluetoothPress}
               className="active:bg-accent flex-row items-center gap-3 rounded-sm px-2 py-2"
@@ -77,7 +78,7 @@ export function PairOptionModal({
                   Connect via Bluetooth
                 </Text>
               </View>
-            </Pressable>
+            </Pressable> */}
           </View>
 
           {/* Cancel Button */}

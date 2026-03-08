@@ -1,0 +1,122 @@
+import { View, Image } from 'react-native';
+import React from 'react';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { PageHeader } from '@/components/ui/page-header';
+import { useRouter } from 'expo-router';
+
+import { Text } from '@/components/ui/text';
+import { Button } from '@/components/ui/button';
+import { Icon } from '@/components/ui/icon';
+import { Plus, Wifi, Smartphone } from 'lucide-react-native';
+import { Card } from '@/components/ui/card';
+
+interface NoDeviceProps {
+  onAddDevice?: () => void;
+}
+
+export default function NoDevice({ onAddDevice }: NoDeviceProps) {
+  const router = useRouter();
+  
+  const handleAddDevice = () => {
+    if (onAddDevice) {
+      onAddDevice();
+    } else {
+      router.push('/device');
+    }
+  };
+  
+  return (
+    <SafeAreaView className="flex-1">
+      <View className="flex-1">
+        {/* =========== Page Header =========== */}
+        <View className="">
+          <PageHeader title="Device" />
+        </View>
+
+        {/* =========== Empty State Section =========== */}
+        <View className="flex-1 px-4 md:px-8 py-4 md:py-6 rounded-b-3xl md:rounded-b-[40px]">
+          <View className="items-center justify-center flex-1">
+            <View className="mb-6">
+              <Image 
+                source={require('@/assets/images/no-connected.png')} 
+                className="w-32 h-32 md:w-48 md:h-48 opacity-50"
+                resizeMode="contain"
+              />
+            </View>
+
+            <Text className="text-2xl md:text-3xl font-bold text-primary mb-3 text-center leading-8 md:leading-10">
+              No IoT Device Connected
+            </Text>
+            
+            <Text className="text-center text-muted-foreground mb-6 text-base md:text-lg leading-6 md:leading-7 px-4 md:px-8 max-w-lg">
+              Connect your IoT device to access this feature
+            </Text>
+            
+            <Button 
+              className="w-full md:w-80 mb-6 py-3 md:py-4"
+              onPress={handleAddDevice}
+            >
+              <Icon as={Plus} className="text-muted" />
+              <Text className="ml-2 font-semibold text-base md:text-lg">
+                Add Device
+              </Text>
+            </Button>
+          </View>
+             
+          {/* =========== Setup Instructions =========== */}
+          <Card className="px-4 md:px-8 py-4 md:py-6 mx-0 md:mx-0 border-muted-foreground/50">
+            <Text className="text-lg md:text-xl font-semibold  mb-2">
+              How to Get Started
+            </Text>
+            
+            <View className="space-y-4">
+              {/* Step 1 */}
+              <View className="flex-row items-start">
+                <View className="w-6 h-6 md:w-8 md:h-8 rounded-full bg-primary items-center justify-center mr-3 mt-1">
+                  <Text className="text-white font-bold text-xs md:text-sm">
+                    1
+                  </Text>
+                </View>
+                <View className="flex-1">
+                  <Text className=" font-medium mb-1 text-base md:text-lg">
+                    Connect Your Device
+                  </Text>
+                  <Text className="text-muted-foreground text-sm md:text-base">
+                    Make sure your IoT device is powered on and connected to WiFi
+                  </Text>
+                </View>
+                <Icon 
+                  as={Wifi} 
+                  size={16} 
+                  className="text-gray-500 mt-1 md:w-5 md:h-5" 
+                />
+              </View>
+
+              {/* Step 2 */}
+              <View className="flex-row items-start mt-3">
+                <View className="w-6 h-6 md:w-8 md:h-8 rounded-full bg-primary items-center justify-center mr-3 mt-1">
+                  <Text className="text-white font-bold text-xs md:text-sm">
+                    2
+                  </Text>
+                </View>
+                <View className="flex-1">
+                  <Text className=" font-medium mb-1 text-base md:text-lg">
+                    Pair with App
+                  </Text>
+                  <Text className="text-muted-foreground text-sm md:text-base">
+                    Use the device's QR code or manual pairing to connect
+                  </Text>
+                </View>
+                <Icon 
+                  as={Smartphone} 
+                  size={16} 
+                  className="text-gray-500 mt-1 md:w-5 md:h-5" 
+                />
+              </View>
+            </View>
+          </Card>
+        </View>
+      </View>
+    </SafeAreaView>
+  );
+}

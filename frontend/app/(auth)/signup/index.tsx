@@ -79,6 +79,15 @@ async function onSubmit() {
     if (!checked) return;
 
     await register(validatedData);
+    
+    // Check if registration actually succeeded (no errors)
+    const state = useAuthStore.getState();
+    if (state.error || Object.keys(state.fieldErrors).length > 0) {
+      // Registration failed - errors are already set in state
+      console.log('❌ Registration failed:', state.error, state.fieldErrors);
+      return;
+    }
+    
     console.log('✅ Registration successful:', { email, firstName, lastName });
     
     // Navigate to email verification page after successful registration

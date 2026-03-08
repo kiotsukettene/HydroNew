@@ -76,17 +76,89 @@ export interface UpdateStageResponse {
   data: TreatmentStageRecord;
 }
 
+/** Filtration command API response (success/error only). */
+export interface FiltrationCommandResponse {
+  success: boolean;
+  message?: string;
+}
+
 export interface TreatmentStore {
   loading: boolean;
   error: string | null;
 
   currentTreatment: TreatmentReport | null;
+  /** List of reports from GET /treatment/reports. */
+  reports: TreatmentReportListItem[] | null;
 
   saveTreatment: () => Promise<TreatmentReport | null>;
   updateTreatment: (total_cycles: number) => Promise<TreatmentReport | null>;
-  saveStage: (payload: SaveStagePayload) => Promise<TreatmentStageRecord | null>;
-  /** Update stage result — PUT /treatment/update-stages (passed when completed, failed when failed). */
-  updateStage: (payload: UpdateStagePayload) => Promise<TreatmentStageRecord | null>;
+  fetchLatestTreatment: () => Promise<LatestTreatmentData | null>;
   resetError: () => void;
   clearCurrentTreatment: () => void;
+
+  /** Filtration commands (call backend API; toasts shown when MQTT state is received in UI). */
+  startProcess: () => Promise<boolean>;
+  openValve1: () => Promise<boolean>;
+  closeValve1: () => Promise<boolean>;
+  openDrainValve: () => Promise<boolean>;
+  closeDrainValve: () => Promise<boolean>;
+  restartFiltration: () => Promise<boolean>;
+  openPump4: () => Promise<boolean>;
+  /** Fetches GET /treatment/reports and returns the data array. */
+  fetchTreatmentReports: () => Promise<TreatmentReportListItem[] | null>;
+}
+
+/** Stage data from GET /treatment/latest */
+export interface LatestTreatmentStage {
+  id: number;
+  stage_name: TreatmentStageName;
+  stage_order: number;
+  status: 'passed' | 'processing' | 'pending' | 'failed';
+  ph: number | null;
+  tds: number | null;
+  turbidity: number | null;
+  notes: string | null;
+}
+
+/** Treatment data from GET /treatment/latest */
+export interface LatestTreatmentData {
+  id: number;
+  device_id: number;
+  start_time: string;
+  end_time: string | null;
+  final_status: 'pending' | 'success' | 'failed';
+  total_cycles: number | null;
+  stages: LatestTreatmentStage[];
+}
+
+/** Stage as returned in GET /treatment/reports (each report's stages array). */
+export interface TreatmentReportStage {
+  id: number;
+  stage_name: string;
+  stage_order: number;
+  status: string;
+  ph: number;
+  tds: number;
+  turbidity: number;
+  notes: string | null;
+  started_at: string;
+  completed_at: string;
+}
+
+/** Single report item from GET /treatment/reports (data array element). */
+export interface TreatmentReportListItem {
+  id: number;
+  device_id: number;
+  start_time: string;
+  end_time: string;
+  final_status: string;
+  total_cycles: number;
+  water_liters: number;
+  stages: TreatmentReportStage[];
+}
+
+/** Response shape for GET /treatment/reports. */
+export interface TreatmentReportsResponse {
+  success: boolean;
+  data: TreatmentReportListItem[];
 }

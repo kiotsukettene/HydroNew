@@ -18,6 +18,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useAuthStore } from '@/store/auth/authStore';
 import { Separator } from '@/components/ui/separator';
 import { ConfirmationModal } from '@/components/ui/confirmation-modal';
+import { LettuceViewSkeleton } from '@/components/skeletons';
 
 export default function LettuceView() {
   const router = useRouter();
@@ -62,6 +63,7 @@ export default function LettuceView() {
     romaine: require('../../assets/gif-lettuce/romaine.gif'),
     butterhead: require('../../assets/gif-lettuce/butterhead.gif'),
     loose: require('../../assets/gif-lettuce/loose.gif'),
+    'loose-leaf': require('../../assets/gif-lettuce/loose.gif'),
   };
 
   const gifKey = currentSetup?.crop_name
@@ -102,13 +104,18 @@ export default function LettuceView() {
     }
   }, [setupId]);
 
-  // Subscribe to pump state so all users see button muted when pump is running
+  // Subscribe to pump state so all users see button muted when pump is running (multi-user safety)
   useEffect(() => {
     if (!deviceSerial) return;
-    const topic = `hydroponics/${deviceSerial}/pump/1/state`;
+    const topic = `hydroponics/${deviceSerial}/pump/2/state`;
     const unsubscribe = subscribeMessage(topic, (_t, payload) => {
       const value = payload.toString().trim();
-      setIsHydroponicsPumpRunning(value === '1');
+      const isRunning = value === '1';
+      setIsHydroponicsPumpRunning(isRunning);
+      // Mirror filtration behavior: if we were "waiting", but a state update arrives
+      // (either from our own ack or another user), stop showing "Starting..." and
+      // just reflect the real running state.
+      setIsWaitingForPumpAck(false);
     });
     return unsubscribe;
   }, [deviceSerial]);
@@ -116,7 +123,7 @@ export default function LettuceView() {
   const pumpWater = () => {
     if (!deviceSerial) return;
     setIsWaitingForPumpAck(true);
-    publishWithAck(`hydroponics/${deviceSerial}/pump/1`, 'OPEN', (success) => {
+    publishWithAck(`hydroponics/${deviceSerial}/pump/2`, 'OPEN', (success) => {
       setIsWaitingForPumpAck(false);
       if (success) {
         toast.success('Pump started');
@@ -125,8 +132,25 @@ export default function LettuceView() {
         toast.error('Failed to start pump');
       }
     });
-    console.log(`Published message to hydroponics/${deviceSerial}/pump/1`);
+    console.log(`Published message to hydroponics/${deviceSerial}/pump/2`);
   };
+
+  const requestedId = setupId != null ? Number(setupId) : null;
+  const isShowingWrongSetup = requestedId != null && currentSetup != null && currentSetup.id !== requestedId;
+  if ((loading && !currentSetup) || isShowingWrongSetup) {
+    return (
+      <SafeAreaView className="flex-1 bg-background">
+        <View className="relative z-10">
+          <PageHeader
+            title="Hydroponics Monitoring"
+            showBackButton={true}
+            showNotificationButton={false}
+          />
+        </View>
+        <LettuceViewSkeleton />
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView className="flex-1 bg-background">

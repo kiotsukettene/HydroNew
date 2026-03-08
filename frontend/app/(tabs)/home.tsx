@@ -23,6 +23,7 @@ import { useRouter } from 'expo-router';
 import { useDashboardStore } from '@/store/auth/dashboardStore';
 import { useNotificationStore } from '@/store/notification/notificationStore';
 import { useSensorStore } from '@/store/sensor/sensorStore';
+import { useFiltrationProgressStore } from '@/store/filtration/filtrationProgressStore';
 import { HomeSkeleton } from '@/components/skeletons';
 
 import { db } from '@/src/firebase';
@@ -107,6 +108,7 @@ export default function Home() {
 
   const { data, loading, error, fetchDashboard } = useDashboardStore();
   const unreadCount = useNotificationStore((s) => s.unreadCount);
+  const isFiltrationProgressActive = useFiltrationProgressStore((s) => s.isActive);
   
   // Real-time sensor data - read directly from store (subscription is in _layout.tsx via useEchoSetup)
   const cleanWater = useSensorStore((state) => state.cleanWater);
@@ -148,12 +150,24 @@ export default function Home() {
     );
   }
 
-  // Use real-time pH from clean water sensor, fallback to dashboard data
+  // Use real-time pH from clean water sensor, fallback to dashboard data (null when no device)
   const realTimePH = cleanWater?.ph != null && !isNaN(cleanWater.ph) ? cleanWater.ph : null;
-  
+  const dashboardPH = data?.pHLevel != null && !isNaN(data.pHLevel) ? data.pHLevel : null;
+
+  // Derive water status from real-time pH (match backend: 6.0–7.5 Good, <6 Acidic, >7.5 Alkaline, null Unknown)
+  const phForStatus = realTimePH ?? dashboardPH;
+  const realTimeStatus =
+    phForStatus == null || isNaN(phForStatus)
+      ? null
+      : phForStatus >= 6.0 && phForStatus <= 7.5
+        ? 'Good'
+        : phForStatus < 6.0
+          ? 'Acidic'
+          : 'Alkaline';
+
   const waterQuality = {
-    pHLevel: realTimePH ?? data?.pHLevel ?? 0,
-    status: data?.status ?? 'Unknown',
+    pHLevel: realTimePH ?? dashboardPH ?? null,
+    status: realTimeStatus ?? data?.status ?? '--',
     unit: data?.unit ?? ''
   };
 
@@ -167,7 +181,12 @@ export default function Home() {
   };
 
   return (
-    <ScrollView className='bg-white'>
+    <ScrollView
+      className="bg-white"
+      contentContainerStyle={{
+        paddingBottom: isFiltrationProgressActive ? 50 : 24,
+      }}
+    >
       <SafeAreaView className=''>
         <View className="p-4 ">
 
@@ -196,7 +215,7 @@ export default function Home() {
               {/* pH Level */}
               <View className="absolute left-6 top-9 z-10">
                 <Text className="text-5xl font-bold text-[#2D7D7D]">
-                  {waterQuality.pHLevel != null && !isNaN(waterQuality.pHLevel) ? waterQuality.pHLevel.toFixed(2) : '0.00'}
+                  {waterQuality.pHLevel != null && !isNaN(waterQuality.pHLevel) ? waterQuality.pHLevel.toFixed(2) : '--'}
                 </Text>
                 <Text className="text-lg font-semibold text-foreground/70">pH Level</Text>
               </View>

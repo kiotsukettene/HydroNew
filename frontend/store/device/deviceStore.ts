@@ -5,11 +5,52 @@ import { handleAxiosError } from "@/api/handleAxiosError";
 import axiosInstance from "@/api/axiosInstance";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useAuthStore } from "@/store/auth/authStore";
+import { useSensorStore } from "@/store/sensor/sensorStore";
 
 export const useDeviceStore = create<DeviceStore>((set, get) => ({
   devices: [],
   loading: false,
   error: null,
+
+generateQrPayload: async () => {
+  set({ loading: true, error: null });
+  try {
+    const response = await axiosInstance.post("/devices/generate-qr-payload");
+    console.log("Generate QR payload response:", response.data);
+
+    const payload = response?.data?.qr_payload;
+    if (!payload) {
+      throw new Error("Missing qr_payload in response");
+    }
+
+    return payload;
+  } catch (error: any) {
+    const { message } = handleAxiosError(error);
+    set({ error: message });
+    console.error("Failed to generate QR payload:", message, error?.response?.data);
+    throw error;
+  } finally {
+    set({ loading: false });
+  }
+},
+
+pairDeviceByQr: async (payload: { serial_number: string; device_name: string; model: string }) => {
+  set({ loading: true, error: null });
+  try {
+    const response = await axiosInstance.post("/devices/pair-by-qr", payload);
+    console.log("Pair device by QR response:", response.data);
+
+    // If backend returns the paired device, you could optionally store it here.
+    return response.data;
+  } catch (error: any) {
+    const { message } = handleAxiosError(error);
+    set({ error: message });
+    console.error("Failed to pair device via QR:", message, error?.response?.data);
+    throw error;
+  } finally {
+    set({ loading: false });
+  }
+},
 
 getPairingToken: async () => {
   set({ loading: true, error: null });
@@ -39,12 +80,20 @@ fetchDevice: async (userId: number) => {
       return;
     }
 
-    // Check if device already exists in AsyncStorage
+    // Check if device already exists in store first (to avoid unnecessary AsyncStorage reads)
+    const currentDevices = get().devices;
+    if (currentDevices && currentDevices.length > 0) {
+      console.log("Device already loaded in store, skipping fetch");
+      set({ loading: false });
+      return;
+    }
+
+    // Check if device exists in AsyncStorage
     const storageKey = `paired_device:${userId}`;
     const existingDevice = await AsyncStorage.getItem(storageKey);
     
     if (existingDevice) {
-      console.log("Device already exists in AsyncStorage, skipping fetch");
+      console.log("Device found in AsyncStorage, loading to store");
       const device = JSON.parse(existingDevice);
       set({ devices: [device], loading: false });
       return;
@@ -67,11 +116,8 @@ fetchDevice: async (userId: number) => {
         status: devices[0].status,
       };
 
-      // Save to AsyncStorage
-      await AsyncStorage.setItem(storageKey, JSON.stringify(device));
-      console.log("Device saved to AsyncStorage");
-
-      set({ devices: [device] });
+      // Persist to AsyncStorage and store (setDevice does both so filtration etc. find it)
+      await get().setDeviceAndPersist(device, userId);
     } else {
       console.log("No devices returned from API");
       set({ devices: [] });
@@ -79,7 +125,6 @@ fetchDevice: async (userId: number) => {
   } catch (error: any) {
     const { message } = handleAxiosError(error);
     set({ error: message });
-    console.error("Failed to fetch devices:", message, error.response?.data);
   } finally {
     set({ loading: false });
   }
@@ -87,6 +132,14 @@ fetchDevice: async (userId: number) => {
 
 setDevice: (device: any) => {
   console.log("Setting device in store:", device);
+  set({ devices: [device] });
+},
+
+/** Set device in store and persist to AsyncStorage so screens that read from storage (e.g. filtration) see it. */
+setDeviceAndPersist: async (device: any, userId: number) => {
+  const storageKey = `paired_device:${userId}`;
+  await AsyncStorage.setItem(storageKey, JSON.stringify(device));
+  console.log("Device saved to AsyncStorage (setDeviceAndPersist)");
   set({ devices: [device] });
 },
 
@@ -102,6 +155,8 @@ unpairDevice: async () => {
       const storageKey = `paired_device:${userId}`;
       await AsyncStorage.removeItem(storageKey);
       set({ devices: [] });
+      // Clear sensor data so UI doesn't show stale readings and we stop treating as "receiving"
+      useSensorStore.getState().reset();
       return { success: true, message };
     }
 

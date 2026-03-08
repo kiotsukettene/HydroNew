@@ -12,7 +12,7 @@ import { useDeviceStore } from '@/store/device/deviceStore';
  * @param fallbackDeviceId - Optional fallback device ID if no device is paired (defaults to null)
  */
 export const useSensorData = (fallbackDeviceId: number | null = null) => {
-  const { updateCleanWater, updateDirtyWater, updateHydroponicsWater, setError } = useSensorStore();
+  const { updateCleanWater, updateDirtyWater, updateHydroponicsWater, setError, reset: resetSensorStore } = useSensorStore();
   const isListeningRef = useRef(false);
   const channelRef = useRef<any>(null);
   const token = useAuthStore((state) => state.token);
@@ -68,18 +68,21 @@ export const useSensorData = (fallbackDeviceId: number | null = null) => {
     return () => clearInterval(interval);
   }, [echoReady]);
 
-  // Log when device becomes available
+  // Log when device becomes available (only log once when deviceId changes)
+  const previousDeviceIdRef = useRef<number | null>(null);
   useEffect(() => {
-    if (deviceId) {
-      console.log(' [useSensorData] Device ID available for sensor subscription:', deviceId);
-      console.log(' [useSensorData] Will subscribe to channel: sensor.device.' + deviceId);
-    } else {
-      console.log(' [useSensorData] No device ID available for sensor subscription');
-      console.log(' [useSensorData] Devices in store:', devices);
+    // Only log if deviceId actually changed
+    if (deviceId !== previousDeviceIdRef.current) {
+      if (deviceId) {
+        console.log(' [useSensorData] Device ID available for sensor subscription:', deviceId);
+        console.log(' [useSensorData] Will subscribe to channel: sensor.device.' + deviceId);
+      } else {
+        console.log(' [useSensorData] No device ID available for sensor subscription');
+      }
+      console.log(' [useSensorData] Echo ready status:', echoReady);
+      previousDeviceIdRef.current = deviceId;
     }
-    
-    console.log(' [useSensorData] Echo ready status:', echoReady);
-  }, [deviceId, devices, echoReady]);
+  }, [deviceId, echoReady]);
 
   useEffect(() => {
     // Only proceed if we have a token, device ID, and Echo is ready
@@ -89,7 +92,9 @@ export const useSensorData = (fallbackDeviceId: number | null = null) => {
     }
 
     if (deviceId === null) {
-      console.log(' No device ID available, skipping sensor data subscription');
+      console.log(' [useSensorData] No device ID available, skipping sensor data subscription');
+      // Clear any stale sensor data when we have no paired device
+      resetSensorStore();
       return;
     }
 
@@ -163,6 +168,7 @@ export const useSensorData = (fallbackDeviceId: number | null = null) => {
               temperature: parseNumericValue(data.readings.temperature),
               ec: parseNumericValue(data.readings.ec),
               electric_current: parseNumericValue(data.readings.electric_current),
+              ai_classification: data.readings.ai_classification ?? null,
               reading_time: data.reading_time,
               created_at: data.reading_time, // Use reading_time as fallback
               updated_at: data.reading_time,
@@ -210,6 +216,7 @@ export const useSensorData = (fallbackDeviceId: number | null = null) => {
               temperature: parseNumericValue(data.readings.temperature),
               ec: parseNumericValue(data.readings.ec),
               electric_current: parseNumericValue(data.readings.electric_current),
+              ai_classification: data.readings.ai_classification ?? null,
               reading_time: data.reading_time,
               created_at: data.reading_time,
               updated_at: data.reading_time,
@@ -279,9 +286,11 @@ export const useSensorData = (fallbackDeviceId: number | null = null) => {
       }
       
       isListeningRef.current = false;
+      // Clear sensor data when unsubscribing (e.g. after unpair) so UI doesn't show stale data
+      resetSensorStore();
       console.log('✅ [useSensorData] Sensor listeners cleaned up');
     };
-  }, [deviceId, token, echoReady, updateCleanWater, updateDirtyWater, updateHydroponicsWater, setError]);
+  }, [deviceId, token, echoReady, updateCleanWater, updateDirtyWater, updateHydroponicsWater, setError, resetSensorStore]);
 
   return {
     // Return the store data for convenience

@@ -16,31 +16,51 @@ import { Label } from '@/components/ui/label';
 import { useRouter } from 'expo-router';
 import { Button } from '@/components/ui/button';
 import NoSetup from '@/app/hydroponics-monitoring/no-setup';
+import NoDevice from '@/components/ui/no-device';
 import { useFocusEffect } from '@react-navigation/native';
+
+import { useAuthStore } from '@/store/auth/authStore';
+import { useDeviceStore } from '@/store/device/deviceStore';
 import { useHydroponicSetupStore } from '@/store/hydroponics/hydroponicSetupStore';
 import { HydroponicsSkeleton } from '@/components/skeletons';
+import { useFiltrationProgressStore } from '@/store/filtration/filtrationProgressStore';
 
 const { height: screenHeight } = Dimensions.get('window');
 
 export default function Hydroponics() {
   const router = useRouter();
-  const {
-    hydroponicSetups,
-    fetchHydroponicSetups,
+  const userId = useAuthStore((state) => state.user?.id);
+  const { devices, fetchDevice, loading: deviceLoading } = useDeviceStore();
+  const { 
+    hydroponicSetups, 
+    fetchHydroponicSetups, 
     loading,
     loadingMore,
     hasMore,
     loadMore,
     refresh,
   } = useHydroponicSetupStore();
+  const isFiltrationProgressActive = useFiltrationProgressStore((s) => s.isActive);
 
   const [refreshing, setRefreshing] = useState(false);
+  const [deviceChecked, setDeviceChecked] = useState(false);
 
   useFocusEffect(
     useCallback(() => {
-      // Fetch data on focus
-      fetchHydroponicSetups(true);
-    }, [fetchHydroponicSetups])
+      // Check device status first
+      if (devices && devices.length > 0) {
+        setDeviceChecked(true);
+        // Fetch hydroponic setups when device is confirmed
+        fetchHydroponicSetups(true);
+      } else if (!deviceChecked) {
+        // Only fetch device if not already checked
+        if (userId) {
+          fetchDevice(userId).finally(() => setDeviceChecked(true));
+        } else {
+          setDeviceChecked(true);
+        }
+      }
+    }, [userId, fetchDevice, fetchHydroponicSetups, devices, deviceChecked])
   );
 
   const onRefresh = useCallback(async () => {
@@ -60,6 +80,51 @@ export default function Hydroponics() {
       loadMore();
     }
   }, [hasMore, loadingMore, loading, loadMore]);
+  
+  
+    // Show skeleton only on initial load (when devices haven't been fetched yet)
+  if (!deviceChecked && (!devices || devices.length === 0)) {
+    return (
+      <SafeAreaView className="relative flex-1 bg-background">
+        <Image
+          source={require('@/assets/images/list-bg.png')}
+          className="absolute w-full"
+          style={{ top: 0, height: 300 }}
+        />
+        <View className="relative z-10">
+          <PageHeader title="Hydroponics Monitoring" />
+        </View>
+        <HydroponicsSkeleton />
+      </SafeAreaView>
+    );
+  }
+
+  // Show NoDevice if no device paired after check
+  if (deviceChecked && (!devices || devices.length === 0)) {
+    return <NoDevice />;
+  }
+
+  // Show skeleton while loading initially
+  if (loading && (!hydroponicSetups || !Array.isArray(hydroponicSetups) || hydroponicSetups.length === 0)) {
+    return (
+      <SafeAreaView className="relative flex-1 bg-background">
+        <Image
+          source={require('@/assets/images/list-bg.png')}
+          className="absolute w-full"
+          style={{ top: 0, height: 300 }}
+        />
+        <View className="relative z-10">
+          <PageHeader title="Hydroponics Monitoring" />
+        </View>
+        <HydroponicsSkeleton />
+      </SafeAreaView>
+    );
+  }
+  
+  // Show NoSetup page if no setups exist (but device exists)
+  if (!hydroponicSetups || !Array.isArray(hydroponicSetups) || hydroponicSetups.length === 0) {
+    return <NoSetup />;
+  }
 
   const renderPlantItem = (item: any) => {
     return (
@@ -159,7 +224,7 @@ export default function Hydroponics() {
                   <ActivityIndicator size="large" color="#2D7D7D" />
                   <Text className="mt-4 text-center text-muted-foreground">Loading...</Text>
                 </View>
-              ) : hydroponicSetups && hydroponicSetups.length > 0 ? (
+              ) : (
                 <>
                   {hydroponicSetups.map((item) => renderPlantItem(item))}
 
@@ -176,8 +241,6 @@ export default function Hydroponics() {
                     </Button>
                   )}
                 </>
-              ) : (
-                <NoSetup />
               )}
             </Card>
           </View>

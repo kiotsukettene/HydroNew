@@ -7,6 +7,7 @@ import { Platform } from "react-native";
 import { disconnectEcho } from "@/lib/echo";
 import { useNotificationStore } from "../notification/notificationStore";
 import { useDeviceStore } from "@/store/device/deviceStore";
+import { useHydroponicSetupStore } from "@/store/hydroponics/hydroponicSetupStore";
 
 const isWeb = Platform.OS === "web";
 
@@ -100,7 +101,6 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       await storage.setItem("token", responseData.token);
 
     } catch (err: any) {
-      console.error(' Register error:', err);
       const { message, fieldErrors } = handleAxiosError(err);
       set({ loading: false, error: message, fieldErrors });
     }
@@ -142,9 +142,12 @@ login: async (email, password) => {
     });
     
     console.log(' [Login] State updated');
-    await useAccountStore.getState().fetchAccount();
-
-    await useDeviceStore.getState().fetchDevice(response.data.user.id);
+    
+    // Only fetch account and device if user exists (not needed for verification flow)
+    if (user?.id) {
+      await useAccountStore.getState().fetchAccount();
+      await useDeviceStore.getState().fetchDevice(user.id);
+    }
     
     return response.data;
   } catch (err: any) {
@@ -226,8 +229,16 @@ login: async (email, password) => {
     }
   },
 
-logout: async () => {
+logout: async (options?: { skipApiCall?: boolean }) => {
   const user = get().user;
+
+  if (!options?.skipApiCall) {
+    try {
+      await axiosInstance.post("/logout");
+    } catch {
+      // Proceed with local logout even if API fails (e.g. token expired)
+    }
+  }
 
   // Stop listening safely
   if (user?.id) {
@@ -237,8 +248,12 @@ logout: async () => {
   // Disconnect echo safely
   disconnectEcho();
 
-  // Clear storage
-  await storage.removeItem("token");
+  // Clear all storage
+  if (isWeb) {
+    window.localStorage.clear();
+  } else {
+    await AsyncStorage.clear();
+  }
 
   // Reset auth state
   set({
@@ -257,6 +272,28 @@ logout: async () => {
     error: null,
     loading: false,
     isListening: false,
+  });
+
+  // Reset device store
+  useDeviceStore.setState({
+    devices: [],
+    loading: false,
+    error: null,
+  });
+
+  // Reset hydroponic setup store
+  useHydroponicSetupStore.setState({
+    hydroponicSetups: [],
+    currentSetup: null,
+    loading: false,
+    loadingMore: false,
+    error: null,
+    currentPage: 1,
+    lastPage: 1,
+    total: 0,
+    hasMore: false,
+    cache: null,
+    lastFetchTime: null,
   });
 },
 

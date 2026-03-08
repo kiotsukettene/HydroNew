@@ -17,7 +17,7 @@ interface PasswordStrengthMeterProps {
 export function PasswordStrengthMeter({
   password,
   minLength = 8,
-  colors = ["#dc2626", "#ea580c", "#16a34a", "#15803d"],
+  colors = ["#dc2626", "#ea580c", "#eab308", "#16a34a"],
   levels = 4,
   customRequirements,
 }: PasswordStrengthMeterProps) {
