@@ -39,7 +39,7 @@ export default function ManageAccount() {
   const [firstName, setFirstName] = useState(account?.first_name || "Juan");
   const [lastName, setLastName] = useState(account?.last_name || "Dela Cruz");
   const [email, setEmail] = useState(account?.email || "juan.delacruz@example.com");
-  const [address, setAddress] = useState(account?.address);
+  const [address, setAddress] = useState(account?.address || "");
   const [profileImage, setProfileImage] = useState<string | null>(null);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [initialEditValues, setInitialEditValues] = useState<{ firstName: string; lastName: string; address: string } | null>(null);
@@ -214,7 +214,7 @@ const handleUpdateAccount = async () => {
               <View className='mt-2 gap-1'>
                 <Label className="font-normal text-muted-foreground">Address</Label>
                 <InputWithIcon
-                  value={address}
+                  value={address || ""}
                   onChangeText={(value) => {
                     setAddress(value);
                     if (errors.address) {
