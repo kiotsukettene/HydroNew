@@ -230,18 +230,21 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
                 if (notification.type === 'warning') {
                     console.log('Calling toast.warning...');
                     toast.warning(notification.title, {
+                        id: 'notification-toast',
                         description: notification.message,
                         duration,
                     });
                 } else if (notification.type === 'success') {
                     console.log('Calling toast.success...');
                     toast.success(notification.title, {
+                        id: 'notification-toast',
                         description: notification.message,
                         duration,
                     });
                 } else if (notification.type === 'info') {
                     console.log('Calling toast.info...');
                     toast.info(notification.title, {
+                        id: 'notification-toast',
                         description: notification.message,
                         duration,
                     });
@@ -249,6 +252,7 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
                     // Fallback for 'info' or any other type
                     console.log('Calling toast.info (fallback)...');
                     toast.info(notification.title, {
+                        id: 'notification-toast',
                         description: notification.message,
                         duration,
                     });
