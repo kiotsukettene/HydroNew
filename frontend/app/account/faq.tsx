@@ -166,6 +166,13 @@ export default function FAQ() {
                               <Plus size={20} color="#445104" />
                             )}
                           </View>
+                          {isExpanded && (
+                            <View className="mt-3 pt-3 border-t border-gray-200">
+                              <Text className="text-gray-700 leading-6 text-justify">
+                                {highlightText(item.answer, searchTerm)}
+                              </Text>
+                            </View>
+                          )}
                         </CardContent>
                       </Pressable>
                     </Card>
