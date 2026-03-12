@@ -37,7 +37,6 @@ type PendingFiltrationToast =
   | null;
 import NoDevice from '@/components/ui/no-device';
 import { useFocusEffect, useIsFocused } from '@react-navigation/native';
-import { FiltrationSkeleton } from '@/components/skeletons';
 
 // Enable LayoutAnimation on Android
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
@@ -106,12 +105,8 @@ export default function Filtration() {
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [showFailedModal, setShowFailedModal] = useState(false);
   const [isStageOneExpanded, setIsStageOneExpanded] = useState(false);
-  const [deviceSerial, setDeviceSerial] = useState('');
   const [totalCycles, setTotalCycles] = useState(0);
-  const { saveTreatment, updateTreatment, saveStage, updateStage, currentTreatment } = useTreatmentStore();
-  const userId = useAuthStore((state) => state.user?.id);
-  const dirtyWater = useSensorStore((state) => state.dirtyWater);
-  const cleanWater = useSensorStore((state) => state.cleanWater);
+  const { saveTreatment, updateTreatment, currentTreatment } = useTreatmentStore();
   const stages2To4TimeoutIdsRef = useRef<ReturnType<typeof setTimeout>[]>([]);
   const hasFailedStages2To4Ref = useRef(false);
   const [isRestartPumpOpen, setIsRestartPumpOpen] = useState(false);
@@ -214,26 +209,6 @@ export default function Filtration() {
       return;
     }
 
-  useEffect(() => {
-    const getDeviceSerial = async () => {
-      if (!userId) {
-        setIsInitialLoad(false);
-        return;
-      }
-      
-      try {
-        const storageKey = `paired_device:${userId}`;
-        const deviceData = await AsyncStorage.getItem(storageKey);
-        
-        if (deviceData) {
-          const device = JSON.parse(deviceData);
-          setDeviceSerial(device.serial_number);
-        }
-      } catch (error) {
-        console.error("Failed to retrieve device serial:", error);
-      } finally {
-        setIsInitialLoad(false);
-      }
     const mapBackendToUI = (s: string): 'completed' | 'active' | 'pending' | 'failed' => {
       if (s === 'passed') return 'completed';
       if (s === 'processing') return 'active';
