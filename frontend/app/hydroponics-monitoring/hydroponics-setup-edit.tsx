@@ -114,7 +114,7 @@ export default function HydroponicsSetupEdit() {
         targetPhMax: currentSetup.target_ph_max?.toString() || '7.0',
         targetTdsMin: currentSetup.target_tds_min?.toString() || '50',
         targetTdsMax: currentSetup.target_tds_max?.toString() || '150',
-        waterAmount: currentSetup.water_amount?.replace('L', '') || '5',
+        waterAmount: currentSetup.water_amount?.toString() || '5',
         setupDate: currentSetup.setup_date || new Date().toISOString().split('T')[0],
         harvestDate: currentSetup.harvest_date || '',
         status: 'active',
@@ -293,7 +293,7 @@ export default function HydroponicsSetupEdit() {
         target_ph_max: parseFloat(formData.targetPhMax),
         target_tds_min: parseInt(formData.targetTdsMin, 10),
         target_tds_max: parseInt(formData.targetTdsMax, 10),
-        water_amount: `${formData.waterAmount}L`,
+        water_amount: parseInt(formData.waterAmount, 10),
         harvest_date: formData.harvestDate,
         pump_config: null,
       };

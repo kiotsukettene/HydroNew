@@ -56,16 +56,9 @@ export const hydroponicSchema = z
         .min(1, "Target TDS maximum must be a valid positive number")
     ),
 
-    water_amount: z
-      .string()
-      .min(1, "Water amount is required")
-      .refine(
-        (val) => {
-          const num = parseFloat(val.replace(/L/i, "").trim());
-          return !isNaN(num) && num > 0;
-        },
-        { message: "Water amount must be a valid positive number" }
-      ),
+    water_amount: z.coerce
+      .number()
+      .min(1, "Water amount must be a positive number"),
 
     pump_config: z.any().optional(),
   })

@@ -70,16 +70,17 @@ export default function Hydroponics() {
     setRefreshing(false);
   }, [fetchHydroponicSetups]);
 
-  if (loading && hydroponicSetups.length === 0) {
-    return <HydroponicsSkeleton />;
-  }
-
-  if (!loading && hydroponicSetups.length === 0) return <NoSetup />;
   const handleLoadMore = useCallback(() => {
     if (hasMore && !loadingMore && !loading) {
       loadMore();
     }
   }, [hasMore, loadingMore, loading, loadMore]);
+
+  if (loading && hydroponicSetups.length === 0) {
+    return <HydroponicsSkeleton />;
+  }
+
+  if (!loading && hydroponicSetups.length === 0) return <NoSetup />;
   
   
     // Show skeleton only on initial load (when devices haven't been fetched yet)

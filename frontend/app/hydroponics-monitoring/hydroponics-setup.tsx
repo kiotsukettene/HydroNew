@@ -29,7 +29,7 @@ interface HydroponicsSetupData {
   targetPhMax: string;
   targetTdsMin: string;
   targetTdsMax: string;
-  waterAmount: string;
+  waterAmount: string; // Stored as string in form for input handling, converted to integer on submit
   setupDate: string;
   harvestDate: string;
   status: 'active';
@@ -306,7 +306,7 @@ const onSubmit = async () => {
       target_ph_max: parseFloat(formData.targetPhMax),
       target_tds_min: parseInt(formData.targetTdsMin, 10),
       target_tds_max: parseInt(formData.targetTdsMax, 10),
-      water_amount: `${formData.waterAmount}L`,
+      water_amount: parseInt(formData.waterAmount, 10),
       harvest_date: formData.harvestDate,
       pump_config: null,
     };
