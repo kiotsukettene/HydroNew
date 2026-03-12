@@ -94,6 +94,7 @@ export default function HydroponicsSetupEdit() {
   const [showCropInfoModal, setShowCropInfoModal] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [originalFormData, setOriginalFormData] = useState<HydroponicsSetupData | null>(null);
 
   // Load existing setup data
   useEffect(() => {
@@ -105,7 +106,7 @@ export default function HydroponicsSetupEdit() {
   // Populate form with existing data
   useEffect(() => {
     if (currentSetup) {
-      setFormData({
+      const loadedData: HydroponicsSetupData = {
         cropName: currentSetup.crop_name || '',
         numberOfCrops: currentSetup.number_of_crops?.toString() || '1',
         bedSize: currentSetup.bed_size || '',
@@ -118,12 +119,33 @@ export default function HydroponicsSetupEdit() {
         setupDate: currentSetup.setup_date || new Date().toISOString().split('T')[0],
         harvestDate: currentSetup.harvest_date || '',
         status: 'active',
-      });
+      };
+      setFormData(loadedData);
+      setOriginalFormData(loadedData);
     }
   }, [currentSetup]);
 
   const resetErrors = () => {
     setErrors({});
+  };
+
+  // Check if form data has changed from original
+  const hasFormChanged = (): boolean => {
+    if (!originalFormData) return false;
+    
+    return (
+      formData.cropName !== originalFormData.cropName ||
+      formData.numberOfCrops !== originalFormData.numberOfCrops ||
+      formData.bedSize !== originalFormData.bedSize ||
+      formData.nutrientSolution !== originalFormData.nutrientSolution ||
+      formData.targetPh !== originalFormData.targetPh ||
+      formData.targetPhMax !== originalFormData.targetPhMax ||
+      formData.targetTdsMin !== originalFormData.targetTdsMin ||
+      formData.targetTdsMax !== originalFormData.targetTdsMax ||
+      formData.waterAmount !== originalFormData.waterAmount ||
+      formData.setupDate !== originalFormData.setupDate ||
+      formData.harvestDate !== originalFormData.harvestDate
+    );
   };
 
   // Helper function to calculate recommended harvest date range
@@ -190,7 +212,7 @@ export default function HydroponicsSetupEdit() {
     resetErrors();
   };
 
-  const isSaveDisabled = !formData.cropName || !formData.bedSize || !formData.harvestDate || isSubmitting;
+  const isSaveDisabled = !formData.cropName || !formData.bedSize || !formData.harvestDate || isSubmitting || !hasFormChanged();
 
   const handleStepperChange = (field: 'numberOfCrops', delta: number) => {
     if(formData.bedSize !== 'custom') return
