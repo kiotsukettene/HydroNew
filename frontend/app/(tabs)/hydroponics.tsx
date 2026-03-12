@@ -47,20 +47,23 @@ export default function Hydroponics() {
 
   useFocusEffect(
     useCallback(() => {
-      // Check device status first
-      if (devices && devices.length > 0) {
-        setDeviceChecked(true);
-        // Fetch hydroponic setups when device is confirmed
-        fetchHydroponicSetups(true);
-      } else if (!deviceChecked) {
-        // Only fetch device if not already checked
-        if (userId) {
-          fetchDevice(userId).finally(() => setDeviceChecked(true));
-        } else {
+      // Reset device check state when screen is focused
+      setDeviceChecked(false);
+      
+      // Always fetch device to ensure we have the latest state
+      if (userId) {
+        fetchDevice(userId, true).then(() => {
           setDeviceChecked(true);
-        }
+          // Only fetch hydroponic setups if device exists
+          const currentDevices = useDeviceStore.getState().devices;
+          if (currentDevices && currentDevices.length > 0) {
+            fetchHydroponicSetups(true, false);
+          }
+        });
+      } else {
+        setDeviceChecked(true);
       }
-    }, [userId, fetchDevice, fetchHydroponicSetups, devices, deviceChecked])
+    }, [userId, fetchDevice, fetchHydroponicSetups])
   );
 
   const onRefresh = useCallback(async () => {
@@ -76,15 +79,8 @@ export default function Hydroponics() {
     }
   }, [hasMore, loadingMore, loading, loadMore]);
 
-  if (loading && hydroponicSetups.length === 0) {
-    return <HydroponicsSkeleton />;
-  }
-
-  if (!loading && hydroponicSetups.length === 0) return <NoSetup />;
-  
-  
-    // Show skeleton only on initial load (when devices haven't been fetched yet)
-  if (!deviceChecked && (!devices || devices.length === 0)) {
+  // Show skeleton only on initial load (when devices haven't been fetched yet)
+  if (!deviceChecked) {
     return (
       <SafeAreaView className="relative flex-1 bg-background">
         <Image
@@ -105,8 +101,8 @@ export default function Hydroponics() {
     return <NoDevice />;
   }
 
-  // Show skeleton while loading initially
-  if (loading && (!hydroponicSetups || !Array.isArray(hydroponicSetups) || hydroponicSetups.length === 0)) {
+  // Show skeleton while loading hydroponic setups initially
+  if (loading && hydroponicSetups.length === 0) {
     return (
       <SafeAreaView className="relative flex-1 bg-background">
         <Image
@@ -123,7 +119,7 @@ export default function Hydroponics() {
   }
   
   // Show NoSetup page if no setups exist (but device exists)
-  if (!hydroponicSetups || !Array.isArray(hydroponicSetups) || hydroponicSetups.length === 0) {
+  if (!loading && hydroponicSetups.length === 0) {
     return <NoSetup />;
   }
 

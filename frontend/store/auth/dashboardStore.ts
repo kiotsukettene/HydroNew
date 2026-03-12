@@ -37,6 +37,11 @@ export const useDashboardStore = create<DashboardState>((set) => ({
             status: firstDevice.status,
           });
         }
+      } else {
+        // Clear device store when user has no device
+        console.log('📱 [Dashboard] No device found, clearing device store');
+        useDeviceStore.getState().setDevice(null);
+        useDeviceStore.setState({ devices: [] });
       }
 
       // Fetch dashboard data (user, nearest_to_harvest; pH only when user has a device)
@@ -48,13 +53,14 @@ export const useDashboardStore = create<DashboardState>((set) => ({
 
       // When no device, show -- for pH (don't use API ph_levels)
       if (!hasDevice) {
+        console.log('📊 [Dashboard] User has no device, setting pH to null');
         set({
           data: {
             user: user ?? 'User',
             pHLevel: null,
             unit: null,
             status: null,
-            nearest_to_harvest: nearest_to_harvest ?? null,
+            nearest_to_harvest: null,
           },
           loading: false,
         });

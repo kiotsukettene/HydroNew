@@ -172,5 +172,17 @@ export const useHydroponicSetupStore = create<HydroponicSetupStore>((set, get) =
     set({ cache: null, lastFetchTime: null });
   },
 
+  clearAll: () => {
+    set({ 
+      hydroponicSetups: [], 
+      cache: null, 
+      lastFetchTime: null,
+      currentSetup: null,
+      currentPage: 1,
+      hasMore: false,
+      total: 0
+    });
+  },
+
   resetError: () => set({ error: null }),
 }));

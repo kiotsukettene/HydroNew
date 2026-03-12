@@ -136,7 +136,7 @@ export default function Home() {
 
   useEffect(() => {
     fetchDashboard();
-  }, []);
+  }, [fetchDashboard]);
 
   const onRefresh = async () => {
     setRefreshing(true);
