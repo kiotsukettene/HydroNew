@@ -12,7 +12,7 @@ export interface DeviceStore {
   generateQrPayload: () => Promise<any>;
   pairDeviceByQr: (payload: { serial_number: string; device_name: string; model: string }) => Promise<any>;
   getPairingToken: () => Promise<string | undefined>;
-  fetchDevice: (userId: number) => Promise<void>;
+  fetchDevice: (userId: number, forceRefresh?: boolean) => Promise<void>;
   setDevice: (device: any) => void;
   setDeviceAndPersist: (device: any, userId: number) => Promise<void>;
   unpairDevice: () => Promise<{ success: boolean; message: string }>;
