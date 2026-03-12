@@ -199,22 +199,6 @@ export default function Index() {
                   ))}
                 </View>
               ))}
-              <Pressable
-                className="active:bg-muted/30"
-                onPress={() => setShowLogoutModal(true)}
-              >
-                <View className="flex-col">
-                  <Separator className="bg-muted-foreground/10" />
-                  <View className="flex-row items-center justify-between py-4 px-5">
-                    <View className="flex-row items-center gap-3">
-                      <LogOut size={22} color="#166534" />
-                      <Text className="text-base text-foreground">Log Out</Text>
-                    </View>
-                    <ChevronRight size={20} color="#166534" />
-                  </View>
-                </View>
-              </Pressable>
-
               <Separator className="bg-muted-foreground/10" />
               <Pressable
                 className="active:bg-muted/30"
