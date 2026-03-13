@@ -23,7 +23,7 @@ export default function HarvestForm() {
   const setupId = Number(params.id);
 
   const { currentSetup, fetchSetupById, loading: setupLoading } = useHydroponicSetupStore();
-  const { storeYield, markAsHarvested, yieldSaved, loading, error, resetYieldState } = useYieldStore();
+  const { storeYield, markAsHarvested, fetchYield, yieldSaved, loading, error, resetYieldState } = useYieldStore();
 
   const [formData, setFormData] = useState({
     totalCount: '',
@@ -39,6 +39,7 @@ export default function HarvestForm() {
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [manuallyEditedWeights, setManuallyEditedWeights] = useState<Set<string>>(new Set());
+  const [originalFormData, setOriginalFormData] = useState<typeof formData | null>(null);
 
   useEffect(() => {
     if (setupId) {
@@ -54,6 +55,7 @@ export default function HarvestForm() {
         notes: '',
       });
       setManuallyEditedWeights(new Set());
+      setOriginalFormData(null);
       setErrors({});
       fetchSetupById(setupId);
     }
@@ -61,6 +63,36 @@ export default function HarvestForm() {
       resetYieldState();
     };
   }, [setupId, fetchSetupById, resetYieldState]);
+
+  useEffect(() => {
+    const loadExistingYield = async () => {
+      if (setupId && currentSetup) {
+        const existingYield = await fetchYield(setupId);
+        
+        if (existingYield) {
+          const sellingGrade = existingYield.grades.find(g => g.grade === 'selling');
+          const consumptionGrade = existingYield.grades.find(g => g.grade === 'consumption');
+          
+          const loadedData = {
+            totalCount: existingYield.total_count?.toString() || '',
+            totalWeight: existingYield.total_weight?.toString() || '',
+            sellingCount: sellingGrade?.count?.toString() || '',
+            sellingWeight: sellingGrade?.weight?.toString() || '',
+            consumptionCount: consumptionGrade?.count?.toString() || '',
+            consumptionWeight: consumptionGrade?.weight?.toString() || '',
+            notes: existingYield.notes || '',
+          };
+          
+          setFormData(loadedData);
+          setOriginalFormData(loadedData);
+        } else {
+          setOriginalFormData(null);
+        }
+      }
+    };
+    
+    loadExistingYield();
+  }, [currentSetup, setupId, fetchYield]);
 
   // Auto-distribute weights when total weight or counts change
   useEffect(() => {
@@ -159,6 +191,20 @@ export default function HarvestForm() {
     return totalCount >= 0 && gradesSum === totalCount;
   };
 
+  const hasFormChanged = () => {
+    if (!originalFormData) return false;
+    
+    return (
+      formData.totalCount !== originalFormData.totalCount ||
+      formData.totalWeight !== originalFormData.totalWeight ||
+      formData.sellingCount !== originalFormData.sellingCount ||
+      formData.sellingWeight !== originalFormData.sellingWeight ||
+      formData.consumptionCount !== originalFormData.consumptionCount ||
+      formData.consumptionWeight !== originalFormData.consumptionWeight ||
+      formData.notes !== originalFormData.notes
+    );
+  };
+
   const handleSaveYield = async () => {
     setErrors({});
 
@@ -195,6 +241,7 @@ export default function HarvestForm() {
       }
 
       await storeYield(setupId, validatedData);
+      setOriginalFormData({ ...formData });
       toast.success('Yield data saved successfully!');
     } catch (err) {
       // Handle backend validation errors using utility functions
@@ -431,24 +478,24 @@ export default function HarvestForm() {
           <Button 
             className="w-full mb-3"
             onPress={handleSaveYield}
-            disabled={!isSumValid() || loading || yieldSaved}
+            disabled={!isSumValid() || loading || (originalFormData !== null && !hasFormChanged())}
           >
             <Icon as={Save} size={18} className="text-white mr-2" />
             <Text className="text-white">
-              {loading ? 'Saving...' : yieldSaved ? 'Yield Data Saved ✓' : 'Save Yield Data'}
+              {loading ? 'Saving...' : originalFormData !== null ? 'Update Yield Data' : 'Save Yield Data'}
             </Text>
           </Button>
 
           <Button 
-            className={`w-full ${!yieldSaved ? 'opacity-50' : ''}`}
+            className={`w-full ${originalFormData === null ? 'opacity-50' : ''}`}
             onPress={() => setShowConfirmModal(true)}
-            disabled={!yieldSaved || loading}
+            disabled={originalFormData === null || loading}
           >
             <Icon as={CheckCircle} size={18} className="text-white mr-2" />
             <Text className="text-white">Mark as Harvested</Text>
           </Button>
 
-          {!yieldSaved && (
+          {originalFormData === null && (
             <Text className="text-xs text-center text-muted-foreground mt-2">
               Please save yield data first before marking as harvested
             </Text>

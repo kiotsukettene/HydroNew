@@ -10,6 +10,29 @@ export const useYieldStore = create<YieldStore>((set) => ({
   yieldData: null,
   yieldSaved: false,
 
+  fetchYield: async (setupId: number) => {
+    set({ loading: true, error: null });
+    try {
+      const response = await axiosInstance.get<GetYieldResponse>(
+        `/hydroponic-yields/${setupId}/yield`
+      );
+      
+      const yieldData = response.data.data;
+      
+      set({
+        yieldData: yieldData,
+        yieldSaved: !!yieldData,
+        loading: false,
+      });
+      
+      return yieldData;
+    } catch (err: any) {
+      const { message } = handleAxiosError(err);
+      set({ error: message, loading: false, yieldData: null, yieldSaved: false });
+      return null;
+    }
+  },
+
   storeYield: async (setupId: number, payload: YieldPayload) => {
     set({ loading: true, error: null });
     try {
