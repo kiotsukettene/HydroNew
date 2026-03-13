@@ -325,7 +325,19 @@ export default function HydroponicsSetupEdit() {
 
       const currentError = useHydroponicSetupStore.getState().error;
       if (currentError) {
-        toast.error(currentError);
+        if (typeof currentError === 'object' && currentError !== null) {
+          const backendErrors: Record<string, string> = {};
+          Object.entries(currentError).forEach(([key, value]) => {
+            if (Array.isArray(value)) {
+              backendErrors[key] = value[0];
+            } else if (typeof value === 'string') {
+              backendErrors[key] = value;
+            }
+          });
+          setErrors(backendErrors);
+        } else {
+          toast.error(currentError);
+        }
       } else {
         setShowSuccessModal(true);
       }
@@ -402,7 +414,9 @@ export default function HydroponicsSetupEdit() {
                     </TouchableOpacity>
                   </View>
                   <TouchableOpacity
-                    className="border border-muted-foreground/50 rounded-xl px-3 py-4 bg-[#FAFFFA] flex-row items-center justify-between"
+                    className={`border rounded-xl px-3 py-4 bg-[#FAFFFA] flex-row items-center justify-between ${
+                      errors.crop_name ? 'border-red-500' : 'border-muted-foreground/50'
+                    }`}
                     onPress={() => setShowCropDropdown(!showCropDropdown)}
                   >
                     <Text className={`text-[#2C3E50] capitalize text-base ${!formData.cropName ? 'text-muted-foreground' : ''}`}>
@@ -410,6 +424,9 @@ export default function HydroponicsSetupEdit() {
                     </Text>
                     <Icon as={ChevronDown} size={20} className="text-[#7F8C8D]" />
                   </TouchableOpacity>
+                  {errors.crop_name && (
+                    <Text className="text-red-500 text-xs mt-1">{errors.crop_name}</Text>
+                  )}
                   {showCropDropdown && (
                     <View className="border border-[#E8F5E8] rounded-xl mt-2 bg-white shadow-lg">
                       {cropOptions.map((option) => (
@@ -467,6 +484,9 @@ export default function HydroponicsSetupEdit() {
                       recommendedMinDate={getRecommendedHarvestDateRange(formData.cropName, formData.setupDate)?.minDate}
                       recommendedMaxDate={getRecommendedHarvestDateRange(formData.cropName, formData.setupDate)?.maxDate}
                     />
+                    {errors.harvest_date && (
+                      <Text className="text-red-500 text-xs mt-1">{errors.harvest_date}</Text>
+                    )}
                     
                     {/* Date Validation Feedback */}
                     {formData.harvestDate && isDateInRecommendedRange(formData.harvestDate, formData.cropName, formData.setupDate) === false && (
@@ -497,7 +517,9 @@ export default function HydroponicsSetupEdit() {
                 <View>
                   <Text className="text-base font-medium  mb-2">Bed Size</Text>
                   <TouchableOpacity
-                    className="border border-muted-foreground/50 rounded-xl px-3 py-4 bg-[#FAFFFA] flex-row items-center justify-between"
+                    className={`border rounded-xl px-3 py-4 bg-[#FAFFFA] flex-row items-center justify-between ${
+                      errors.bed_size ? 'border-red-500' : 'border-muted-foreground/50'
+                    }`}
                     onPress={() => setShowBedSizeDropdown(!showBedSizeDropdown)}
                   >
                     <Text className={`text-[#2C3E50] capitalize text-base ${!formData.bedSize ? 'text-muted-foreground' : ''}`}>
@@ -505,6 +527,9 @@ export default function HydroponicsSetupEdit() {
                     </Text>
                     <Icon as={ChevronDown} size={20} className="text-[#7F8C8D]" />
                   </TouchableOpacity>
+                  {errors.bed_size && (
+                    <Text className="text-red-500 text-xs mt-1">{errors.bed_size}</Text>
+                  )}
                   
                   {showBedSizeDropdown && (
                     <View className="border border-[#E8F5E8] rounded-xl mt-2 bg-white shadow-lg">
@@ -528,7 +553,9 @@ export default function HydroponicsSetupEdit() {
                 {/* Number of Crops with Stepper */}
                 <View>
                   <Text className="text-base font-medium  mb-2">Number of Crops</Text>
-                  <View className="flex-row items-center bg-[#FAFFFA] border border-[#E8F5E8] rounded-xl px-3 py-4">
+                  <View className={`flex-row items-center bg-[#FAFFFA] border rounded-xl px-3 py-4 ${
+                    errors.number_of_crops ? 'border-red-500' : 'border-[#E8F5E8]'
+                  }`}>
                     <TouchableOpacity
                       onPress={() => handleStepperChange('numberOfCrops', -1)}
                       disabled={formData.bedSize !== 'custom'}
@@ -565,6 +592,9 @@ export default function HydroponicsSetupEdit() {
                       <Icon as={Plus} size={16} className="text-white" />
                     </Button>
                   </View>
+                  {errors.number_of_crops && (
+                    <Text className="text-red-500 text-xs mt-1">{errors.number_of_crops}</Text>
+                  )}
                 </View>
 
                  {/* Water Amount */}
@@ -575,12 +605,15 @@ export default function HydroponicsSetupEdit() {
                     onChangeText={handleWaterAmountChange}
                     editable={formData.bedSize === 'custom'}
                     keyboardType="numeric"
-                    className={`border border-muted-foreground/50 rounded-xl px-3 py-4 text-[#2C3E50] text-base ${
-                      formData.bedSize === 'custom' ? 'bg-[#FAFFFA]' : 'bg-gray-100'
-                    }`}
+                    className={`border rounded-xl px-3 py-4 text-[#2C3E50] text-base ${
+                      errors.water_amount ? 'border-red-500' : 'border-muted-foreground/50'
+                    } ${formData.bedSize === 'custom' ? 'bg-[#FAFFFA]' : 'bg-gray-100'}`}
                     placeholderTextColor="#95A5A6"
                   />
-                  {formData.bedSize !== 'custom' && (
+                  {errors.water_amount && (
+                    <Text className="text-red-500 text-xs mt-1">{errors.water_amount}</Text>
+                  )}
+                  {formData.bedSize !== 'custom' && !errors.water_amount && (
                     <Text className="text-xs text-muted-foreground mt-1">
                       Water amount is set based on bed size. Select "Custom" to edit.
                     </Text>
@@ -597,9 +630,14 @@ export default function HydroponicsSetupEdit() {
                     placeholder="e.g., General Hydroponics Flora Series"
                     value={formData.nutrientSolution}
                     onChangeText={(value) => handleInputChange('nutrientSolution', value)}
-                    className="border border-muted-foreground/50 rounded-xl px-3 py-4 bg-[#FAFFFA] text-[#2C3E50] focus:border-[#4CAF50] text-base"
+                    className={`border rounded-xl px-3 py-4 bg-[#FAFFFA] text-[#2C3E50] focus:border-[#4CAF50] text-base ${
+                      errors.nutrient_solution ? 'border-red-500' : 'border-muted-foreground/50'
+                    }`}
                     placeholderTextColor="#95A5A6"
                   />
+                  {errors.nutrient_solution && (
+                    <Text className="text-red-500 text-xs mt-1">{errors.nutrient_solution}</Text>
+                  )}
                 </View>
               </View>
             </Card>
@@ -662,9 +700,14 @@ export default function HydroponicsSetupEdit() {
                         value={formData.targetPh}
                         onChangeText={(value) => handleNumericInput('targetPh', value)}
                         keyboardType="numeric"
-                        className="border border-muted-foreground/50 rounded-xl px-3 py-3 bg-[#FAFFFA] text-[#2C3E50]"
+                        className={`border rounded-xl px-3 py-3 bg-[#FAFFFA] text-[#2C3E50] ${
+                          errors.target_ph_min ? 'border-red-500' : 'border-muted-foreground/50'
+                        }`}
                         placeholderTextColor="#95A5A6"
                       />
+                      {errors.target_ph_min && (
+                        <Text className="text-red-500 text-xs mt-1">{errors.target_ph_min}</Text>
+                      )}
                     </View>
                      <View className="flex-1">
                       <Text className="text-xs text-[#7F8C8D] mb-2">Maximum</Text>
@@ -672,9 +715,14 @@ export default function HydroponicsSetupEdit() {
                         value={formData.targetPhMax}
                         onChangeText={(value) => handleNumericInput('targetPhMax', value)}
                         keyboardType="numeric"
-                        className="border border-muted-foreground/50 rounded-xl px-3 py-3 bg-[#FAFFFA] text-[#2C3E50]"
+                        className={`border rounded-xl px-3 py-3 bg-[#FAFFFA] text-[#2C3E50] ${
+                          errors.target_ph_max ? 'border-red-500' : 'border-muted-foreground/50'
+                        }`}
                         placeholderTextColor="#95A5A6"
                       />
+                      {errors.target_ph_max && (
+                        <Text className="text-red-500 text-xs mt-1">{errors.target_ph_max}</Text>
+                      )}
                     </View>
                   </View>
                 </View>
@@ -704,9 +752,14 @@ export default function HydroponicsSetupEdit() {
                         value={formData.targetTdsMin}
                         onChangeText={(value) => handleNumericInput('targetTdsMin', value)}
                         keyboardType="numeric"
-                        className="border border-muted-foreground/50 rounded-xl px-3 py-3 bg-[#FAFFFA] text-[#2C3E50]"
+                        className={`border rounded-xl px-3 py-3 bg-[#FAFFFA] text-[#2C3E50] ${
+                          errors.target_tds_min ? 'border-red-500' : 'border-muted-foreground/50'
+                        }`}
                         placeholderTextColor="#95A5A6"
                       />
+                      {errors.target_tds_min && (
+                        <Text className="text-red-500 text-xs mt-1">{errors.target_tds_min}</Text>
+                      )}
                     </View>
                     <View className="flex-1">
                       <Text className="text-xs text-[#7F8C8D] mb-2">Maximum</Text>
@@ -714,9 +767,14 @@ export default function HydroponicsSetupEdit() {
                         value={formData.targetTdsMax}
                         onChangeText={(value) => handleNumericInput('targetTdsMax', value)}
                         keyboardType="numeric"
-                        className="border border-muted-foreground/50 rounded-xl px-3 py-3 bg-[#FAFFFA] text-[#2C3E50]"
+                        className={`border rounded-xl px-3 py-3 bg-[#FAFFFA] text-[#2C3E50] ${
+                          errors.target_tds_max ? 'border-red-500' : 'border-muted-foreground/50'
+                        }`}
                         placeholderTextColor="#95A5A6"
                       />
+                      {errors.target_tds_max && (
+                        <Text className="text-red-500 text-xs mt-1">{errors.target_tds_max}</Text>
+                      )}
                     </View>
                   </View>
                 </View>

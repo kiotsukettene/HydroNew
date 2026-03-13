@@ -23,7 +23,7 @@ export const hydroponicSchema = z
           required_error: "Target pH minimum is required",
           invalid_type_error: "Target pH minimum must be a number",
         })
-        .min(1, "Target pH minimum must be a valid positive number")
+        .min(1, "Target pH minimum must be at least 1")
     ),
 
     target_ph_max: z.preprocess(
@@ -33,7 +33,7 @@ export const hydroponicSchema = z
           required_error: "Target pH maximum is required",
           invalid_type_error: "Target pH maximum must be a number",
         })
-        .min(1, "Target pH maximum must be a valid positive number")
+        .min(1, "Target pH maximum must be at least 1")
     ),
 
     target_tds_min: z.preprocess(
@@ -43,7 +43,7 @@ export const hydroponicSchema = z
           required_error: "Target TDS minimum is required",
           invalid_type_error: "Target TDS minimum must be a number",
         })
-        .min(1, "Target TDS minimum must be a valid positive number")
+        .min(1, "Target TDS minimum must be at least 1")
     ),
 
     target_tds_max: z.preprocess(
@@ -53,7 +53,7 @@ export const hydroponicSchema = z
           required_error: "Target TDS maximum is required",
           invalid_type_error: "Target TDS maximum must be a number",
         })
-        .min(1, "Target TDS maximum must be a valid positive number")
+        .min(1, "Target TDS maximum must be at least 1")
     ),
 
     water_amount: z.coerce
