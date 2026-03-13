@@ -12,7 +12,7 @@ import { Save, CheckCircle, Leaf, AlertCircle } from 'lucide-react-native';
 import { useHydroponicSetupStore } from '@/store/hydroponics/hydroponicSetupStore';
 import { useYieldStore } from '@/store/hydroponics/yieldStore';
 import { toast } from 'sonner-native';
-import { yieldSchema } from '@/validators/yieldSchema';
+import { yieldSchema, mapBackendErrors, getBackendErrorMessage, isBackendValidationError } from '@/validators/yieldSchema';
 import { z } from 'zod';
 import { ConfirmationModal } from '@/components/ui/confirmation-modal';
 import { StatusModal } from '@/components/ui/status-modal';
@@ -73,9 +73,9 @@ export default function HarvestForm() {
     // Only distribute if:
     // 1. Total weight is provided
     // 2. Total count matches the sum of grades
-    // 3. Total count is greater than 0
+    // 3. Total count is greater than or equal to 0
     // 4. Weights haven't been manually edited (or total weight changed, which should redistribute)
-    if (totalWeight > 0 && gradesSum === totalCount && totalCount > 0) {
+    if (totalWeight > 0 && gradesSum === totalCount && totalCount >= 0) {
       const sellingWeight = (sellingCount / totalCount) * totalWeight;
       const consumptionWeight = (consumptionCount / totalCount) * totalWeight;
 
@@ -151,9 +151,12 @@ export default function HarvestForm() {
   };
 
   const isSumValid = () => {
+    // Return false if totalCount field is empty
+    if (formData.totalCount === '') return false;
+    
     const totalCount = parseInt(formData.totalCount) || 0;
     const gradesSum = calculateGradesSum();
-    return totalCount > 0 && gradesSum === totalCount;
+    return totalCount >= 0 && gradesSum === totalCount;
   };
 
   const handleSaveYield = async () => {
@@ -171,32 +174,38 @@ export default function HarvestForm() {
           {
             grade: 'selling' as const,
             count: sellingCount,
-            // If count is 0, set weight to null; otherwise use the provided weight
             weight: sellingCount > 0 && formData.sellingWeight ? parseFloat(formData.sellingWeight) : null,
           },
           {
             grade: 'consumption' as const,
             count: consumptionCount,
-            // If count is 0, set weight to null; otherwise use the provided weight
             weight: consumptionCount > 0 && formData.consumptionWeight ? parseFloat(formData.consumptionWeight) : null,
           },
         ],
       };
 
-      const validatedData = yieldSchema.parse(payload) as YieldPayload;
+      // Use Zod for type safety and data transformation, but don't block on validation
+      // Backend will handle the actual validation
+      let validatedData;
+      try {
+        validatedData = yieldSchema.parse(payload) as YieldPayload;
+      } catch (zodErr) {
+        // If Zod validation fails, still send to backend for proper error messages
+        validatedData = payload as YieldPayload;
+      }
+
       await storeYield(setupId, validatedData);
       toast.success('Yield data saved successfully!');
     } catch (err) {
-      if (err instanceof z.ZodError) {
-        const fieldErrors: Record<string, string> = {};
-        err.errors.forEach((e) => {
-          const path = e.path.join('.');
-          fieldErrors[path] = e.message;
-        });
-        setErrors(fieldErrors);
-        toast.error('Please fix the errors before saving');
+      // Handle backend validation errors using utility functions
+      if (isBackendValidationError(err)) {
+        const backendErrors = mapBackendErrors(err);
+        setErrors(backendErrors);
       } else {
-        toast.error(error || 'Failed to save yield data');
+        const errorMessage = getBackendErrorMessage(err);
+        if (errorMessage) {
+          toast.error(errorMessage);
+        }
       }
     }
   };
@@ -206,11 +215,14 @@ export default function HarvestForm() {
       await markAsHarvested(setupId);
       setShowConfirmModal(false);
       setShowSuccessModal(true);
-      // Reset yield state after successful harvest
       resetYieldState();
     } catch (err) {
       setShowConfirmModal(false);
-      toast.error(error || 'Failed to mark as harvested');
+      if (err instanceof Error) {
+        toast.error(err.message || 'Failed to mark as harvested');
+      } else {
+        toast.error(error || 'Failed to mark as harvested');
+      }
     }
   };
 
@@ -277,10 +289,13 @@ export default function HarvestForm() {
                   className="flex-1 border border-muted-foreground/50 rounded-xl px-3 py-4 bg-[#FAFFFA]"
                 />
               </View>
-              {formData.totalWeight && isSumValid() && (
+              {formData.totalWeight && isSumValid() && !errors.total_weight && (
                 <Text className="text-xs text-primary mt-1">
                   Weight will be automatically distributed based on grade counts
                 </Text>
+              )}
+              {errors.total_weight && (
+                <Text className="text-xs text-red-500 mt-1">{errors.total_weight}</Text>
               )}
             </View>
           </Card>
@@ -307,6 +322,9 @@ export default function HarvestForm() {
                     keyboardType="numeric"
                     className="border border-muted-foreground/50 rounded-xl px-3 py-3 bg-[#FAFFFA]"
                   />
+                  {errors['grades.0.count'] && (
+                    <Text className="text-xs text-red-500 mt-1">{errors['grades.0.count']}</Text>
+                  )}
                 </View>
                 <View className="flex-1">
                   <Text className="text-xs text-muted-foreground mb-1">
@@ -319,6 +337,9 @@ export default function HarvestForm() {
                     keyboardType="numeric"
                     className="border border-muted-foreground/50 rounded-xl px-3 py-3 bg-[#FAFFFA]"
                   />
+                  {errors['grades.0.weight'] && (
+                    <Text className="text-xs text-red-500 mt-1">{errors['grades.0.weight']}</Text>
+                  )}
                 </View>
               </View>
             </View>
@@ -336,6 +357,9 @@ export default function HarvestForm() {
                     keyboardType="numeric"
                     className="border border-muted-foreground/50 rounded-xl px-3 py-3 bg-[#FAFFFA]"
                   />
+                  {errors['grades.1.count'] && (
+                    <Text className="text-xs text-red-500 mt-1">{errors['grades.1.count']}</Text>
+                  )}
                 </View>
                 <View className="flex-1">
                   <Text className="text-xs text-muted-foreground mb-1">
@@ -348,6 +372,9 @@ export default function HarvestForm() {
                     keyboardType="numeric"
                     className="border border-muted-foreground/50 rounded-xl px-3 py-3 bg-[#FAFFFA]"
                   />
+                  {errors['grades.1.weight'] && (
+                    <Text className="text-xs text-red-500 mt-1">{errors['grades.1.weight']}</Text>
+                  )}
                 </View>
               </View>
             </View>
@@ -395,6 +422,9 @@ export default function HarvestForm() {
             <Text className="text-xs text-muted-foreground mt-1">
               {formData.notes.length}/1000 characters
             </Text>
+            {errors.notes && (
+              <Text className="text-xs text-red-500 mt-1">{errors.notes}</Text>
+            )}
           </Card>
 
           {/* Action Buttons */}
