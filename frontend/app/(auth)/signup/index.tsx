@@ -249,14 +249,14 @@ async function onSubmit() {
                       returnKeyType="send" 
                       onSubmitEditing={onSubmit}
                       className={`border text-base pr-12 ${
-                              submitted && confirmPassword !== password
+                              submitted && confirmPassword !== password && confirmPassword.length > 0
                                 ? 'border-red-500'
                                 : 'border-muted-foreground/50'
                             }`}
                     />
                     <PasswordToggle onToggle={setShowConfirmPassword} initialState={showConfirmPassword} />
                   </View>
-                    {submitted && confirmPassword !== password && (
+                    {submitted && confirmPassword !== password && confirmPassword.length > 0 && (
                       <Text className="text-sm text-destructive">
                         Passwords do not match
                       </Text>
