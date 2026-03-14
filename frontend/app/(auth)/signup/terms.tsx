@@ -6,12 +6,14 @@ import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Icon } from '@/components/ui/icon';
 import { ChevronLeft } from 'lucide-react-native';
-import { Link } from 'expo-router';
+import { useRouter } from 'expo-router';
 import { Text } from '@/components/ui/text';
 
 const { height } = Dimensions.get('window');
 
 export default function Terms() {
+  const router = useRouter();
+  
   return (
     <SafeAreaView className="flex-1 bg-background">
       <ScrollView contentContainerStyle={{ flexGrow: 1 }} showsVerticalScrollIndicator={false}>
@@ -27,11 +29,9 @@ export default function Terms() {
 
         {/* --- BACK BUTTON --- */}
         <View className="absolute left-4 top-11">
-         <Link href={"/signup"} asChild>
-          <Button  size="icon" className='bg-secondary rounded-full' >
+          <Button size="icon" className='bg-secondary rounded-full' onPress={() => router.back()}>
             <Icon as={ChevronLeft} size={16} className='text-muted'/>
           </Button>
-          </Link>
         </View>
 
         {/* --- FORM SECTION --- */}
