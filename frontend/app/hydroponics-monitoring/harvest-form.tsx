@@ -1,4 +1,4 @@
-import { View, ScrollView, TouchableOpacity } from 'react-native';
+import { View, ScrollView, TouchableOpacity, KeyboardAvoidingView, Platform } from 'react-native';
 import React, { useState, useEffect } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { PageHeader } from '@/components/ui/page-header';
@@ -288,9 +288,14 @@ export default function HarvestForm() {
 
   return (
     <SafeAreaView className="flex-1 bg-background">
-      <PageHeader title="" />
-      
-      <ScrollView className="flex-1 px-6" showsVerticalScrollIndicator={false}>
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        style={{ flex: 1 }}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
+      >
+        <PageHeader title="" />
+        
+        <ScrollView className="flex-1 px-6" showsVerticalScrollIndicator={false}>
         <View className="pb-8">
           {/* Header */}
           <View className="mb-2 mt-4">
@@ -502,6 +507,7 @@ export default function HarvestForm() {
           )}
         </View>
       </ScrollView>
+      </KeyboardAvoidingView>
 
       {/* Confirmation Modal */}
       <ConfirmationModal
