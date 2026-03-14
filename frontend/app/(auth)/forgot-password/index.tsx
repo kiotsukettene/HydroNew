@@ -56,7 +56,7 @@ export default function Index() {
         <View className="flex-1 px-4 justify-center items-center w-full  ">
 
           <Card
-            className="border-0 sm:border-border shadow-none sm:shadow-sm sm:shadow-black/5"
+            className="border-0 sm:border-border shadow-none sm:shadow-sm sm:shadow-black/5 w-full max-w-md"
             style={{ zIndex: 2, elevation: 5 }}
           >
 
@@ -84,20 +84,20 @@ export default function Index() {
                     autoCapitalize="none"
                     returnKeyType="next"
                     // onSubmitEditing={onEmailSubmitEditing}
-                    className={`h-12 text-base ${errorMessage ? 'border-red-500' : ''}`}
+                    className={`h-12 text-base w-full ${errorMessage ? 'border-red-500' : ''}`}
                   />
                   {(errorMessage) && (
                   <Text className="text-red-700 justify-end">{errorMessage}</Text>
                   )}
                 </View>
                 <View className="gap-2 pt-1">
-                  <Button onPress={onSubmit} disabled={loading}>
+                  <Button onPress={onSubmit} disabled={loading} className="w-full">
                     {loading ? <Text>Sending...</Text> : <Text>Send Verification Code</Text>}
                   </Button>
                  
                   <Button
                     variant="outline"
-                    className="mx-auto w-full"
+                    className="w-full"
                     onPress={() => router.back()}
                   >
                     <Text className=''>Cancel</Text>
