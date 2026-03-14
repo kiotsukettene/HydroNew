@@ -1,4 +1,4 @@
-import { View, TouchableOpacity, ScrollView, Switch, Animated, Modal } from 'react-native';
+import { View, TouchableOpacity, ScrollView, Switch, Animated, Modal, KeyboardAvoidingView, Platform } from 'react-native';
 import React, { useState, useRef } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { PageHeader } from '@/components/ui/page-header';
@@ -366,20 +366,23 @@ const onSubmit = async () => {
 
   return (
     <SafeAreaView className="flex-1 bg-background">
-      <View className="flex-1">
-        {/* =========== Header Section =========== */}
-        <View className=" pb-4 ">
-          <PageHeader title="" />
-          <View className="mb-2 mt-4 px-6">
-            <Text className="text-2xl font-bold ">New Crop Setup</Text>
-            <Text className="text-muted-foreground text-base mt-1">Fill in your crop's details to start monitoring</Text>
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        style={{ flex: 1 }}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
+      >
+        <View className="flex-1">
+          {/* =========== Header Section =========== */}
+          <View className=" pb-4 ">
+            <PageHeader title="" />
+            <View className="mb-2 mt-4 px-6">
+              <Text className="text-2xl font-bold ">New Crop Setup</Text>
+              <Text className="text-muted-foreground text-base mt-1">Fill in your crop's details to start monitoring</Text>
+            </View>
           </View>
-        </View>
-
       
-
-        {/* =========== Form Section =========== */}
-        <ScrollView className="flex-1 px-6" showsVerticalScrollIndicator={false}>
+          {/* =========== Form Section =========== */}
+          <ScrollView className="flex-1 px-6" showsVerticalScrollIndicator={false}>
           <View className="pb-8">
             
             {/* Crop Details Card */}
@@ -793,7 +796,8 @@ const onSubmit = async () => {
 
           </View>
         </ScrollView>
-      </View>
+        </View>
+      </KeyboardAvoidingView>
 
       {/* Confirmation Modal */}
       <ConfirmationModal
