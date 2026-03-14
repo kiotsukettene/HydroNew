@@ -165,7 +165,7 @@ export default function Login() {
                   )}
 
                   {/* Email */}
-                  <View>
+                  <View className="gap-1">
                     <Label className="font-normal text-muted-foreground">
                       Email
                     </Label>
@@ -180,7 +180,7 @@ export default function Login() {
                       className={`border text-base h-12 ${getInputBorderStyle("email")}`}
                     />
                     {zodErrors.email && (
-                      <Text className="text-destructive text-sm">{zodErrors.email}</Text>
+                      <Text className="text-destructive text-sm mt-1">{zodErrors.email}</Text>
                     )}
                   </View>
 
