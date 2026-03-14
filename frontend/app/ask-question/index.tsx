@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { SafeAreaView } from 'react-native-safe-area-context'
-import { View, ScrollView, Pressable, TouchableOpacity, ActivityIndicator } from 'react-native'
+import { View, ScrollView, Pressable, TouchableOpacity, ActivityIndicator, KeyboardAvoidingView, Platform } from 'react-native'
 import { Label } from '@/components/ui/label'
 import { Button } from '@/components/ui/button'
 import { Text } from '@/components/ui/text'
@@ -58,10 +58,15 @@ export default function Index() {
 
   return (
     <SafeAreaView className="flex-1 bg-white" >
-      <ScrollView 
-        contentContainerStyle={{ flexGrow: 1 }}
-        showsVerticalScrollIndicator={false}
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        style={{ flex: 1 }}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
       >
+        <ScrollView 
+          contentContainerStyle={{ flexGrow: 1 }}
+          showsVerticalScrollIndicator={false}
+        >
 
 <PageHeader 
   title='' 
@@ -203,6 +208,7 @@ export default function Index() {
           </View>
         </View>
       </ScrollView>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   )
 }
