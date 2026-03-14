@@ -49,7 +49,7 @@ export default function CreateNewPassword() {
       await resetPasswordWithToken(email, validatedData.password, resetToken, validatedData.confirm_password);
 
       toast.success('Password reset successful');
-      router.push('/(auth)/forgot-password/reset-success');
+      router.replace('/(auth)/forgot-password/reset-success');
 
     } catch (err: any) {
       if (err instanceof ZodError) {

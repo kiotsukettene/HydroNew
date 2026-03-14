@@ -73,7 +73,7 @@ export default function Index() {
             <CardContent className="gap-6">
 
               <View className="gap-6">
-                <View>
+                <View className="gap-1">
 
                   <Label className="font-normal text-muted-foreground">Email</Label>
                   <Input
@@ -87,7 +87,7 @@ export default function Index() {
                     className={`h-12 text-base w-full ${errorMessage ? 'border-red-500' : ''}`}
                   />
                   {(errorMessage) && (
-                  <Text className="text-red-700 justify-end">{errorMessage}</Text>
+                  <Text className="text-red-700 justify-end mt-1">{errorMessage}</Text>
                   )}
                 </View>
                 <View className="gap-2 pt-1">
