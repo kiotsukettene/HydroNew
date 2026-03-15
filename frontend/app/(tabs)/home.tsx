@@ -1,4 +1,4 @@
-import { View, Image, TouchableOpacity, ScrollView, Pressable } from 'react-native';
+import { View, Image, TouchableOpacity, ScrollView, Pressable, RefreshControl } from 'react-native';
 import React, { useEffect, useState } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Button } from '@/components/ui/button';
@@ -115,6 +115,7 @@ export default function Home() {
   //firebase data fetching
    const [sensorData, setSensorData] = useState<SensorData | null>(null);
   const [latestKey, setLatestKey] = useState<string | null>(null);
+  const [refreshing, setRefreshing] = useState(false);
     useEffect(() => {
       const sensorRef = ref(db, 'sensorData/');
       const unsubscribe = onValue(sensorRef, (snapshot) => {
@@ -135,7 +136,13 @@ export default function Home() {
 
   useEffect(() => {
     fetchDashboard();
-  }, []);
+  }, [fetchDashboard]);
+
+  const onRefresh = async () => {
+    setRefreshing(true);
+    await fetchDashboard();
+    setRefreshing(false);
+  };
 
   if (loading) {
     return <HomeSkeleton />;
@@ -186,6 +193,14 @@ export default function Home() {
       contentContainerStyle={{
         paddingBottom: isFiltrationProgressActive ? 50 : 24,
       }}
+      refreshControl={
+        <RefreshControl
+          refreshing={refreshing}
+          onRefresh={onRefresh}
+          colors={['#16a34a']}
+          tintColor="#16a34a"
+        />
+      }
     >
       <SafeAreaView className=''>
         <View className="p-4 ">

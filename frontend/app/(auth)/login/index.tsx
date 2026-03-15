@@ -120,8 +120,9 @@ export default function Login() {
   return (
     <SafeAreaView className="flex-1 bg-background">
         <KeyboardAvoidingView
-          behavior={Platform.OS === "ios" ? "padding" : undefined}
+          behavior={Platform.OS === "ios" ? "padding" : "height"}
           style={{ flex: 1 }}
+          keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 20}
         >
           <ScrollView
             contentContainerStyle={{ flexGrow: 1 }}
@@ -164,7 +165,7 @@ export default function Login() {
                   )}
 
                   {/* Email */}
-                  <View>
+                  <View className="gap-1">
                     <Label className="font-normal text-muted-foreground">
                       Email
                     </Label>
@@ -179,7 +180,7 @@ export default function Login() {
                       className={`border text-base h-12 ${getInputBorderStyle("email")}`}
                     />
                     {zodErrors.email && (
-                      <Text className="text-destructive text-sm">{zodErrors.email}</Text>
+                      <Text className="text-destructive text-sm mt-1">{zodErrors.email}</Text>
                     )}
                   </View>
 

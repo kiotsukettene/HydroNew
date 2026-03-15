@@ -1,5 +1,5 @@
 import { View, KeyboardAvoidingView, Platform } from 'react-native';
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -17,6 +17,7 @@ interface VerificationCodeProps {
 }
 
 export default function VerificationCode() {
+  const { countdown, restartCountdown } = useCountdown(30);
   const { verifyResetCode, email, error, loading, resendResetCode } = useResetPasswordStore();
   const [code, setCode] = useState<string>('');
   const [errorMessages, setErrorMessages] = useState<string | null>(null);
@@ -56,7 +57,12 @@ export default function VerificationCode() {
       console.warn('Email not found — please go back and enter it again.');
       return;
     }
-    await resendResetCode(email);
+    try {
+      await resendResetCode(email);
+      restartCountdown();
+    } catch (error) {
+      console.error('Resend code failed:', error);
+    }
   };
 
   return (
@@ -87,30 +93,45 @@ export default function VerificationCode() {
 
             <CardContent className="gap-6">
               <View className="gap-6">
-                <View>
-                  <View className="w-full flex-row items-center justify-center gap-1.5">
-                    <Input
-                      id={code}
-                      value={code}
-                      keyboardType="numeric"
-                      maxLength={6}
-                      onChangeText={onChangeCode}
-                      autoCapitalize="none"
-                      returnKeyType="next"
-                      className={`h-12 items-center text-center text-2xl font-semibold tracking-widest ${
-                        errorMessages ? 'border-red-500' : 'border-gray-200'
-                      } text-primary`}
-                    />
-                  </View>
-                    {(errorMessages) && (
-                      <Text className="text-red-700 justify-end">{error || errorMessages}</Text>
-                    )}
+                <View className="gap-1.5">
+                  <Input
+                    id="code"
+                    value={code}
+                    keyboardType="numeric"
+                    maxLength={6}
+                    onChangeText={onChangeCode}
+                    autoCapitalize="none"
+                    returnKeyType="send"
+                    autoComplete="sms-otp"
+                    textContentType="oneTimeCode"
+                    onSubmitEditing={onSubmit}
+                    className={`items-center h-14 justify-center text-center text-2xl tracking-widest font-medium space-x-2 ${
+                      errorMessages ? 'border-red-500 text-red-600' : 'text-muted-foreground'
+                    }`}
+                  />
+                  <Button
+                    variant="link"
+                    size="sm"
+                    disabled={countdown > 0}
+                    onPress={handleResendCode}
+                  >
+                    <Text className="text-center font-normal text-base text-muted-foreground">
+                      Didn&apos;t receive the code?{' '}
+                      <Text className="underline">Resend </Text>
+                      {countdown > 0 ? (
+                        <Text className="text-base">({countdown})</Text>
+                      ) : null}
+                    </Text>
+                  </Button>
                 </View>
+                {errorMessages && (
+                  <Text className="text-red-600 text-center text-sm">{error || errorMessages}</Text>
+                )}
                 <View className="gap-2 pt-1">
                   <Button 
                     onPress={onSubmit} 
-                    disabled={loading}>
-                    {loading ? <Text>Verifying...</Text> : <Text>Verify Code</Text>}
+                    disabled={!/^\d{6}$/.test(code) || loading}>
+                    {loading ? <Text>Verifying...</Text> : <Text>Continue</Text>}
                   </Button>
 
                   <Button
@@ -119,10 +140,6 @@ export default function VerificationCode() {
                     onPress={() => router.back()}>
                     <Text className="">Cancel</Text>
                   </Button>
-
-                  <Text className="text-center text-base font-normal mt-2 text-muted-foreground">
-                    Didn&apos;t receive the code? <Text onPress={handleResendCode} className="underline text-primary font-semibold">Resend </Text>
-                  </Text>
                 </View>
               </View>
             </CardContent>
@@ -131,4 +148,36 @@ export default function VerificationCode() {
       </KeyboardAvoidingView>
     </SafeAreaView>
   );
+}
+
+function useCountdown(seconds = 30) {
+  const [countdown, setCountdown] = React.useState(seconds);
+  const intervalRef = React.useRef<ReturnType<typeof setInterval> | null>(null);
+
+  const startCountdown = React.useCallback(() => {
+    setCountdown(seconds);
+    if (intervalRef.current) clearInterval(intervalRef.current);
+
+    intervalRef.current = setInterval(() => {
+      setCountdown((prev) => {
+        if (prev <= 1) {
+          if (intervalRef.current) {
+            clearInterval(intervalRef.current);
+            intervalRef.current = null;
+          }
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+  }, [seconds]);
+
+  React.useEffect(() => {
+    startCountdown();
+    return () => {
+      if (intervalRef.current) clearInterval(intervalRef.current);
+    };
+  }, [startCountdown]);
+
+  return { countdown, restartCountdown: startCountdown };
 }

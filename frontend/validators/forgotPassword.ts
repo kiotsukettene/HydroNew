@@ -15,13 +15,43 @@ export const verifyResetCodeSchema = z.object({
 
 export const createNewPasswordSchema = z
   .object({
-    password: z.string().nonempty("Password is required")
-      .min(8, "At least 8 characters")
-      .refine((val) => /[A-Z]/.test(val), 'At least one uppercase letter')
-      .refine((val) => /[a-z]/.test(val), 'At least one lowercase letter')
-      .refine((val) => /[0-9]/.test(val), 'At least one number')
-      .refine((val) => /[^A-Za-z0-9]/.test(val), 'At least one special character'),
-    confirm_password: z.string(),
+    password: z.string()
+      .min(1, "Password is required")
+      .superRefine((val, ctx) => {
+        if (val.length > 0 && val.length < 8) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: "At least 8 characters",
+          });
+        }
+        if (val.length >= 8) {
+          if (!/[A-Z]/.test(val)) {
+            ctx.addIssue({
+              code: z.ZodIssueCode.custom,
+              message: "At least one uppercase letter",
+            });
+          }
+          if (!/[a-z]/.test(val)) {
+            ctx.addIssue({
+              code: z.ZodIssueCode.custom,
+              message: "At least one lowercase letter",
+            });
+          }
+          if (!/[0-9]/.test(val)) {
+            ctx.addIssue({
+              code: z.ZodIssueCode.custom,
+              message: "At least one number",
+            });
+          }
+          if (!/[^A-Za-z0-9]/.test(val)) {
+            ctx.addIssue({
+              code: z.ZodIssueCode.custom,
+              message: "At least one special character",
+            });
+          }
+        }
+      }),
+    confirm_password: z.string().min(1, "Please confirm your password"),
   })
   .refine((data) => data.password === data.confirm_password, {
     message: "Passwords do not match",

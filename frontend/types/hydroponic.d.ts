@@ -12,7 +12,7 @@ interface HydroponicSetupPayload {
   target_ph_max: number;
   target_tds_min: number;
   target_tds_max: number;
-  water_amount: string;
+  water_amount: number;
   harvest_date: string;
   pump_config?: PumpConfig | null;
 }

@@ -67,7 +67,7 @@ getPairingToken: async () => {
   }
 },
 
-fetchDevice: async (userId: number) => {
+fetchDevice: async (userId: number, forceRefresh = false) => {
   set({ loading: true, error: null });
   
   try {
@@ -81,25 +81,15 @@ fetchDevice: async (userId: number) => {
     }
 
     // Check if device already exists in store first (to avoid unnecessary AsyncStorage reads)
+    // Skip this check if forceRefresh is true
     const currentDevices = get().devices;
-    if (currentDevices && currentDevices.length > 0) {
+    if (!forceRefresh && currentDevices && currentDevices.length > 0) {
       console.log("Device already loaded in store, skipping fetch");
       set({ loading: false });
       return;
     }
 
-    // Check if device exists in AsyncStorage
-    const storageKey = `paired_device:${userId}`;
-    const existingDevice = await AsyncStorage.getItem(storageKey);
-    
-    if (existingDevice) {
-      console.log("Device found in AsyncStorage, loading to store");
-      const device = JSON.parse(existingDevice);
-      set({ devices: [device], loading: false });
-      return;
-    }
-
-    // Fetch devices from API
+    // Always fetch from API to get the source of truth
     const response = await axiosInstance.get("/devices");
     console.log("Fetch devices response:", response.data);
 
@@ -119,7 +109,10 @@ fetchDevice: async (userId: number) => {
       // Persist to AsyncStorage and store (setDevice does both so filtration etc. find it)
       await get().setDeviceAndPersist(device, userId);
     } else {
-      console.log("No devices returned from API");
+      console.log("No devices returned from API, clearing storage and store");
+      // Clear AsyncStorage when user has no device
+      const storageKey = `paired_device:${userId}`;
+      await AsyncStorage.removeItem(storageKey);
       set({ devices: [] });
     }
   } catch (error: any) {
@@ -131,8 +124,13 @@ fetchDevice: async (userId: number) => {
 },
 
 setDevice: (device: any) => {
-  console.log("Setting device in store:", device);
-  set({ devices: [device] });
+  if (device === null) {
+    console.log("Clearing device from store");
+    set({ devices: [] });
+  } else {
+    console.log("Setting device in store:", device);
+    set({ devices: [device] });
+  }
 },
 
 /** Set device in store and persist to AsyncStorage so screens that read from storage (e.g. filtration) see it. */
@@ -157,6 +155,9 @@ unpairDevice: async () => {
       set({ devices: [] });
       // Clear sensor data so UI doesn't show stale readings and we stop treating as "receiving"
       useSensorStore.getState().reset();
+      // Clear hydroponic setups cache and data
+      const { useHydroponicSetupStore } = require("@/store/hydroponics/hydroponicSetupStore");
+      useHydroponicSetupStore.getState().clearAll();
       return { success: true, message };
     }
 

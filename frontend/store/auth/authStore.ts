@@ -8,6 +8,7 @@ import { disconnectEcho } from "@/lib/echo";
 import { useNotificationStore } from "../notification/notificationStore";
 import { useDeviceStore } from "@/store/device/deviceStore";
 import { useHydroponicSetupStore } from "@/store/hydroponics/hydroponicSetupStore";
+import { toast } from "sonner-native";
 
 const isWeb = Platform.OS === "web";
 
@@ -142,6 +143,11 @@ login: async (email, password) => {
     });
     
     console.log(' [Login] State updated');
+    
+    // Show toast if email needs verification
+    if (needs_verification && message) {
+      toast.warning(message);
+    }
     
     // Only fetch account and device if user exists (not needed for verification flow)
     if (user?.id) {

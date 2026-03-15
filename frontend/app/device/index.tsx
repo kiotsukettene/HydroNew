@@ -1,30 +1,25 @@
 import {
   Image,
-  TextInput,
   View,
   Dimensions,
-  KeyboardAvoidingView,
-  Platform,
   ScrollView,
-  ImageBackground,
   Pressable,
   Modal,
+  ActivityIndicator,
 } from "react-native";
-import Svg, { Circle } from "react-native-svg";
 import React, { useEffect, useState } from "react";
-import { useFocusEffect } from "expo-router";
+import { useFocusEffect, useRouter } from "expo-router";
 import { PageHeader } from '@/components/ui/page-header'
 import { Button } from "@/components/ui/button";
 import { Text } from "@/components/ui/text";
-import { Separator } from "@/components/ui/separator";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { WifiOff, Smartphone, X, Settings, Star, Film, Heart, Sofa, Cpu, HardDrive, Trash2, QrCodeIcon } from "lucide-react-native"
+import { Cpu, HardDrive, Trash2, QrCodeIcon } from "lucide-react-native"
 import WifiModal from "@/components/ui/wifi-connection";
-import FolderBg from "@/components/ui/folder-bg";
-import { getMQTTClient, publishMessage, subscribeMessage } from "@/service/mqtt.client";
+import { subscribeMessage } from "@/service/mqtt.client";
 import { useAuthStore } from "@/store/auth/authStore";
 import { useDeviceStore } from "@/store/device/deviceStore";
 import { useNetworkStore } from "@/store/network/networkStore";
+import { useDashboardStore } from "@/store/auth/dashboardStore";
 import { Card } from "@/components/ui/card";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { PairOptionModal } from "@/components/ui/pair-option-modal";
@@ -34,26 +29,30 @@ import QRCode from "react-native-qrcode-svg";
 import { CameraView, Camera } from "expo-camera";
 
 export default function DeviceConnection () {
-const [wifiModal, setWifiModal] = useState(false);
-const [pairingMethodModal, setPairingMethodModal] = useState(false);
-const [showUnpairModal, setShowUnpairModal] = useState(false);
-const { unpairDevice, generateQrPayload, pairDeviceByQr, loading: deviceLoading, devices, fetchDevice } = useDeviceStore();
+  const router = useRouter();
+  const [wifiModal, setWifiModal] = useState(false);
+  const [pairingMethodModal, setPairingMethodModal] = useState(false);
+  const [showUnpairModal, setShowUnpairModal] = useState(false);
+  const { unpairDevice, generateQrPayload, pairDeviceByQr, loading: deviceLoading, devices, fetchDevice } = useDeviceStore();
+  const { fetchDashboard } = useDashboardStore();
 
   /** Paired device: from store (synced with API/AsyncStorage) so DB-added devices show after focus. */
   const pairedDevice = devices?.[0] ?? null;
 
-const [showQrModal, setShowQrModal] = useState(false);
-const [qrValue, setQrValue] = useState<string | null>(null);
-const [qrLoading, setQrLoading] = useState(false);
+  const [isPairing, setIsPairing] = useState(false);
 
-const [showScannerModal, setShowScannerModal] = useState(false);
-const [hasCameraPermission, setHasCameraPermission] = useState<boolean | null>(null);
-const [isScanning, setIsScanning] = useState(false);
+  const [showQrModal, setShowQrModal] = useState(false);
+  const [qrValue, setQrValue] = useState<string | null>(null);
+  const [qrLoading, setQrLoading] = useState(false);
 
-/** 1 = Online, 0 = Offline, null = not yet received from MQTT */
-const [deviceHeartbeatStatus, setDeviceHeartbeatStatus] = useState<0 | 1 | null>(null);
+  const [showScannerModal, setShowScannerModal] = useState(false);
+  const [hasCameraPermission, setHasCameraPermission] = useState<boolean | null>(null);
+  const [isScanning, setIsScanning] = useState(false);
 
-const userId = useAuthStore((state) => state.user?.id);
+  /** 1 = Online, 0 = Offline, null = not yet received from MQTT */
+  const [deviceHeartbeatStatus, setDeviceHeartbeatStatus] = useState<0 | 1 | null>(null);
+
+  const userId = useAuthStore((state) => state.user?.id);
 
   // Sync with backend when screen is focused so device added in DB (or elsewhere) shows up
   useFocusEffect(
@@ -62,67 +61,81 @@ const userId = useAuthStore((state) => state.user?.id);
     }, [userId, fetchDevice])
   );
 
-useEffect(() => {
-  if (!userId) return;
+  // Listen for MQTT pairing messages
+  useEffect(() => {
+    if (!userId) return;
 
-  const subscribe = subscribeMessage(
-    `devices/${userId}/pairing`,
-    async (topic, message) => {
-      try {
-        const payloadString = message.toString();
-        console.log("Received message on topic:", topic);
-        console.log("Message payload:", payloadString);
+    const subscribe = subscribeMessage(
+      `devices/${userId}/pairing`,
+      async (topic, message) => {
+        try {
+          const payloadString = message.toString();
+          console.log("Received message on topic:", topic);
+          console.log("Message payload:", payloadString);
 
-        const payload = JSON.parse(payloadString);
+          const payload = JSON.parse(payloadString);
 
-        const storageKey = `paired_device:${userId}`;
+          const storageKey = `paired_device:${userId}`;
 
-        if (!payload?.device?.id) {
-          console.warn("Invalid pairing payload:", payload);
-          return;
+          if (!payload?.device?.id) {
+            console.warn("Invalid pairing payload:", payload);
+            setIsPairing(false);
+            return;
+          }
+
+          const existingDevice = await AsyncStorage.getItem(storageKey);
+          if (existingDevice) {
+            console.log("Device already paired:", JSON.parse(existingDevice));
+            useDeviceStore.getState().setDevice(JSON.parse(existingDevice));
+            setIsPairing(false);
+            return;
+          }
+
+          await useDeviceStore.getState().setDeviceAndPersist(payload.device, userId);
+          console.log("Device saved to AsyncStorage");
+
+          // Refresh dashboard to show device data
+          await fetchDashboard();
+
+          // Clear pairing state BEFORE showing toast
+          setIsPairing(false);
+
+          // Small delay to ensure UI updates before toast
+          setTimeout(() => {
+            toast.success("Device paired successfully!");
+          }, 100);
+        } catch (err) {
+          console.error("Failed to handle pairing payload:", err);
+          setIsPairing(false);
         }
-
-        const existingDevice = await AsyncStorage.getItem(storageKey);
-        if (existingDevice) {
-          console.log("Device already paired:", JSON.parse(existingDevice));
-          useDeviceStore.getState().setDevice(JSON.parse(existingDevice));
-          return;
-        }
-
-        await useDeviceStore.getState().setDeviceAndPersist(payload.device, userId);
-        console.log("Device saved to AsyncStorage");
-        toast.success("Device paired successfully!");
-      } catch (err) {
-        console.error("Failed to handle pairing payload:", err);
       }
+    );
+
+    return subscribe;
+  }, [userId]);
+
+  // Subscribe to device heartbeat: biotech/device/{serial_number}/heartbeat → "1" = Online, "0" = Offline
+  useEffect(() => {
+    const serialNumber = pairedDevice?.serial_number;
+    if (!serialNumber) {
+      setDeviceHeartbeatStatus(null);
+      return;
     }
-  );
 
-  return subscribe;
-}, [userId]);
+    const topic = `biotech/${serialNumber}/heartbeat`;
+    const unsubscribe = subscribeMessage(topic, (_topic, message) => {
+      const value = message.toString().trim();
+      if (value === '1') setDeviceHeartbeatStatus(1);
+      else if (value === '0') setDeviceHeartbeatStatus(0);
+    });
 
-// Subscribe to device heartbeat: biotech/device/{serial_number}/heartbeat → "1" = Online, "0" = Offline
-useEffect(() => {
-  const serialNumber = pairedDevice?.serial_number;
-  if (!serialNumber) {
-    setDeviceHeartbeatStatus(null);
-    return;
-  }
+    return () => {
+      unsubscribe();
+      setDeviceHeartbeatStatus(null);
+    };
+  }, [pairedDevice?.serial_number]);
 
-  const topic = `biotech/${serialNumber}/heartbeat`;
-  const unsubscribe = subscribeMessage(topic, (_topic, message) => {
-    const value = message.toString().trim();
-    if (value === '1') setDeviceHeartbeatStatus(1);
-    else if (value === '0') setDeviceHeartbeatStatus(0);
-  });
-
-  return () => {
-    unsubscribe();
-    setDeviceHeartbeatStatus(null);
-  };
-}, [pairedDevice?.serial_number]);
-
-async function handleGenerateQr() {
+  async function handleGenerateQr() {
     try {
       setQrLoading(true);
       setShowQrModal(true);
@@ -150,7 +163,7 @@ async function handleGenerateQr() {
     try {
       // Request permission FIRST before opening modal
       const { status } = await Camera.requestCameraPermissionsAsync();
-      
+
       if (status === "granted") {
         setHasCameraPermission(true);
         setShowScannerModal(true);
@@ -168,6 +181,7 @@ async function handleGenerateQr() {
   const handleBarCodeScanned = async (data: string) => {
     if (isScanning) return;
     setIsScanning(true);
+    setIsPairing(true);
 
     try {
       let parsed: any;
@@ -176,6 +190,7 @@ async function handleGenerateQr() {
       } catch (e) {
         toast.error("Invalid QR code format.");
         setIsScanning(false);
+        setIsPairing(false);
         return;
       }
 
@@ -184,6 +199,7 @@ async function handleGenerateQr() {
       if (!serial_number || !device_name || !model) {
         toast.error("QR code is missing required device data.");
         setIsScanning(false);
+        setIsPairing(false);
         return;
       }
 
@@ -193,95 +209,104 @@ async function handleGenerateQr() {
 
       const response = await pairDeviceByQr(payload);
 
+      // Refresh the paired device after successful pairing (store is source of truth)
+      if (userId) {
+        await useDeviceStore.getState().fetchDevice(userId);
+      }
+
+      // Refresh dashboard to show device data
+      await fetchDashboard();
+
+      // Close scanner modal after successful pairing
+      setShowScannerModal(false);
+
+      // Show success toast AFTER the state has updated
       if (response?.message) {
         toast.success(response.message);
       } else {
         toast.success("Device paired successfully via QR.");
       }
-
-      // Refresh the paired device after successful pairing (store is source of truth)
-      if (userId) {
-        setTimeout(async () => {
-          await useDeviceStore.getState().fetchDevice(userId);
-        }, 500);
-      }
-
-      // Close scanner modal after successful pairing
-      setShowScannerModal(false);
     } catch (error: any) {
       console.error("Failed to pair device via QR:", error);
       const errorMessage = error?.response?.data?.message || "Failed to pair device via QR.";
       toast.error(errorMessage);
     } finally {
       setIsScanning(false);
+      setIsPairing(false);
     }
   };
 
-const handleUnpair = async () => {
+  const handleUnpair = async () => {
     if (!userId) return;
 
     try {
-        const result = await unpairDevice();
-        if (result?.success) {
-            setShowUnpairModal(false);
-            toast.success(result.message);
-        } else {
-            toast.error(result?.message ?? "Failed to unpair device");
-        }
+      const result = await unpairDevice();
+      if (result?.success) {
+        // Refresh dashboard to clear device data
+        await fetchDashboard();
+        
+        setShowUnpairModal(false);
+        // Show toast AFTER modal is closed and state is updated
+        setTimeout(() => {
+          toast.success(result.message);
+        }, 100);
+      } else {
+        toast.error(result?.message ?? "Failed to unpair device");
+      }
     } catch (err) {
-        console.error("Unpair error:", err);
-        toast.error("An error occurred while unpairing");
+      console.error("Unpair error:", err);
+      toast.error("An error occurred while unpairing");
     }
-};
+  };
 
-    return (
-            <SafeAreaView className="flex-1 bg-gray-50">
-            <PageHeader title="Device Connection" showNotificationButton={false} />
-                <View className='flex-1 p-4'>
-                  
-                  {/* ========= IF NO DEVICE CONNECTED ========= */}
-                    {!pairedDevice ? (
-                        <View className="flex-1 justify-between items-center px-6" style={{ paddingVertical: 40 }}>
-                            <View className="items-center" style={{ flex: 1, justifyContent: 'center' }}>
-                                <View className="items-center justify-center mb-1" style={{ position: 'relative', width: 320, height: 320 }}>                    
-                                    {/* Image */}
-                                    <View style={{ zIndex: 1 }}>
-                                        <Image 
-                                            source={require('@/assets/images/no-connected.png')}
-                                            resizeMode="contain"
-                                            style={{ width: 220, height: 220 }}
-                                        />
-                                    </View>
-                                </View>
+  return (
+    <SafeAreaView className="flex-1 bg-gray-50">
+      <PageHeader title="Device Connection" showNotificationButton={false} />
+      <View className='flex-1 p-4'>
 
-                                <View className="px-2 items-center">
-                                    <Text className="text-2xl text-muted-foreground font-bold mb-1 text-center" >
-                                        No device connected
-                                    </Text>
-                                    <Text className="text-base text-muted-foreground text-center leading-6" >
-                                        Please connect your device to get started.
-                                    </Text>
-                                </View>
-                            </View>
+        {/* ========= IF NO DEVICE CONNECTED ========= */}
+        {!pairedDevice ? (
+          <View className="flex-1 justify-between items-center px-6" style={{ paddingVertical: 40 }}>
+            <View className="items-center" style={{ flex: 1, justifyContent: 'center' }}>
+              <View className="items-center justify-center mb-1" style={{ position: 'relative', width: 320, height: 320 }}>
+                {/* Image */}
+                <View style={{ zIndex: 1 }}>
+                  <Image
+                    source={require('@/assets/images/no-connected.png')}
+                    resizeMode="contain"
+                    style={{ width: 220, height: 220 }}
+                  />
+                </View>
+              </View>
 
-                            {/*============== Pair Device Button ==============*/}
-                            <View className="w-full space-y-3 gap-2" style={{ paddingBottom: 20 }}>
-                                <Button 
-                                    className="bg-primary" 
-                                    onPress={handleOpenScanner}
-                                >
-                                    <Text className="text-white text-lg font-semibold">Scan QR Code</Text>
-                                </Button>
+              <View className="px-2 items-center">
+                <Text className="text-2xl text-muted-foreground font-bold mb-1 text-center">
+                  No device connected
+                </Text>
+                <Text className="text-base text-muted-foreground text-center leading-6">
+                  Please connect your device to get started.
+                </Text>
+              </View>
+            </View>
 
-                                <Button 
-                                    variant="outline"
-                                    onPress={() => setPairingMethodModal(true)}
-                                >
-                                    <Text className="text-primary text-lg font-semibold mb-2">Pair Device</Text>
-                                </Button>
-                            </View>
-                        </View>
-                    ) : (
+            {/*============== Pair Device Buttons ==============*/}
+            <View className="w-full space-y-3 gap-2" style={{ paddingBottom: 20 }}>
+              <Button
+                className="bg-primary"
+                onPress={handleOpenScanner}
+              >
+                <Text className="text-white text-lg font-semibold">Scan QR Code</Text>
+              </Button>
+
+              <Button
+                variant="outline"
+                onPress={() => setPairingMethodModal(true)}
+              >
+                <Text className="text-primary text-lg font-semibold mb-2">Pair Device</Text>
+              </Button>
+            </View>
+          </View>
+        ) : (
                         <ScrollView className="flex-1 " showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 40 }}>
                             {/* ============= IF DEVICE CONNECTED ============== */}
                             {/* Machine Image in Card with Shadow */}
@@ -404,7 +429,7 @@ const handleUnpair = async () => {
                                 </Card>
                             </View>
 
-                            {/* Button to go to filtration page */}
+                            {/* Button to unpair device */}
                             <View className="px-4">
                                 <Button 
                                     className="bg-red-500 active:bg-red-600" 
@@ -417,158 +442,185 @@ const handleUnpair = async () => {
                                 </Button>
                             </View>
                         </ScrollView>
-                    )}
-                </View>
+        )}
+      </View>
 
-                <ConfirmationModal
-                    visible={showUnpairModal}
-                    icon={<Trash2 size={40} color="#EF4444" />}
-                    modalTitle="Unpair Device"
-                    modalDescription="Are you sure you want to unpair this device? You will need to pair it again to use it."
-                    confirmText="Unpair"
-                    confirmButtonColor="bg-red-500"
-                    iconBgColor="bg-red-50"
-                    onConfirm={handleUnpair}
-                    onCancel={() => setShowUnpairModal(false)}
-                />
+      <ConfirmationModal
+        visible={showUnpairModal}
+        icon={<Trash2 size={40} color="#EF4444" />}
+        modalTitle="Unpair Device"
+        modalDescription="Are you sure you want to unpair this device? You will need to pair it again to use it."
+        confirmText="Unpair"
+        confirmButtonColor="bg-red-500"
+        iconBgColor="bg-red-50"
+        onConfirm={handleUnpair}
+        onCancel={() => setShowUnpairModal(false)}
+      />
 
-                {/* =============== PAIRING DEVICE SELECTION BUTTON & MODAL ================== */}
-                <PairOptionModal
-                    visible={pairingMethodModal}
-                    onClose={() => setPairingMethodModal(false)}
-                    onWifiPress={() => {
-                        setPairingMethodModal(false);
-                        setWifiModal(true);
-                        // Set pairing flag to ignore network alerts
-                        useNetworkStore.getState().setIsPairingDevice(true);
-                    }}
-                    onBluetoothPress={() => {
-                        setPairingMethodModal(false);
-                        // TODO: Implement Bluetooth pairing
-                        console.log("Bluetooth pairing selected");
-                    }}
-                />
+      {/* =============== PAIRING DEVICE SELECTION BUTTON & MODAL ================== */}
+      <PairOptionModal
+        visible={pairingMethodModal}
+        onClose={() => setPairingMethodModal(false)}
+        onWifiPress={() => {
+          setPairingMethodModal(false);
+          setWifiModal(true);
+          // Set pairing flag to ignore network alerts
+          useNetworkStore.getState().setIsPairingDevice(true);
+        }}
+        onBluetoothPress={() => {
+          setPairingMethodModal(false);
+          // TODO: Implement Bluetooth pairing
+          console.log("Bluetooth pairing selected");
+        }}
+      />
 
-                <WifiModal
-                    visible={wifiModal}
-                    onClose={() => {
-                        setWifiModal(false);
-                        // Clear pairing flag when modal closes
-                        useNetworkStore.getState().setIsPairingDevice(false);
-                    }}
-                    onConnect={({ ssid, password, device }) => {
-                        console.log("WiFi pairing initiated with:", ssid, password, device);
-                        // Close the WiFi modal and keep showing "No device connected"
-                        // until the MQTT pairing message arrives and updates state.
-                        setWifiModal(false);
-                        // Clear pairing flag after successful WiFi request
-                        useNetworkStore.getState().setIsPairingDevice(false);
-                    }}
-                />
+      <WifiModal
+        visible={wifiModal}
+        onClose={() => {
+          setWifiModal(false);
+          // Clear pairing flag when modal closes
+          useNetworkStore.getState().setIsPairingDevice(false);
+        }}
+        onConnect={({ ssid, password, device }) => {
+          console.log("WiFi pairing initiated with:", ssid, password, device);
+          // Set pairing state to show loader
+          setIsPairing(true);
+          // Close the WiFi modal and keep showing "No device connected"
+          // until the MQTT pairing message arrives and updates state.
+          setWifiModal(false);
+          // Clear pairing flag after successful WiFi request
+          useNetworkStore.getState().setIsPairingDevice(false);
+        }}
+      />
 
-                <Modal
-                  visible={showQrModal}
-                  animationType="slide"
-                  transparent
-                  onRequestClose={() => setShowQrModal(false)}
-                >
-                  <View className="flex-1 bg-black/70 items-center justify-center px-6">
-                    <View className="bg-white rounded-3xl p-6 items-center w-full">
-                      <Text className="text-xl font-semibold mb-4 text-center">
-                        Share Device Access
-                      </Text>
+      <Modal
+        visible={showQrModal}
+        animationType="slide"
+        transparent
+        onRequestClose={() => setShowQrModal(false)}
+      >
+        <View className="flex-1 bg-black/70 items-center justify-center px-6">
+          <View className="bg-white rounded-3xl p-6 items-center w-full">
+            <Text className="text-xl font-semibold mb-4 text-center">
+              Share Device Access
+            </Text>
 
-                      {qrLoading && (
-                        <Text className="text-muted-foreground mb-4">
-                          Generating QR...
-                        </Text>
-                      )}
+            {qrLoading && (
+              <Text className="text-muted-foreground mb-4">
+                Generating QR...
+              </Text>
+            )}
 
-                      {!qrLoading && qrValue && (
-                        <View className="mb-4 items-center justify-center">
-                          <View
-                            style={{
-                              padding: 16,
-                              backgroundColor: "white",
-                              borderRadius: 24,
-                            }}
-                          >
-                            <QRCode
-                              value={qrValue}
-                              size={240}
-                            />
-                          </View>
-                        </View>
-                      )}
-
-                      {!qrLoading && !qrValue && (
-                        <Text className="text-muted-foreground mb-4 text-center">
-                          Unable to generate QR code.
-                        </Text>
-                      )}
-
-                      <Button
-                        className="mt-2 w-full"
-                        onPress={() => {
-                          setShowQrModal(false);
-                          setQrValue(null);
-                        }}
-                      >
-                        <Text className="text-white text-base font-semibold">
-                          Close
-                        </Text>
-                      </Button>
-                    </View>
-                  </View>
-                </Modal>
-
-                {/* Scanner Modal for pairing via QR code */}
-                <Modal
-                  visible={showScannerModal}
-                  animationType="slide"
-                  transparent
-                  onRequestClose={() => {
-                    setShowScannerModal(false);
-                    setHasCameraPermission(null);
+            {!qrLoading && qrValue && (
+              <View className="mb-4 items-center justify-center">
+                <View
+                  style={{
+                    padding: 16,
+                    backgroundColor: "white",
+                    borderRadius: 24,
                   }}
                 >
-                  <View className="flex-1 bg-black/70 items-center justify-center px-6">
-                    <View className="bg-white rounded-3xl p-6 items-center w-full">
-                      <Text className="text-xl font-semibold mb-4 text-center">
-                        Scan Device QR Code
-                      </Text>
+                  <QRCode
+                    value={qrValue}
+                    size={240}
+                  />
+                </View>
+              </View>
+            )}
 
-                      {hasCameraPermission ? (
-                        <View style={{ width: "100%", height: 320, borderRadius: 24, overflow: "hidden" }}>
-                          <CameraView
-                            style={{ width: "100%", height: "100%" }}
-                            barcodeScannerSettings={{ barcodeTypes: ["qr"] }}
-                            onBarcodeScanned={({ data }) => {
-                              if (!isScanning) {
-                                handleBarCodeScanned(data);
-                              }
-                            }}
-                          />
-                        </View>
-                      ) : (
-                        <Text className="text-muted-foreground mb-4 text-center">
-                          Camera permission is required to scan QR codes.
-                        </Text>
-                      )}
+            {!qrLoading && !qrValue && (
+              <Text className="text-muted-foreground mb-4 text-center">
+                Unable to generate QR code.
+              </Text>
+            )}
 
-                      <Button
-                        className="mt-4 w-full"
-                        onPress={() => setShowScannerModal(false)}
-                      >
-                        <Text className="text-white text-base font-semibold">
-                          Close
-                        </Text>
-                      </Button>
-                    </View>
-                  </View>
-                </Modal>
+            <Button
+              className="mt-2 w-full"
+              onPress={() => {
+                setShowQrModal(false);
+                setQrValue(null);
+              }}
+            >
+              <Text className="text-white text-base font-semibold">
+                Close
+              </Text>
+            </Button>
+          </View>
+        </View>
+      </Modal>
 
-            </SafeAreaView>
-        
-    )
+      {/* Scanner Modal for pairing via QR code */}
+      <Modal
+        visible={showScannerModal}
+        animationType="slide"
+        transparent
+        onRequestClose={() => {
+          setShowScannerModal(false);
+          setHasCameraPermission(null);
+        }}
+      >
+        <View className="flex-1 bg-black/70 items-center justify-center px-6">
+          <View className="bg-white rounded-3xl p-6 items-center w-full">
+            <Text className="text-xl font-semibold mb-4 text-center">
+              Scan Device QR Code
+            </Text>
+
+            {hasCameraPermission ? (
+              <View style={{ width: "100%", height: 320, borderRadius: 24, overflow: "hidden" }}>
+                <CameraView
+                  style={{ width: "100%", height: "100%" }}
+                  barcodeScannerSettings={{ barcodeTypes: ["qr"] }}
+                  onBarcodeScanned={({ data }) => {
+                    if (!isScanning) {
+                      handleBarCodeScanned(data);
+                    }
+                  }}
+                />
+              </View>
+            ) : (
+              <Text className="text-muted-foreground mb-4 text-center">
+                Camera permission is required to scan QR codes.
+              </Text>
+            )}
+
+            <Button
+              className="mt-4 w-full"
+              onPress={() => setShowScannerModal(false)}
+            >
+              <Text className="text-white text-base font-semibold">
+                Close
+              </Text>
+            </Button>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Loading Overlay for Pairing */}
+      {isPairing && (
+        <View
+          style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: 'rgba(0, 0, 0, 0.5)',
+            justifyContent: 'center',
+            alignItems: 'center',
+            zIndex: 9999,
+          }}
+        >
+          <View className="bg-white rounded-3xl p-8 items-center" style={{ minWidth: 200 }}>
+            <ActivityIndicator size="large" color="#10b981" style={{ marginBottom: 16 }} />
+            <Text className="text-lg font-semibold text-center">
+              Pairing device...
+            </Text>
+            <Text className="text-sm text-muted-foreground text-center mt-2">
+              Please wait
+            </Text>
+          </View>
+        </View>
+      )}
+    </SafeAreaView>
+  );
 }

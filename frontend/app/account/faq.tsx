@@ -89,7 +89,7 @@ export default function FAQ() {
       
                 <PageHeader title="Help Center" />
 
-      <ScrollView>
+      <ScrollView contentContainerStyle={{ paddingBottom: 100 }}>
         <View className="flex-1">
 
           <View className="items-center p-4">
@@ -166,6 +166,13 @@ export default function FAQ() {
                               <Plus size={20} color="#445104" />
                             )}
                           </View>
+                          {isExpanded && (
+                            <View className="mt-3 pt-3 border-t border-gray-200">
+                              <Text className="text-gray-700 leading-6 text-justify">
+                                {highlightText(item.answer, searchTerm)}
+                              </Text>
+                            </View>
+                          )}
                         </CardContent>
                       </Pressable>
                     </Card>
@@ -201,14 +208,16 @@ export default function FAQ() {
         </View>
       </ScrollView>
 
-      <Button
-        size="sm"
-        className="absolute bottom-6 right-6 rounded-full bg-primary"
-        onPress={() => router.replace('/ask-question')}
-      >
-        <Text className="text-muted">Ask a question</Text>
-        <MessageCircle size={18} color="#fff" />
-      </Button>
+      <View className="absolute bottom-0 right-0 left-0 items-end p-6 pb-8">
+        <Button
+          size="sm"
+          className="rounded-full bg-primary shadow-lg"
+          onPress={() => router.replace('/ask-question')}
+        >
+          <Text className="text-muted">Ask a question</Text>
+          <MessageCircle size={18} color="#fff" />
+        </Button>
+      </View>
       </KeyboardAvoidingView>
     </SafeAreaView>
   );

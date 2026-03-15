@@ -12,7 +12,7 @@ export interface HydroponicSetupPayload {
   target_ph_max: number;
   target_tds_min: number;
   target_tds_max: number;
-  water_amount: string;
+  water_amount: number;
   pump_config?: PumpConfig | null;
 }
 
@@ -170,6 +170,18 @@ export const useHydroponicSetupStore = create<HydroponicSetupStore>((set, get) =
 
   clearCache: () => {
     set({ cache: null, lastFetchTime: null });
+  },
+
+  clearAll: () => {
+    set({ 
+      hydroponicSetups: [], 
+      cache: null, 
+      lastFetchTime: null,
+      currentSetup: null,
+      currentPage: 1,
+      hasMore: false,
+      total: 0
+    });
   },
 
   resetError: () => set({ error: null }),

@@ -244,7 +244,7 @@ export default function LettuceView() {
                     </Text>
                     <Text className="text-xs text-lime-200">PLANT AGE</Text>
 
-                    <Text className="mt-1 text-xl font-bold text-white">{currentSetup?.water_amount ?? '-'}</Text>
+                    <Text className="mt-1 text-xl font-bold text-white">{currentSetup?.water_amount ? `${currentSetup.water_amount}L` : '-'}</Text>
                     <Text className="text-xs text-lime-200">WATER AMOUNT</Text>
                   </View>
 
