@@ -69,21 +69,30 @@ export default function NotificationItem({
   onPress 
 }: NotificationItemProps) {
   const { Icon, bgColor, iconColor } = getNotificationIconConfig(title, type);
+  const containerPadding = !isRead ? 'pl-3 pr-4 py-4' : 'px-4 py-4'
+  const containerStyles = !isRead
+    ? 'bg-green-50 shadow-sm'
+    : 'bg-white shadow-sm'
 
   return (
     <TouchableOpacity 
       onPress={onPress}
-      className={`flex-row p-4 rounded-xl border-b border-gray-200 ${!isRead ? 'bg-green-50' : 'bg-background'}`}
+      className={`flex-row rounded-2xl ${containerPadding} ${containerStyles}`}
       activeOpacity={0.7}
     >
       {/* Icon */}
-      <View className={`w-10 h-10 rounded-full ${bgColor} items-center justify-center mr-3`}>
-        <Icon size={20} color={iconColor} />
+      <View className="relative mr-3">
+        {!isRead && (
+          <View className="absolute -left-2 -top-1 w-2.5 h-2.5 rounded-full bg-green-600 border-2 border-green-50" />
+        )}
+        <View className={`w-9 h-9 rounded-full ${bgColor} items-center justify-center border border-gray-200/60`}>
+          <Icon size={18} color={iconColor} />
+        </View>
       </View>
 
       {/* Content */}
-      <View className="flex-1 gap-2">
-        <View className="flex-row items-center justify-between mb-1">
+      <View className="flex-1">
+        <View className="flex-row items-start justify-between">
           <Text className="font-semibold text-gray-900 flex-1 pr-2" numberOfLines={1}>
             {title}
           </Text>
@@ -91,14 +100,9 @@ export default function NotificationItem({
             <Text className="text-xs text-gray-500">{time}</Text>
           )}
         </View>
-        <Text className="text-sm text-gray-600 leading-5" numberOfLines={3}>
+        <Text className="text-sm text-gray-600 leading-5 mt-2" numberOfLines={3}>
           {message}
         </Text>
-        
-        {/* Unread indicator */}
-        {!isRead && (
-          <View className="absolute right-0 top-0 w-2 h-2 rounded-full bg-primary" />
-        )}
       </View>
     </TouchableOpacity>
   )

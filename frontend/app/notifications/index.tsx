@@ -82,14 +82,14 @@ export default function Notifications() {
   const renderItem = ({ item }: any) => {
     if (item.type === 'header') {
       return (
-        <Text className="text-sm font-semibold text-gray-500 mb-3 mt-2 uppercase px-4">
+        <Text className="text-base font-semibold text-gray-500 mb- mt-4 uppercase px-4">
           {item.dateLabel}
         </Text>
       );
     }
     
     return (
-      <View className="px-4">
+      <View className="p-4">
         <NotificationItem
           type={item.notification.type}
           title={item.notification.title}
@@ -124,7 +124,7 @@ export default function Notifications() {
     }
     
     return (
-      <View className="items-center justify-center pt-32">
+      <View className="items-center justify-center pt-32 ">
         <View className="w-32 h-32 rounded-full bg-green-50 items-center justify-center mb-6">
           <BellOff size={48} color="hsl(70, 91%, 17%)" strokeWidth={1.5} />
         </View>
@@ -142,7 +142,7 @@ export default function Notifications() {
     if (notifications.length === 0) return null;
     
     return (
-      <View className="px-4 pb-2">
+      <View className="p-4">
         <View className="flex-row justify-between items-center">
           <View className="flex-row items-center gap-2">
             <Text className='font-semibold text-lg'>All Notifications</Text>
@@ -163,7 +163,7 @@ export default function Notifications() {
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-white">
+    <SafeAreaView className="flex-1 bg-white px-4">
       {/* ===== Page Header ===== */}
       <PageHeader 
         title="Notifications"
