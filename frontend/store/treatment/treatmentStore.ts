@@ -179,8 +179,8 @@ export const useTreatmentStore = create<TreatmentStore>((set, get) => ({
     }
   },
 
-  togglePump2: async (targetLiters: number) => {
-    const url = '/filtration/commands/toggle-pump-2';
+  startPump2: async (targetLiters: number) => {
+    const url = '/filtration/commands/start-pump-2';
     try {
       const response = await axiosInstance.post<FiltrationCommandResponse>(url, {
         target_liters: targetLiters,
@@ -188,6 +188,16 @@ export const useTreatmentStore = create<TreatmentStore>((set, get) => ({
       return response.data?.success === true;
     } catch (err) {
       console.error('[Treatment] togglePump2 failed', err);
+      return false;
+    }
+  },
+  stopPump2: async () => {
+    const url = '/filtration/commands/stop-pump-2';
+    try {
+      const response = await axiosInstance.post<FiltrationCommandResponse>(url);
+      return response.data?.success === true;
+    } catch (err) {
+      console.error('[Treatment] stopPump2 failed', err);
       return false;
     }
   },

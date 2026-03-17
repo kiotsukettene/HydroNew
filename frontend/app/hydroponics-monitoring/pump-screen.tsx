@@ -16,7 +16,7 @@ import { useTreatmentStore } from '@/store/treatment/treatmentStore'
 export default function PumpScreen() {
   const router = useRouter()
   const userId = useAuthStore((state) => state.user?.id);
-  const { togglePump2: apiTogglePump2 } = useTreatmentStore();
+  const { stopPump2: apiTogglePump2 } = useTreatmentStore();
   const [deviceSerial, setDeviceSerial] = useState('');
   const [isWaitingForStopAck, setIsWaitingForStopAck] = useState(false);
 
@@ -92,7 +92,7 @@ export default function PumpScreen() {
     setIsWaitingForStopAck(true);
     
     // Call API to stop pump - send 0 liters to signal stop
-    const success = await apiTogglePump2(0);
+    const success = await apiTogglePump2();
     
     if (!success) {
       setIsWaitingForStopAck(false);

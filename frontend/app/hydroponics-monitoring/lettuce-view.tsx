@@ -26,7 +26,7 @@ export default function LettuceView() {
   const params = useLocalSearchParams();
   const setupId = params.id;
   const { currentSetup, fetchSetupById, loading, error } = useHydroponicSetupStore();
-  const { togglePump2: apiTogglePump2 } = useTreatmentStore();
+  const { startPump2: apiTogglePump2 } = useTreatmentStore();
   const [activeTab, setActiveTab] = useState<'details' | 'monitoring'>('monitoring');
   const userId = useAuthStore((state) => state.user?.id);
   const [deviceSerial, setDeviceSerial] = useState('');
