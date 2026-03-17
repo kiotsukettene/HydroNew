@@ -14,7 +14,8 @@ import { NetworkAlert } from "@/components/ui/network-alert";
 import { useEchoSetup } from "@/app/hooks/useEchoSetup";
 
 import { useAuthStore } from "@/store/auth/authStore";
-import { connectWithClientId } from "@/service/mqtt.client";
+import { connectWithClientId, subscribeMessage } from "@/service/mqtt.client";
+import { usePumpStore } from "@/store/hydroponics/pumpStore";
 
 SplashScreen.preventAutoHideAsync();
 
@@ -101,6 +102,48 @@ export default function RootLayout() {
     if (userId) {
       connectWithClientId(String(userId));
     }
+  }, [user?.id]);
+
+  // Global MQTT subscription for pump 2 state - persists across all screens
+  useEffect(() => {
+    const getDeviceSerial = async () => {
+      if (!user?.id) return null;
+      
+      try {
+        const storageKey = `paired_device:${user.id}`;
+        const deviceData = await AsyncStorage.getItem(storageKey);
+        if (deviceData) {
+          const device = JSON.parse(deviceData);
+          return device.serial_number;
+        }
+      } catch (error) {
+        console.error("[RootLayout] Failed to retrieve device serial:", error);
+      }
+      return null;
+    };
+
+    let unsubscribe: (() => void) | null = null;
+
+    getDeviceSerial().then((serial) => {
+      if (!serial) return;
+
+      const stateTopic = `hydroponics/${serial}/pump/2/state`;
+      console.log(`[RootLayout] Global pump 2 subscription to: ${stateTopic}`);
+      
+      unsubscribe = subscribeMessage(stateTopic, (_topic, payload) => {
+        const value = payload.toString().trim();
+        const isRunning = value === '1';
+        console.log(`[RootLayout] Global pump 2 state: ${isRunning ? 'ON' : 'OFF'}`);
+        usePumpStore.getState().setPump2Running(isRunning);
+      }, 1);
+    });
+
+    return () => {
+      if (unsubscribe) {
+        console.log('[RootLayout] Cleaning up global pump 2 subscription');
+        unsubscribe();
+      }
+    };
   }, [user?.id]);
 
 useEffect(() => {

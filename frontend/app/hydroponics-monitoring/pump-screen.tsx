@@ -1,4 +1,4 @@
-import { View, StyleSheet, BackHandler, Platform } from 'react-native'
+import { View, StyleSheet, BackHandler, Platform, TouchableOpacity } from 'react-native'
 import React, { useEffect, useState } from 'react'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import LottieView from 'lottie-react-native'
@@ -11,6 +11,8 @@ import { subscribeMessage } from '@/service/mqtt.client'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import { useAuthStore } from '@/store/auth/authStore'
 import { useTreatmentStore } from '@/store/treatment/treatmentStore'
+import { Icon } from '@/components/ui/icon'
+import { ArrowLeft } from 'lucide-react-native'
 
 
 export default function PumpScreen() {
@@ -65,22 +67,9 @@ export default function PumpScreen() {
     };
   }, [deviceSerial, router]);
 
-  // Prevent back navigation
-  useFocusEffect(
-    React.useCallback(() => {
-      const onBackPress = () => {
-        return true
-      }
-
-      if (Platform.OS === 'android') {
-        const backHandler = BackHandler.addEventListener('hardwareBackPress', onBackPress)
-        
-        return () => backHandler.remove()
-      }
-    }, [])
-  )
-
-  // Auto navigate back after 7 seconds (for testing lang)
+  const handleBackPress = () => {
+    router.back();
+  };
 
   const handleStopPump = async () => {
     if (!deviceSerial) {
@@ -108,14 +97,24 @@ export default function PumpScreen() {
     <>
       <Stack.Screen 
         options={{ 
-          gestureEnabled: false, // Disable swipe back gesture
+          gestureEnabled: true,
           headerShown: false,
         }} 
       />
       <SafeAreaView className="flex-1 bg-primary">
-        <View className="flex-1 items-center justify-center px-6">
-        
+        {/* Back Button */}
+        <View className="px-6 pt-4">
+          <TouchableOpacity
+            onPress={handleBackPress}
+            className="flex-row items-center"
+            activeOpacity={0.7}
+          >
+            <Icon as={ArrowLeft} size={24} className="text-muted" />
+            <Text className="ml-2 text-base font-semibold text-muted">Back</Text>
+          </TouchableOpacity>
+        </View>
 
+        <View className="flex-1 items-center justify-center px-6">
           {/* Lottie Animation */}
           <View className="items-center justify-center ">
             <LottieView

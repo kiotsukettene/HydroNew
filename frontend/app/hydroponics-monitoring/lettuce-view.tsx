@@ -1,6 +1,6 @@
-import { View, Image, ScrollView, TouchableOpacity } from 'react-native';
+import { View, Image, ScrollView, TouchableOpacity, Animated } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { toast } from 'sonner-native';
 import { Button } from '@/components/ui/button';
 import { Icon } from '@/components/ui/icon';
@@ -17,6 +17,7 @@ import { subscribeMessage } from '@/service/mqtt.client';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useAuthStore } from '@/store/auth/authStore';
 import { useTreatmentStore } from '@/store/treatment/treatmentStore';
+import { usePumpStore } from '@/store/hydroponics/pumpStore';
 import { Separator } from '@/components/ui/separator';
 import { ConfirmationModal } from '@/components/ui/confirmation-modal';
 import { LettuceViewSkeleton } from '@/components/skeletons';
@@ -30,11 +31,10 @@ export default function LettuceView() {
   const [activeTab, setActiveTab] = useState<'details' | 'monitoring'>('monitoring');
   const userId = useAuthStore((state) => state.user?.id);
   const [deviceSerial, setDeviceSerial] = useState('');
-  /** Pump running (from /state); when true, button muted for all users. */
-  const [isHydroponicsPumpRunning, setIsHydroponicsPumpRunning] = useState(false);
-  /** Waiting for ack after clicking Start Pump. */
+  const isPump2Running = usePumpStore((state) => state.isPump2Running);
   const [isWaitingForPumpAck, setIsWaitingForPumpAck] = useState(false);
   const [isLowWaterWarningVisible, setIsLowWaterWarningVisible] = useState(false);
+  const pulseAnim = useRef(new Animated.Value(1)).current;
 
   // Real-time hydroponics sensor data - read directly from store (subscription is in _layout.tsx via useEchoSetup)
   const hydroponicsWater = useSensorStore((state) => state.hydroponicsWater);
@@ -42,6 +42,28 @@ export default function LettuceView() {
 
   // Check if harvest is allowed (plant age must be >= 14 days)
   const canHarvest = currentSetup ? (currentSetup.plant_age ?? 0) >= 14 : false;
+
+  // Pulse animation for floating button
+  useEffect(() => {
+    if (isPump2Running) {
+      const pulse = Animated.loop(
+        Animated.sequence([
+          Animated.timing(pulseAnim, {
+            toValue: 1.1,
+            duration: 1000,
+            useNativeDriver: true,
+          }),
+          Animated.timing(pulseAnim, {
+            toValue: 1,
+            duration: 1000,
+            useNativeDriver: true,
+          }),
+        ])
+      );
+      pulse.start();
+      return () => pulse.stop();
+    }
+  }, [isPump2Running]);
 
   const isPhOutOfRange =
     hydroponicsWater?.ph != null &&
@@ -106,54 +128,37 @@ export default function LettuceView() {
     }
   }, [setupId]);
 
-  // Subscribe to pump state so all users see button muted when pump is running (multi-user safety)
+  // Subscribe to pump state for navigation only (state is managed globally in _layout.tsx)
   useEffect(() => {
     if (!deviceSerial) return;
     
-    const unsubs: (() => void)[] = [];
-    
-    // Subscribe to pump state (1 = ON, 0 = OFF)
     const stateTopic = `hydroponics/${deviceSerial}/pump/2/state`;
-    console.log(`[Hydroponics] Subscribing to state topic: ${stateTopic}`);
+    console.log(`[LettuceView] Subscribing to state topic for navigation: ${stateTopic}`);
+    
     const unsubState = subscribeMessage(stateTopic, (_t, payload) => {
       const value = payload.toString().trim();
       const isRunning = value === '1';
-      console.log(`[Hydroponics] Pump 2 state: ${isRunning ? 'ON' : 'OFF'} (${value})`);
+      console.log(`[LettuceView] Pump 2 state for navigation: ${isRunning ? 'ON' : 'OFF'} (${value})`);
       
-      const wasRunning = isHydroponicsPumpRunning;
-      setIsHydroponicsPumpRunning(isRunning);
-      
-      // If pump started running, stop showing "Starting..." and navigate to pump screen
+      // If pump started running and we're waiting, navigate to pump screen
       if (isRunning && isWaitingForPumpAck) {
         setIsWaitingForPumpAck(false);
         toast.success('Pump started');
         router.push('/hydroponics-monitoring/pump-screen');
       }
       
-      // If pump stopped (automatic or manual stop from backend), just reset UI
-      // Don't show toast here - pump-screen will handle it and navigate back
-      if (!isRunning && wasRunning) {
+      // If pump stopped, reset waiting state
+      if (!isRunning && isWaitingForPumpAck) {
         setIsWaitingForPumpAck(false);
-        console.log('[Hydroponics] Pump stopped - UI reset for next pump cycle');
+        console.log('[LettuceView] Pump stopped - resetting waiting state');
       }
     }, 1);
-    unsubs.push(unsubState);
-    
-    // Subscribe to pump acknowledgement (confirms command was received)
-    const ackTopic = `hydroponics/${deviceSerial}/pump/2/ack`;
-    console.log(`[Hydroponics] Subscribing to ack topic: ${ackTopic}`);
-    const unsubAck = subscribeMessage(ackTopic, (_t, payload) => {
-      const value = payload.toString().trim();
-      console.log(`[Hydroponics] Pump 2 ack received: ${value}`);
-      // Acknowledgement received - command was executed by backend
-    }, 1);
-    unsubs.push(unsubAck);
     
     return () => {
-      console.log(`[Hydroponics] Cleaning up ${unsubs.length} MQTT subscriptions`);
-      unsubs.forEach((u) => u());
+      console.log('[LettuceView] Cleaning up MQTT subscription');
+      unsubState();
     };
-  }, [deviceSerial, isWaitingForPumpAck, isHydroponicsPumpRunning, router]);
+  }, [deviceSerial, isWaitingForPumpAck, router]);
 
   const pumpWater = async () => {
     if (!deviceSerial) {
@@ -309,7 +314,7 @@ export default function LettuceView() {
 
               <View className="mt-7">
                 <Button
-                  className={`w-full rounded-xl bg-emerald-50 ${(isHydroponicsPumpRunning || isWaitingForPumpAck) ? 'opacity-50' : ''}`}
+                  className={`w-full rounded-xl bg-emerald-50 ${(isPump2Running || isWaitingForPumpAck) ? 'opacity-50' : ''}`}
                   onPress={() => {
                     const waterLevel = cleanWater?.water_level ?? 0;
                     if (waterLevel <= 10) {
@@ -318,10 +323,10 @@ export default function LettuceView() {
                       pumpWater();
                     }
                   }}
-                  disabled={loading || isHydroponicsPumpRunning || isWaitingForPumpAck}>
+                  disabled={loading || isPump2Running || isWaitingForPumpAck}>
                   <Icon as={Droplet} className="text-primary" />
                   <Text className="ml-2 text-primary">
-                    {isWaitingForPumpAck ? 'Starting...' : isHydroponicsPumpRunning ? 'Pumping water...' : 'Start Pump'}
+                    {isWaitingForPumpAck ? 'Starting...' : isPump2Running ? 'Pumping water...' : 'Start Pump'}
                   </Text>
                 </Button>
                 <ConfirmationModal
@@ -559,6 +564,38 @@ export default function LettuceView() {
           </View>
         )}
       </ScrollView>
+
+      {/* Floating Pump Control Button - Shows when pump is running */}
+      {isPump2Running && (
+        <Animated.View
+          style={{
+            position: 'absolute',
+            bottom: 40,
+            right: 20,
+            transform: [{ scale: pulseAnim }],
+          }}
+        >
+          <TouchableOpacity
+            onPress={() => router.push('/hydroponics-monitoring/pump-screen')}
+            activeOpacity={0.8}
+            style={{
+              width: 60,
+              height: 60,
+              borderRadius: 30,
+              backgroundColor: '#22c55e',
+              justifyContent: 'center',
+              alignItems: 'center',
+              shadowColor: '#000',
+              shadowOffset: { width: 0, height: 4 },
+              shadowOpacity: 0.3,
+              shadowRadius: 4,
+              elevation: 8,
+            }}
+          >
+            <Icon as={Droplet} size={28} className="text-white" />
+          </TouchableOpacity>
+        </Animated.View>
+      )}
     </SafeAreaView>
   );
 }

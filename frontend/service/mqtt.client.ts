@@ -44,9 +44,12 @@ export function connectWithClientId(userId: string): void {
   currentClientId = clientId;
 
   client.on('connect', () => {
-    if (isConnected) return; // Already connected, ignore duplicate connect event
+    if (isConnected) {
+      console.log('[MQTT] Duplicate connect event ignored');
+      return;
+    }
     isConnected = true;
-    console.log('MQTT connected');
+    console.log('[MQTT] Connected successfully');
 
     subscribedTopics.forEach((qos, topic) => {
       console.log(`[MQTT] Resubscribing to ${topic} with QoS ${qos}`);
@@ -59,11 +62,24 @@ export function connectWithClientId(userId: string): void {
   });
 
   client.on('close', () => {
-    isConnected = false;
+    if (isConnected) {
+      console.log('[MQTT] Connection closed');
+      isConnected = false;
+    }
   });
 
   client.on('offline', () => {
-    isConnected = false;
+    if (isConnected) {
+      console.log('[MQTT] Connection went offline');
+      isConnected = false;
+    }
+  });
+
+  client.on('disconnect', () => {
+    if (isConnected) {
+      console.log('[MQTT] Disconnected from broker');
+      isConnected = false;
+    }
   });
 
   client.on('error', (err) => console.log('MQTT error:', err));
