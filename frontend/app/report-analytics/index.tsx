@@ -70,7 +70,9 @@ interface StatCardProps {
 }
 
 const StatCard = ({ value, label, valueClassName, bgClassName }: StatCardProps) => (
-  <Card className={`flex-1 ${bgClassName} rounded-2xl p-2 mx-1 items-center justify-center `}>
+  <Card
+    className={`flex-1 ${bgClassName} rounded-2xl p-2 mx-1 items-center justify-center border border-slate-200`}
+  >
     <Text className={`text-3xl pt-3 font-bold ${valueClassName} `}>
       {value}
     </Text>
@@ -202,13 +204,13 @@ export default function ReportAnalytics() {
                   value={cropPerformance?.setups.length || 0}
                   label="Active Setups"
                   valueClassName="text-green-900"
-                  bgClassName="bg-[#d6e8b6]"
+                  bgClassName="bg-stone-100"
                 />
                 <StatCard
                   value={yieldSummary?.total_harvested_setups || 0}
                   label="Total Harvests"
                   valueClassName="text-brown-900"
-                  bgClassName="bg-[#ffd4c2]"
+                  bgClassName="bg-stone-100"
                 />
                 <StatCard
                   value={yieldSummary?.sellable_yield_percentage 
@@ -216,7 +218,7 @@ export default function ReportAnalytics() {
                     : '0%'}
                   label="Sellable"
                   valueClassName="text-blue-900"
-                  bgClassName="bg-[#d6edf5]"
+                  bgClassName="bg-stone-100"
                 />
               </View>
             )}
