@@ -34,8 +34,6 @@ export default function PrivacyPolicy() {
           <Text className="text-base font-poppins text-muted-foreground leading-relaxed mb-3 ml-4 text-justify">
             • Name{'\n'}
             • Email address{'\n'}
-            • Phone number{'\n'}
-            • Date of birth
           </Text>
 
           <Text className="text-lg font-poppins-semibold text-primary mb-1">
@@ -91,7 +89,7 @@ export default function PrivacyPolicy() {
           </Text>
           <Text className="text-base font-poppins text-muted-foreground leading-relaxed mb-3 text-justify">
             If you have any questions or concerns about this Privacy Policy, please contact us at:{'\n'}
-            📧 support.hydronew@email.com
+            📧 hydronew.dev@email.com
           </Text>
 
         </ScrollView>

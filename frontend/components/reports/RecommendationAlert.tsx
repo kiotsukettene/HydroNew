@@ -47,10 +47,10 @@ export function RecommendationAlert({
       default:
         return {
           icon: Info,
-          bgColor: 'bg-blue-50',
-          borderColor: 'border-blue-200',
-          iconColor: 'text-blue-600',
-          textColor: 'text-blue-800',
+          bgColor: 'bg-gray-50',
+          borderColor: 'border-gray-200',
+          iconColor: 'text-gray-600',
+          textColor: 'text-gray-800',
         };
     }
   };

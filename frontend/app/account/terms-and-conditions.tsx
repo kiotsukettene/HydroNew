@@ -108,7 +108,7 @@ export default function TermsAndConditions() {
           </Text>
           <Text className="text-base font-poppins text-muted-foreground leading-relaxed mb-3 text-justify">
             If you have any questions about these Terms and Conditions, please
-            contact us at support.hydronew@email.com.
+            contact us at hydronew.dev@gmail.com
           </Text>
         </ScrollView>
       </View>
