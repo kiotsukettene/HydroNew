@@ -5,7 +5,10 @@ import { FiltrationProgressBar } from '@/components/ui/filtration-progress-bar';
 
 export default function TabLayout() {
   const pathname = usePathname();
-  const isOnFiltrationPage = pathname?.includes('filtration') ?? false;
+  const isOnHomePage =
+    pathname === '/home' ||
+    pathname === '/(tabs)/home' ||
+    pathname?.endsWith('/home');
 
   return (
     <>
@@ -90,7 +93,7 @@ export default function TabLayout() {
         }}
       />
     </Tabs>
-    {!isOnFiltrationPage && <FiltrationProgressBar floating />}
+    {isOnHomePage && <FiltrationProgressBar floating />}
     </>
   );
 }

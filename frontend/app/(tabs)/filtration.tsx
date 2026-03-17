@@ -357,12 +357,18 @@ export default function Filtration() {
       
       try {
         const unsubscribe = subscribeMessage(topic, (_topic, payload) => {
-          const rawState = payload.toString().trim();
-          // Remove quotes if present
-          const state = rawState.replace(/^"|"$/g, '').toLowerCase();
+          const rawPayload = payload.toString().trim();
+          let state = '';
+
+          try {
+            const parsed = JSON.parse(rawPayload) as { stage?: number; status?: string };
+            state = (parsed.status ?? '').toLowerCase();
+          } catch {
+            state = rawPayload.replace(/^"|"$/g, '').toLowerCase();
+          }
           
           console.log(`[Filtration] Message received on ${topic}:`, {
-            raw: rawState,
+            raw: rawPayload,
             cleaned: state,
             timestamp: new Date().toISOString()
           });

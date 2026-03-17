@@ -89,7 +89,7 @@ export default function Notifications() {
     }
     
     return (
-      <View className="p-4">
+      <View className="p-2">
         <NotificationItem
           type={item.notification.type}
           title={item.notification.title}

@@ -582,7 +582,7 @@ export default function LettuceView() {
               width: 60,
               height: 60,
               borderRadius: 30,
-              backgroundColor: '#22c55e',
+              backgroundColor: '#15803d',
               justifyContent: 'center',
               alignItems: 'center',
               shadowColor: '#000',
