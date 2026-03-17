@@ -20,7 +20,7 @@ import FailedDetailsModal from '../hydroponics-monitoring/failed-details';
 import { router } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { toast } from 'sonner-native';
-import { subscribeMessage, publishMessage, onMQTTConnect } from '@/service/mqtt.client';
+import { subscribeMessage, onMQTTConnect } from '@/service/mqtt.client';
 import { useAuthStore } from '@/store/auth/authStore';
 import { useDeviceStore } from '@/store/device/deviceStore';
 import { useTreatmentStore } from '@/store/treatment/treatmentStore';
@@ -83,15 +83,20 @@ export default function Filtration() {
       // If devices are already loaded, mark as checked and skip fetch
       if (devices && devices.length > 0) {
         setDeviceChecked(true);
+        setIsInitialLoad(false);
         return;
       }
       
       // Only fetch if no devices and not already checked
       if (!deviceChecked) {
         if (userId) {
-          fetchDevice(userId).finally(() => setDeviceChecked(true));
+          fetchDevice(userId).finally(() => {
+            setDeviceChecked(true);
+            setIsInitialLoad(false);
+          });
         } else {
           setDeviceChecked(true);
+          setIsInitialLoad(false);
         }
       }
     }, [userId, fetchDevice, devices, deviceChecked])

@@ -13,9 +13,10 @@ import { Card } from '@/components/ui/card';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useHydroponicSetupStore } from '@/store/hydroponics/hydroponicSetupStore';
 import { useSensorStore } from '@/store/sensor/sensorStore';
-import { subscribeMessage, publishWithAck } from '@/service/mqtt.client';
+import { subscribeMessage } from '@/service/mqtt.client';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useAuthStore } from '@/store/auth/authStore';
+import { useTreatmentStore } from '@/store/treatment/treatmentStore';
 import { Separator } from '@/components/ui/separator';
 import { ConfirmationModal } from '@/components/ui/confirmation-modal';
 import { LettuceViewSkeleton } from '@/components/skeletons';
@@ -25,6 +26,7 @@ export default function LettuceView() {
   const params = useLocalSearchParams();
   const setupId = params.id;
   const { currentSetup, fetchSetupById, loading, error } = useHydroponicSetupStore();
+  const { togglePump2: apiTogglePump2 } = useTreatmentStore();
   const [activeTab, setActiveTab] = useState<'details' | 'monitoring'>('monitoring');
   const userId = useAuthStore((state) => state.user?.id);
   const [deviceSerial, setDeviceSerial] = useState('');
@@ -107,32 +109,75 @@ export default function LettuceView() {
   // Subscribe to pump state so all users see button muted when pump is running (multi-user safety)
   useEffect(() => {
     if (!deviceSerial) return;
-    const topic = `hydroponics/${deviceSerial}/pump/2/state`;
-    const unsubscribe = subscribeMessage(topic, (_t, payload) => {
+    
+    const unsubs: (() => void)[] = [];
+    
+    // Subscribe to pump state (1 = ON, 0 = OFF)
+    const stateTopic = `hydroponics/${deviceSerial}/pump/2/state`;
+    console.log(`[Hydroponics] Subscribing to state topic: ${stateTopic}`);
+    const unsubState = subscribeMessage(stateTopic, (_t, payload) => {
       const value = payload.toString().trim();
       const isRunning = value === '1';
+      console.log(`[Hydroponics] Pump 2 state: ${isRunning ? 'ON' : 'OFF'} (${value})`);
+      
+      const wasRunning = isHydroponicsPumpRunning;
       setIsHydroponicsPumpRunning(isRunning);
-      // Mirror filtration behavior: if we were "waiting", but a state update arrives
-      // (either from our own ack or another user), stop showing "Starting..." and
-      // just reflect the real running state.
-      setIsWaitingForPumpAck(false);
-    });
-    return unsubscribe;
-  }, [deviceSerial]);
-
-  const pumpWater = () => {
-    if (!deviceSerial) return;
-    setIsWaitingForPumpAck(true);
-    publishWithAck(`hydroponics/${deviceSerial}/pump/2`, 'OPEN', (success) => {
-      setIsWaitingForPumpAck(false);
-      if (success) {
+      
+      // If pump started running, stop showing "Starting..." and navigate to pump screen
+      if (isRunning && isWaitingForPumpAck) {
+        setIsWaitingForPumpAck(false);
         toast.success('Pump started');
         router.push('/hydroponics-monitoring/pump-screen');
-      } else {
-        toast.error('Failed to start pump');
       }
-    });
-    console.log(`Published message to hydroponics/${deviceSerial}/pump/2`);
+      
+      // If pump stopped (automatic or manual stop from backend), just reset UI
+      // Don't show toast here - pump-screen will handle it and navigate back
+      if (!isRunning && wasRunning) {
+        setIsWaitingForPumpAck(false);
+        console.log('[Hydroponics] Pump stopped - UI reset for next pump cycle');
+      }
+    }, 1);
+    unsubs.push(unsubState);
+    
+    // Subscribe to pump acknowledgement (confirms command was received)
+    const ackTopic = `hydroponics/${deviceSerial}/pump/2/ack`;
+    console.log(`[Hydroponics] Subscribing to ack topic: ${ackTopic}`);
+    const unsubAck = subscribeMessage(ackTopic, (_t, payload) => {
+      const value = payload.toString().trim();
+      console.log(`[Hydroponics] Pump 2 ack received: ${value}`);
+      // Acknowledgement received - command was executed by backend
+    }, 1);
+    unsubs.push(unsubAck);
+    
+    return () => {
+      console.log(`[Hydroponics] Cleaning up ${unsubs.length} MQTT subscriptions`);
+      unsubs.forEach((u) => u());
+    };
+  }, [deviceSerial, isWaitingForPumpAck, isHydroponicsPumpRunning, router]);
+
+  const pumpWater = async () => {
+    if (!deviceSerial) {
+      toast.error('Device not found');
+      return;
+    }
+    
+    // Get target liters from current setup's water amount, default to 10 if not available
+    const targetLiters = currentSetup?.water_amount ?? 10;
+    
+    console.log(`[Hydroponics] Calling API to toggle pump 2 with ${targetLiters}L`);
+    setIsWaitingForPumpAck(true);
+    
+    const success = await apiTogglePump2(targetLiters);
+    
+    if (!success) {
+      setIsWaitingForPumpAck(false);
+      toast.error('Failed to start pump');
+      return;
+    }
+    
+    console.log(`[Hydroponics] API call successful, waiting for MQTT state update...`);
+    // Keep isWaitingForPumpAck true until we receive MQTT state = 1
+    // The MQTT subscription will handle navigation to pump screen
   };
 
   const requestedId = setupId != null ? Number(setupId) : null;

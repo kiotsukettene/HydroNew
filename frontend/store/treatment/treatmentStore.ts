@@ -179,6 +179,19 @@ export const useTreatmentStore = create<TreatmentStore>((set, get) => ({
     }
   },
 
+  togglePump2: async (targetLiters: number) => {
+    const url = '/filtration/commands/toggle-pump-2';
+    try {
+      const response = await axiosInstance.post<FiltrationCommandResponse>(url, {
+        target_liters: targetLiters,
+      });
+      return response.data?.success === true;
+    } catch (err) {
+      console.error('[Treatment] togglePump2 failed', err);
+      return false;
+    }
+  },
+
   fetchLatestTreatment: async () => {
     set({ loading: true, error: null });
     const url = '/treatment/latest';

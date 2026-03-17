@@ -7,14 +7,16 @@ import { Text } from '@/components/ui/text'
 import { useRouter, useFocusEffect } from 'expo-router'
 import { Stack } from 'expo-router'
 import { toast } from 'sonner-native'
-import { publishWithAck } from '@/service/mqtt.client'
+import { subscribeMessage } from '@/service/mqtt.client'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import { useAuthStore } from '@/store/auth/authStore'
+import { useTreatmentStore } from '@/store/treatment/treatmentStore'
 
 
 export default function PumpScreen() {
   const router = useRouter()
   const userId = useAuthStore((state) => state.user?.id);
+  const { togglePump2: apiTogglePump2 } = useTreatmentStore();
   const [deviceSerial, setDeviceSerial] = useState('');
   const [isWaitingForStopAck, setIsWaitingForStopAck] = useState(false);
 
@@ -36,6 +38,33 @@ export default function PumpScreen() {
     getDeviceSerial();
   },[userId]);
 
+  // Subscribe to pump state - auto navigate back when pump stops (state = 0)
+  useEffect(() => {
+    if (!deviceSerial) return;
+    
+    const stateTopic = `hydroponics/${deviceSerial}/pump/2/state`;
+    console.log(`[PumpScreen] Subscribing to state topic: ${stateTopic}`);
+    
+    const unsubscribe = subscribeMessage(stateTopic, (_t, payload) => {
+      const value = payload.toString().trim();
+      const isRunning = value === '1';
+      console.log(`[PumpScreen] Pump 2 state: ${isRunning ? 'ON' : 'OFF'} (${value})`);
+      
+      // If pump stopped (automatic or manual), navigate back
+      if (!isRunning) {
+        console.log('[PumpScreen] Pump stopped - navigating back to lettuce view');
+        setIsWaitingForStopAck(false);
+        toast.success('Pumping completed successfully!');
+        router.back();
+      }
+    }, 1);
+    
+    return () => {
+      console.log('[PumpScreen] Cleaning up MQTT subscription');
+      unsubscribe();
+    };
+  }, [deviceSerial, router]);
+
   // Prevent back navigation
   useFocusEffect(
     React.useCallback(() => {
@@ -53,21 +82,26 @@ export default function PumpScreen() {
 
   // Auto navigate back after 7 seconds (for testing lang)
 
-  const handleStopPump = () => {
-    if (!deviceSerial) return;
+  const handleStopPump = async () => {
+    if (!deviceSerial) {
+      toast.error('Device not found');
+      return;
+    }
+    
+    console.log('[PumpScreen] Calling API to stop pump (toggle with 0 liters)');
     setIsWaitingForStopAck(true);
-    // Use same pump index (2) as the Start command in lettuce-view, and wait for ACK
-    // before navigating back, mirroring filtration CLOSE behavior.
-    publishWithAck(`hydroponics/${deviceSerial}/pump/2`, 'CLOSE', (success) => {
+    
+    // Call API to stop pump - send 0 liters to signal stop
+    const success = await apiTogglePump2(0);
+    
+    if (!success) {
       setIsWaitingForStopAck(false);
-      if (success) {
-        toast.success('Pumping completed successfully!');
-        router.back();
-      } else {
-        toast.error('Failed to stop pump');
-      }
-    });
-    console.log(`Published message to hydroponics/${deviceSerial}/pump/2 CLOSE`);
+      toast.error('Failed to stop pump');
+      return;
+    }
+    
+    console.log('[PumpScreen] API call successful, waiting for MQTT state = 0...');
+    // Keep waiting state - MQTT subscription will handle navigation when state = 0
   }
 
   return (
