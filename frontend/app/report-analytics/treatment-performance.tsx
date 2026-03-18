@@ -248,37 +248,6 @@ export default function TreatmentPerformance() {
               </Card>
             </View>
           </Card>
-
-          {/* Failure Analysis */}
-          {treatmentPerformance?.failure_analysis && treatmentPerformance.failure_analysis.failure_count > 0 && (
-            <Card className="border-red-300 p-4 bg-red-50">
-              <Text className="text-xl font-semibold text-red-900 mb-3">
-                Failure Analysis
-              </Text>
-              <View className="mb-3">
-                <Text className="text-sm text-red-700">Most Common Failure Stage</Text>
-                <Text className="text-lg font-bold text-red-900">{treatmentPerformance.failure_analysis.most_common_stage}</Text>
-                <Text className="text-xs text-red-600">{treatmentPerformance.failure_analysis.failure_count} failures</Text>
-              </View>
-              {treatmentPerformance.failure_analysis.failure_reasons && treatmentPerformance.failure_analysis.failure_reasons.length > 0 && (
-                <View>
-                  <Text className="text-sm text-red-700 mb-2">Common Reasons</Text>
-                  {treatmentPerformance.failure_analysis.failure_reasons.map((reason, index) => (
-                    <View key={index} className="flex-row justify-between py-1">
-                      <Text className="text-sm text-red-800 flex-1">{reason.reason}</Text>
-                      <Text className="text-sm font-semibold text-red-900">{reason.count}</Text>
-                    </View>
-                  ))}
-                </View>
-              )}
-            </Card>
-          )}
-
-          {!loading && !treatmentPerformance && (
-            <Card className="p-6 items-center">
-              <Text className="text-muted-foreground">No treatment performance data found for the selected period</Text>
-            </Card>
-          )}
         </View>
       </SafeAreaView>
     </ScrollView>
