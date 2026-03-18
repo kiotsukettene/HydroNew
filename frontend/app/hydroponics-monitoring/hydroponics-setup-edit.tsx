@@ -705,7 +705,7 @@ export default function HydroponicsSetupEdit() {
                         value={formData.targetPh}
                         onChangeText={(value) => handleNumericInput('targetPh', value)}
                         keyboardType="numeric"
-                        className={`border rounded-xl px-3 py-3 bg-[#FAFFFA] text-[#2C3E50] ${
+                        className={`border rounded-xl px-3 h-12 bg-[#FAFFFA] text-[#2C3E50] text-base ${
                           errors.target_ph_min ? 'border-red-500' : 'border-muted-foreground/50'
                         }`}
                         placeholderTextColor="#95A5A6"
@@ -720,7 +720,7 @@ export default function HydroponicsSetupEdit() {
                         value={formData.targetPhMax}
                         onChangeText={(value) => handleNumericInput('targetPhMax', value)}
                         keyboardType="numeric"
-                        className={`border rounded-xl px-3 py-3 bg-[#FAFFFA] text-[#2C3E50] ${
+                        className={`border rounded-xl px-3 h-12 bg-[#FAFFFA] text-[#2C3E50] text-base ${
                           errors.target_ph_max ? 'border-red-500' : 'border-muted-foreground/50'
                         }`}
                         placeholderTextColor="#95A5A6"
@@ -757,7 +757,7 @@ export default function HydroponicsSetupEdit() {
                         value={formData.targetTdsMin}
                         onChangeText={(value) => handleNumericInput('targetTdsMin', value)}
                         keyboardType="numeric"
-                        className={`border rounded-xl px-3 py-3 bg-[#FAFFFA] text-[#2C3E50] ${
+                        className={`border rounded-xl px-3 h-12 bg-[#FAFFFA] text-[#2C3E50] text-base ${
                           errors.target_tds_min ? 'border-red-500' : 'border-muted-foreground/50'
                         }`}
                         placeholderTextColor="#95A5A6"
@@ -772,7 +772,7 @@ export default function HydroponicsSetupEdit() {
                         value={formData.targetTdsMax}
                         onChangeText={(value) => handleNumericInput('targetTdsMax', value)}
                         keyboardType="numeric"
-                        className={`border rounded-xl px-3 py-3 bg-[#FAFFFA] text-[#2C3E50] ${
+                        className={`border rounded-xl px-3 h-12 bg-[#FAFFFA] text-[#2C3E50] text-base ${
                           errors.target_tds_max ? 'border-red-500' : 'border-muted-foreground/50'
                         }`}
                         placeholderTextColor="#95A5A6"
