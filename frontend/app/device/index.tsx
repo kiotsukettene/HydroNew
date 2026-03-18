@@ -508,9 +508,9 @@ export default function DeviceConnection () {
             </Text>
 
             {hasCameraPermission ? (
-              <View className="w-full h-80 rounded-3xl overflow-hidden mb-4">
+              <View style={{ width: "100%", height: 320, borderRadius: 24, overflow: "hidden", marginBottom: 16 }}>
                 <CameraView
-                  className="flex-1"
+                  style={{ width: "100%", height: "100%" }}
                   barcodeScannerSettings={{ barcodeTypes: ["qr"] }}
                   onBarcodeScanned={({ data }) => {
                     if (!isScanning) {
