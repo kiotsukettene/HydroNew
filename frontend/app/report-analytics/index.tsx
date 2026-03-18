@@ -294,15 +294,6 @@ export default function ReportAnalytics() {
               iconClassName="text-purple-500"
               onPress={() => router.push('/report-analytics/treatment-performance')}
             />
-            
-            <NavigationCard
-              title="Efficiency Analysis"
-              description="Cycle trends and maintenance insights"
-              icon={Activity}
-              iconBgClassName="bg-violet-50"
-              iconClassName="text-violet-600"
-              onPress={() => router.push('/report-analytics/treatment-efficiency')}
-            />
           </View>
 
           {/* Error Display */}
