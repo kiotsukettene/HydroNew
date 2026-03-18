@@ -595,7 +595,7 @@ const onSubmit = async () => {
                     onChangeText={handleWaterAmountChange}
                     editable={formData.bedSize === 'custom'}
                     keyboardType="numeric"
-                    className={`border rounded-xl px-3 py-4 text-[#2C3E50] text-base ${
+                    className={` ${
                       errors.water_amount ? 'border-red-500' : 'border-muted-foreground/50'
                     } ${formData.bedSize === 'custom' ? 'bg-[#FAFFFA]' : 'bg-gray-100'}`}
                     placeholderTextColor="#95A5A6"
@@ -620,7 +620,7 @@ const onSubmit = async () => {
                     placeholder="e.g., General Hydroponics Flora Series"
                     value={formData.nutrientSolution}
                     onChangeText={(value) => handleInputChange('nutrientSolution', value)}
-                    className={`border rounded-xl px-3 py-4 bg-[#FAFFFA] text-[#2C3E50] focus:border-[#4CAF50] text-base ${
+                    className={` focus:border-[#4CAF50] text-base ${
                       errors.nutrient_solution ? 'border-red-500' : 'border-muted-foreground/50'
                     }`}
                     placeholderTextColor="#95A5A6"
