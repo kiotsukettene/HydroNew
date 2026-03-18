@@ -1,7 +1,6 @@
 import {
   Image,
   View,
-  Dimensions,
   ScrollView,
   Pressable,
   Modal,
@@ -13,14 +12,13 @@ import { PageHeader } from '@/components/ui/page-header'
 import { Button } from "@/components/ui/button";
 import { Text } from "@/components/ui/text";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { Cpu, HardDrive, Trash2, QrCodeIcon } from "lucide-react-native"
+import { Cpu, HardDrive, Trash2, QrCodeIcon, ChevronRight, Wifi } from "lucide-react-native"
 import WifiModal from "@/components/ui/wifi-connection";
 import { subscribeMessage } from "@/service/mqtt.client";
 import { useAuthStore } from "@/store/auth/authStore";
 import { useDeviceStore } from "@/store/device/deviceStore";
 import { useNetworkStore } from "@/store/network/networkStore";
 import { useDashboardStore } from "@/store/auth/dashboardStore";
-import { Card } from "@/components/ui/card";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { PairOptionModal } from "@/components/ui/pair-option-modal";
 import { toast } from "sonner-native";
@@ -54,14 +52,12 @@ export default function DeviceConnection () {
 
   const userId = useAuthStore((state) => state.user?.id);
 
-  // Sync with backend when screen is focused so device added in DB (or elsewhere) shows up
   useFocusEffect(
     React.useCallback(() => {
       if (userId) fetchDevice(userId);
     }, [userId, fetchDevice])
   );
 
-  // Listen for MQTT pairing messages
   useEffect(() => {
     if (!userId) return;
 
@@ -94,13 +90,10 @@ export default function DeviceConnection () {
           await useDeviceStore.getState().setDeviceAndPersist(payload.device, userId);
           console.log("Device saved to AsyncStorage");
 
-          // Refresh dashboard to show device data
           await fetchDashboard();
 
-          // Clear pairing state BEFORE showing toast
           setIsPairing(false);
 
-          // Small delay to ensure UI updates before toast
           setTimeout(() => {
             toast.success("Device paired successfully!");
           }, 100);
@@ -114,7 +107,6 @@ export default function DeviceConnection () {
     return subscribe;
   }, [userId]);
 
-  // Subscribe to device heartbeat: biotech/device/{serial_number}/heartbeat → "1" = Online, "0" = Offline
   useEffect(() => {
     const serialNumber = pairedDevice?.serial_number;
     if (!serialNumber) {
@@ -161,7 +153,6 @@ export default function DeviceConnection () {
 
   const handleOpenScanner = async () => {
     try {
-      // Request permission FIRST before opening modal
       const { status } = await Camera.requestCameraPermissionsAsync();
 
       if (status === "granted") {
@@ -203,24 +194,19 @@ export default function DeviceConnection () {
         return;
       }
 
-      // Automatically call pair-by-qr API with the QR content
       const payload = { serial_number, device_name, model };
       console.log("QR detected, pairing device with payload:", payload);
 
       const response = await pairDeviceByQr(payload);
 
-      // Refresh the paired device after successful pairing (store is source of truth)
       if (userId) {
         await useDeviceStore.getState().fetchDevice(userId);
       }
 
-      // Refresh dashboard to show device data
       await fetchDashboard();
 
-      // Close scanner modal after successful pairing
       setShowScannerModal(false);
 
-      // Show success toast AFTER the state has updated
       if (response?.message) {
         toast.success(response.message);
       } else {
@@ -242,11 +228,9 @@ export default function DeviceConnection () {
     try {
       const result = await unpairDevice();
       if (result?.success) {
-        // Refresh dashboard to clear device data
         await fetchDashboard();
         
         setShowUnpairModal(false);
-        // Show toast AFTER modal is closed and state is updated
         setTimeout(() => {
           toast.success(result.message);
         }, 100);
@@ -259,191 +243,162 @@ export default function DeviceConnection () {
     }
   };
 
+  const statusDotColor =
+    deviceHeartbeatStatus === 1 ? 'bg-emerald-500' :
+    deviceHeartbeatStatus === 0 ? 'bg-red-400' : 'bg-gray-300';
+
+  const statusTextColor =
+    deviceHeartbeatStatus === 1 ? 'text-emerald-600' :
+    deviceHeartbeatStatus === 0 ? 'text-red-500' : 'text-gray-400';
+
+
+  const statusIconBg =
+    deviceHeartbeatStatus === 1 ? 'bg-emerald-50' :
+    deviceHeartbeatStatus === 0 ? 'bg-red-50' : 'bg-gray-100';
+
+  const statusIconColor =
+    deviceHeartbeatStatus === 1 ? '#10B981' :
+    deviceHeartbeatStatus === 0 ? '#EF4444' : '#9CA3AF';
+
   return (
-    <SafeAreaView className="flex-1 bg-gray-50">
+    <SafeAreaView className="flex-1 bg-[#F7F8FA]">
       <PageHeader title="Device Connection" showNotificationButton={false} />
-      <View className='flex-1 p-4'>
 
-        {/* ========= IF NO DEVICE CONNECTED ========= */}
-        {!pairedDevice ? (
-          <View className="flex-1 justify-between items-center px-6" style={{ paddingVertical: 40 }}>
-            <View className="items-center" style={{ flex: 1, justifyContent: 'center' }}>
-              <View className="items-center justify-center mb-1" style={{ position: 'relative', width: 320, height: 320 }}>
-                {/* Image */}
-                <View style={{ zIndex: 1 }}>
-                  <Image
-                    source={require('@/assets/images/no-connected.png')}
-                    resizeMode="contain"
-                    style={{ width: 220, height: 220 }}
-                  />
-                </View>
-              </View>
-
-              <View className="px-2 items-center">
-                <Text className="text-2xl text-muted-foreground font-bold mb-1 text-center">
-                  No device connected
-                </Text>
-                <Text className="text-base text-muted-foreground text-center leading-6">
-                  Please connect your device to get started.
-                </Text>
-              </View>
+      {!pairedDevice ? (
+        <View className="flex-1 items-center justify-between px-6 pt-10 pb-8">
+          <View className="flex-1 items-center justify-center">
+            <View className="w-64 h-64 items-center justify-center mb-6">
+              <Image
+                source={require('@/assets/images/no-connected.png')}
+                resizeMode="contain"
+                className="w-56 h-56"
+              />
             </View>
 
-            {/*============== Pair Device Buttons ==============*/}
-            <View className="w-full space-y-3 gap-2" style={{ paddingBottom: 20 }}>
-              <Button
-                className="bg-primary"
-                onPress={handleOpenScanner}
-              >
-                <Text className="text-white text-lg font-semibold">Scan QR Code</Text>
-              </Button>
+            <Text className="text-2xl font-bold text-gray-700 mb-2 text-center">
+              No device connected
+            </Text>
+            <Text className="text-base text-gray-400 text-center leading-6 px-4">
+              Please connect your device to get started.
+            </Text>
+          </View>
 
-              <Button
-                variant="outline"
-                onPress={() => setPairingMethodModal(true)}
+          <View className="w-full gap-3">
+            <Button className="bg-primary" onPress={handleOpenScanner}>
+              <QrCodeIcon size={24} color="#fff" />
+              <Text className="text-white text-base font-semibold">Scan QR Code</Text>
+            </Button>
+
+            <Button variant="outline" onPress={() => setPairingMethodModal(true)}>
+              <Text className="text-primary text-base font-semibold">Pair Device</Text>
+            </Button>
+          </View>
+        </View>
+      ) : (
+        <ScrollView
+          className="flex-1"
+          showsVerticalScrollIndicator={false}
+          contentContainerClassName="pb-10"
+        >
+          {/* Hero Device Card */}
+          <View className="px-5 pt-3 mb-5">
+            <View className="bg-white rounded-3xl overflow-hidden relative shadow-md shadow-black/5">
+              <Pressable
+                onPress={handleGenerateQr}
+                hitSlop={10}
+                className="absolute top-4 right-4 z-10 w-11 h-11 rounded-full bg-green-100 items-center justify-center shadow-sm shadow-black/10"
               >
-                <Text className="text-primary text-lg font-semibold mb-2">Pair Device</Text>
-              </Button>
+                <QrCodeIcon size={55} color="#374151" />
+              </Pressable>
+
+              <View className="items-center justify-center py-10 px-6 h-72">
+                <Image
+                  source={require('@/assets/images/sample-machine.png')}
+                  resizeMode="contain"
+                  className="w-full h-full"
+                />
+              </View>
             </View>
           </View>
-        ) : (
-                        <ScrollView className="flex-1 " showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 40 }}>
-                            {/* ============= IF DEVICE CONNECTED ============== */}
-                            {/* Machine Image in Card with Shadow */}
-                            <View className="items-center  justify-center mb-3 px-4">
-                                
-                                <Card
-                                    className=" overflow-hidden h-80 w-auto border-muted-foreground/10"
-                                    style={{
-                                        width: Dimensions.get('window').width - 32,
-                                        position: 'relative',
-                                        shadowColor: '#000',
-                                        shadowOffset: { width: 0, height: 1 },
-                                        shadowOpacity: 0.08,
-                                        shadowRadius: 20,
-                                        elevation: 8,
-                                        padding: 20
-                                    }}
-                                >
-                                    {/* Generate QR Button overlayed on top-right of the machine image */}
-                                    <View
-                                        style={{
-                                            position: 'absolute',
-                                            top: 16,
-                                            right: 16,
-                                            zIndex: 2,
-                                        }}
-                                    >
-                                        <Pressable
-                                            onPress={handleGenerateQr}
-                                            hitSlop={10}
-                                            style={{
-                                                alignItems: 'center',
-                                                justifyContent: 'center',
-                                            }}
-                                        >
-                                            <QrCodeIcon size={25} color="#000" />
-                                        </Pressable>
-                                    </View>
 
-                                    <Image
-                                        source={require('@/assets/images/sample-machine.png')}
-                                        resizeMode="contain"
-                                        style={{ width: '100%', height: '100%' }}
-                                    />
-                                </Card>
-                            </View>
+          {/* Device Name, Serial & Status Badge */}
+          <View className="px-6 mb-6">
+            <Text className="text-2xl font-bold text-gray-900 mb-1">
+              {pairedDevice.device_name || 'BIOTECH MACHINE'}
+            </Text>
+            <Text className="text-sm text-gray-400 font-medium mb-3 tracking-wide">
+              {pairedDevice.serial_number || 'MFC-1204328HD0B45'}
+            </Text>
+           
+          </View>
 
-                            {/* Device Title with Better Hierarchy */}
-                            <View className="mb-4 px-6">
-                                <Text className="text-gray-900 text-4xl font-black text-left mb-2" >
-                                    {pairedDevice.device_name || 'BIOTECH MACHINE'}
-                                </Text>
-                                <Text className=" text-sm text-primary text-left font-medium" >
-                                    {pairedDevice.serial_number || 'MFC-1204328HD0B45'}
-                                </Text>
-                            </View>
+          {/* Device Information Cards */}
+          <View className="px-5 gap-3 mb-8">
+            <Pressable className="w-full active:opacity-80">
+              <View className="bg-white rounded-2xl px-5 py-4 flex-row items-center shadow-sm shadow-black/5">
+                <View className="w-11 h-11 rounded-xl bg-amber-50 items-center justify-center mr-4">
+                  <Cpu size={20} strokeWidth={1.8} color="#F59E0B" />
+                </View>
+                <View className="flex-1">
+                  <Text className="text-xs text-gray-400 font-medium mb-0.5">Model</Text>
+                  <Text className="text-base font-semibold text-gray-800">
+                    {pairedDevice.model || 'Raspberry Pi 5'}
+                  </Text>
+                </View>
+                <ChevronRight size={18} color="#D1D5DB" />
+              </View>
+            </Pressable>
 
-                            {/* Detail Cards - Model and Firmware stacked full width */}
-                            <View className="gap-2 mb-4 px-4">
-                                {/* Model Card - full width row */}
-                                <Pressable className="w-full">
-                                    <Card 
-                                        className="w-full rounded-3xl border-muted-foreground/20 px-4">
-                                        <View className="flex-row justify-between items-start">
-                                            <View className="flex-1 mr-3">
-                                                <Text className="text-muted-foreground text-xs font-medium mb-3" style={{ letterSpacing: 0.3 }}>
-                                                    Model
-                                                </Text>
-                                                <Text className=" text-lg font-bold" style={{ lineHeight: 24 }}>
-                                                    {pairedDevice.model || 'Raspberry Pi 5'}
-                                                </Text>
-                                            </View>
-                                            <View className="w-12 h-12 rounded-full bg-yellow-50 items-center justify-center">
-                                                <Cpu size={22} strokeWidth={1.5} color="#FBBF24" />
-                                            </View>
-                                        </View>
-                                    </Card>
-                                </Pressable>
+            <Pressable className="w-full active:opacity-80">
+              <View className="bg-white rounded-2xl px-5 py-4 flex-row items-center shadow-sm shadow-black/5">
+                <View className="w-11 h-11 rounded-xl bg-slate-100 items-center justify-center mr-4">
+                  <HardDrive size={20} strokeWidth={1.8} color="#64748B" />
+                </View>
+                <View className="flex-1">
+                  <Text className="text-xs text-gray-400 font-medium mb-0.5">Firmware</Text>
+                  <Text className="text-base font-semibold text-gray-800">
+                    {pairedDevice.firmware_version || '28743/65FG'}
+                  </Text>
+                </View>
+                <ChevronRight size={18} color="#D1D5DB" />
+              </View>
+            </Pressable>
 
-                                {/* Firmware Card - full width row */}
-                                <Pressable className="w-full">
-                                    <Card 
-                                        className="w-full rounded-3xl border-muted-foreground/20 px-4" >
-                                        <View className="flex-row justify-between items-start">
-                                            <View className="flex-1 mr-3">
-                                                <Text className="text-muted-foreground text-xs font-medium mb-3" >
-                                                    Firmware
-                                                </Text>
-                                                <Text className="text-lg font-bold" >
-                                                    {pairedDevice.firmware_version || '28743/65FG'}
-                                                </Text>
-                                            </View>
-                                            <View className="w-12 h-12 rounded-full bg-gray-50 items-center justify-center">
-                                                <HardDrive size={22} strokeWidth={1.5} color="#6B7280" />
-                                            </View>
-                                        </View>
-                                    </Card>
-                                </Pressable>
-                            </View>
+            <Pressable className="w-full active:opacity-80">
+              <View className="bg-white rounded-2xl px-5 py-4 flex-row items-center shadow-sm shadow-black/5">
+                <View className={`w-11 h-11 rounded-xl items-center justify-center mr-4 ${statusIconBg}`}>
+                  <Wifi size={20} strokeWidth={1.8} color={statusIconColor} />
+                </View>
+                <View className="flex-1">
+                  <Text className="text-xs text-gray-400 font-medium mb-0.5">Status</Text>
+                  <Text className={`text-base font-semibold ${
+                    deviceHeartbeatStatus === 1 ? 'text-emerald-600' :
+                    deviceHeartbeatStatus === 0 ? 'text-red-500' : 'text-gray-800'
+                  }`}>
+                    {deviceHeartbeatStatus === 1 ? 'Online' :
+                     deviceHeartbeatStatus === 0 ? 'Offline' : '—'}
+                  </Text>
+                </View>
+                <ChevronRight size={18} color="#D1D5DB" />
+              </View>
+            </Pressable>
+          </View>
 
-                            {/* Status Card  */}
-                            <View className="mb-6 px-4">
-                                <Card 
-                                    className="rounded-3xl border-muted-foreground/20 px-6 py-4"    
-                                >
-                                    <View className="flex-row justify-between items-center">
-                                        <View>
-                                            <Text className="text-muted-foreground text-xs font-medium mb-3" >
-                                                Status
-                                            </Text>
-                                            <Text className="text-lg font-bold">
-                                                {deviceHeartbeatStatus === 1
-                                                  ? 'Online'
-                                                  : deviceHeartbeatStatus === 0
-                                                    ? 'Offline'
-                                                    : '—'}
-                                            </Text>
-                                        </View>
-                                    </View>
-                                </Card>
-                            </View>
-
-                            {/* Button to unpair device */}
-                            <View className="px-4">
-                                <Button 
-                                    className="bg-red-500 active:bg-red-600" 
-                                    onPress={() => setShowUnpairModal(true)}
-                                    disabled={deviceLoading}
-                                >
-                                    <Text className="text-white text-lg font-semibold">
-                                        {deviceLoading ? "Unpairing..." : "Unpair Device"}
-                                    </Text>
-                                </Button>
-                            </View>
-                        </ScrollView>
-        )}
-      </View>
+          {/* Unpair Device Button */}
+          <View className="px-5">
+            <Pressable
+              className={`flex-row items-center justify-center h-12 rounded-full border border-red-200 bg-red-50 active:bg-red-100 ${deviceLoading ? 'opacity-50' : ''}`}
+              onPress={() => setShowUnpairModal(true)}
+              disabled={deviceLoading}
+            >
+              <Trash2 size={16} color="#EF4444" />
+              <Text className="text-red-500 text-base font-semibold ml-2">
+                {deviceLoading ? "Unpairing..." : "Unpair Device"}
+              </Text>
+            </Pressable>
+          </View>
+        </ScrollView>
+      )}
 
       <ConfirmationModal
         visible={showUnpairModal}
@@ -457,19 +412,16 @@ export default function DeviceConnection () {
         onCancel={() => setShowUnpairModal(false)}
       />
 
-      {/* =============== PAIRING DEVICE SELECTION BUTTON & MODAL ================== */}
       <PairOptionModal
         visible={pairingMethodModal}
         onClose={() => setPairingMethodModal(false)}
         onWifiPress={() => {
           setPairingMethodModal(false);
           setWifiModal(true);
-          // Set pairing flag to ignore network alerts
           useNetworkStore.getState().setIsPairingDevice(true);
         }}
         onBluetoothPress={() => {
           setPairingMethodModal(false);
-          // TODO: Implement Bluetooth pairing
           console.log("Bluetooth pairing selected");
         }}
       />
@@ -478,78 +430,65 @@ export default function DeviceConnection () {
         visible={wifiModal}
         onClose={() => {
           setWifiModal(false);
-          // Clear pairing flag when modal closes
           useNetworkStore.getState().setIsPairingDevice(false);
         }}
         onConnect={({ ssid, password, device }) => {
           console.log("WiFi pairing initiated with:", ssid, password, device);
-          // Set pairing state to show loader
           setIsPairing(true);
-          // Close the WiFi modal and keep showing "No device connected"
-          // until the MQTT pairing message arrives and updates state.
           setWifiModal(false);
-          // Clear pairing flag after successful WiFi request
           useNetworkStore.getState().setIsPairingDevice(false);
         }}
       />
 
+      {/* QR Share Modal */}
       <Modal
         visible={showQrModal}
         animationType="slide"
         transparent
         onRequestClose={() => setShowQrModal(false)}
       >
-        <View className="flex-1 bg-black/70 items-center justify-center px-6">
-          <View className="bg-white rounded-3xl p-6 items-center w-full">
-            <Text className="text-xl font-semibold mb-4 text-center">
+        <View className="flex-1 bg-black/60 items-center justify-center px-6">
+          <View className="bg-white rounded-3xl p-8 items-center w-full">
+            <Text className="text-xl font-bold text-gray-900 mb-1 text-center">
               Share Device Access
+            </Text>
+            <Text className="text-sm text-gray-400 mb-6 text-center">
+              Scan this QR code to pair with this device
             </Text>
 
             {qrLoading && (
-              <Text className="text-muted-foreground mb-4">
-                Generating QR...
-              </Text>
+              <View className="items-center justify-center py-10">
+                <ActivityIndicator size="large" color="#10b981" />
+                <Text className="text-gray-400 mt-3 text-sm">Generating QR...</Text>
+              </View>
             )}
 
             {!qrLoading && qrValue && (
-              <View className="mb-4 items-center justify-center">
-                <View
-                  style={{
-                    padding: 16,
-                    backgroundColor: "white",
-                    borderRadius: 24,
-                  }}
-                >
-                  <QRCode
-                    value={qrValue}
-                    size={240}
-                  />
-                </View>
+              <View className="bg-gray-50 rounded-2xl p-6 mb-6 items-center">
+                <QRCode value={qrValue} size={220} />
               </View>
             )}
 
             {!qrLoading && !qrValue && (
-              <Text className="text-muted-foreground mb-4 text-center">
+              <Text className="text-gray-400 mb-6 text-center">
                 Unable to generate QR code.
               </Text>
             )}
 
-            <Button
-              className="mt-2 w-full"
+            <Pressable
+              className="w-full h-12 rounded-full bg-gray-100 items-center justify-center active:bg-gray-200"
               onPress={() => {
                 setShowQrModal(false);
                 setQrValue(null);
               }}
             >
-              <Text className="text-white text-base font-semibold">
-                Close
-              </Text>
-            </Button>
+              <Text className="text-gray-700 text-base font-semibold">Close</Text>
+            </Pressable>
           </View>
         </View>
       </Modal>
 
-      {/* Scanner Modal for pairing via QR code */}
+      {/* Scanner Modal */}
       <Modal
         visible={showScannerModal}
         animationType="slide"
@@ -559,16 +498,19 @@ export default function DeviceConnection () {
           setHasCameraPermission(null);
         }}
       >
-        <View className="flex-1 bg-black/70 items-center justify-center px-6">
+        <View className="flex-1 bg-black/60 items-center justify-center px-6">
           <View className="bg-white rounded-3xl p-6 items-center w-full">
-            <Text className="text-xl font-semibold mb-4 text-center">
-              Scan Device QR Code
+            <Text className="text-xl font-bold text-gray-900 mb-1 text-center">
+              Scan Device QR
+            </Text>
+            <Text className="text-sm text-gray-400 mb-5 text-center">
+              Point your camera at the device QR code
             </Text>
 
             {hasCameraPermission ? (
-              <View style={{ width: "100%", height: 320, borderRadius: 24, overflow: "hidden" }}>
+              <View className="w-full h-80 rounded-3xl overflow-hidden mb-4">
                 <CameraView
-                  style={{ width: "100%", height: "100%" }}
+                  className="flex-1"
                   barcodeScannerSettings={{ barcodeTypes: ["qr"] }}
                   onBarcodeScanned={({ data }) => {
                     if (!isScanning) {
@@ -578,44 +520,32 @@ export default function DeviceConnection () {
                 />
               </View>
             ) : (
-              <Text className="text-muted-foreground mb-4 text-center">
+              <Text className="text-gray-400 mb-5 text-center">
                 Camera permission is required to scan QR codes.
               </Text>
             )}
 
-            <Button
-              className="mt-4 w-full"
+            <Pressable
+              className="w-full h-12 rounded-full bg-gray-100 items-center justify-center active:bg-gray-200"
               onPress={() => setShowScannerModal(false)}
             >
-              <Text className="text-white text-base font-semibold">
-                Close
-              </Text>
-            </Button>
+              <Text className="text-gray-700 text-base font-semibold">Close</Text>
+            </Pressable>
           </View>
         </View>
       </Modal>
 
-      {/* Loading Overlay for Pairing */}
+      {/* Pairing Loading Overlay */}
       {isPairing && (
-        <View
-          style={{
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            backgroundColor: 'rgba(0, 0, 0, 0.5)',
-            justifyContent: 'center',
-            alignItems: 'center',
-            zIndex: 9999,
-          }}
-        >
-          <View className="bg-white rounded-3xl p-8 items-center" style={{ minWidth: 200 }}>
-            <ActivityIndicator size="large" color="#10b981" style={{ marginBottom: 16 }} />
-            <Text className="text-lg font-semibold text-center">
+        <View className="absolute top-0 left-0 right-0 bottom-0 bg-black/50 items-center justify-center z-[9999]">
+          <View className="bg-white rounded-3xl px-10 py-8 items-center">
+            <View className="mb-4">
+              <ActivityIndicator size="large" color="#10b981" />
+            </View>
+            <Text className="text-lg font-bold text-gray-900 text-center">
               Pairing device...
             </Text>
-            <Text className="text-sm text-muted-foreground text-center mt-2">
+            <Text className="text-sm text-gray-400 text-center mt-2">
               Please wait
             </Text>
           </View>

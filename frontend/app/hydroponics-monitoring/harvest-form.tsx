@@ -319,7 +319,6 @@ export default function HarvestForm() {
                 value={formData.totalCount}
                 onChangeText={(value) => handleWholeNumberInput('totalCount', value)}
                 keyboardType="numeric"
-                className="border border-muted-foreground/50 rounded-xl px-3 py-4 bg-[#FAFFFA]"
               />
               
               <Text className="text-xs text-muted-foreground mt-1">
@@ -338,7 +337,6 @@ export default function HarvestForm() {
                   value={formData.totalWeight}
                   onChangeText={(value) => handleNumericInput('totalWeight', value)}
                   keyboardType="numeric"
-                  className="flex-1 border border-muted-foreground/50 rounded-xl px-3 py-4 bg-[#FAFFFA]"
                 />
               </View>
               {formData.totalWeight && isSumValid() && !errors.total_weight && (
@@ -372,7 +370,6 @@ export default function HarvestForm() {
                     value={formData.sellingCount}
                     onChangeText={(value) => handleWholeNumberInput('sellingCount', value)}
                     keyboardType="numeric"
-                    className="border border-muted-foreground/50 rounded-xl px-3 py-3 bg-[#FAFFFA]"
                   />
                   {errors['grades.0.count'] && (
                     <Text className="text-xs text-red-500 mt-1">{errors['grades.0.count']}</Text>
@@ -387,7 +384,6 @@ export default function HarvestForm() {
                     value={formData.sellingWeight}
                     onChangeText={(value) => handleNumericInput('sellingWeight', value)}
                     keyboardType="numeric"
-                    className="border border-muted-foreground/50 rounded-xl px-3 py-3 bg-[#FAFFFA]"
                   />
                   {errors['grades.0.weight'] && (
                     <Text className="text-xs text-red-500 mt-1">{errors['grades.0.weight']}</Text>
@@ -407,7 +403,6 @@ export default function HarvestForm() {
                     value={formData.consumptionCount}
                     onChangeText={(value) => handleWholeNumberInput('consumptionCount', value)}
                     keyboardType="numeric"
-                    className="border border-muted-foreground/50 rounded-xl px-3 py-3 bg-[#FAFFFA]"
                   />
                   {errors['grades.1.count'] && (
                     <Text className="text-xs text-red-500 mt-1">{errors['grades.1.count']}</Text>
@@ -422,7 +417,6 @@ export default function HarvestForm() {
                     value={formData.consumptionWeight}
                     onChangeText={(value) => handleNumericInput('consumptionWeight', value)}
                     keyboardType="numeric"
-                    className="border border-muted-foreground/50 rounded-xl px-3 py-3 bg-[#FAFFFA]"
                   />
                   {errors['grades.1.weight'] && (
                     <Text className="text-xs text-red-500 mt-1">{errors['grades.1.weight']}</Text>
@@ -481,7 +475,7 @@ export default function HarvestForm() {
 
           {/* Action Buttons */}
           <Button 
-            className="w-full mb-3"
+            className="w-full mb-3 mt-12"
             onPress={handleSaveYield}
             disabled={!isSumValid() || loading || (originalFormData !== null && !hasFormChanged())}
           >
