@@ -13,7 +13,6 @@ import { PieChart } from 'react-native-gifted-charts';
 import { Clock, CheckCircle, Droplet, TrendingDown, TrendingUp } from 'lucide-react-native';
 import { useAuthStore } from '@/store/auth/authStore';
 import { useDeviceStore } from '@/store/device/deviceStore';
-import NoDevice from '@/components/ui/no-device';
 
 export default function TreatmentPerformance() {
   const [refreshing, setRefreshing] = useState(false);
@@ -90,7 +89,22 @@ export default function TreatmentPerformance() {
 
   // Show NoDevice if no device paired after check
   if (deviceChecked && (!devices || devices.length === 0)) {
-    return <NoDevice />;
+    return (
+      <ScrollView className="flex-1 bg-white/90">
+        <SafeAreaView>
+          <PageHeader 
+            title="Treatment Performance"
+            showBackButton={true}
+            showNotificationButton={false}
+          />
+          <View className="p-4 flex-1 items-center justify-center">
+            <Text className="text-center text-muted-foreground text-lg">
+              No data available
+            </Text>
+          </View>
+        </SafeAreaView>
+      </ScrollView>
+    );
   }
 
   return (
