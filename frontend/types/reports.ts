@@ -211,13 +211,11 @@ export interface WaterQualityTrendsDataLegacy {
 // ============================================
 
 interface StageEfficiency {
-  stage_name: string;
-  success_count: number;
-  failure_count: number;
-  success_rate: number;
-  avg_duration: number;
-  avg_turbidity_reduction: number;
-  avg_tds_reduction: number;
+  average_ph: number;
+  average_turbidity: number;
+  average_tds: number;
+  passed_count: number;
+  failed_count: number;
 }
 
 interface FailureAnalysis {
@@ -230,18 +228,21 @@ interface FailureAnalysis {
 }
 
 export interface TreatmentPerformanceData {
-  device_id: number;
   total_cycles: number;
-  success_count: number;
-  failure_count: number;
   success_rate: number;
   failure_rate: number;
+  average_duration_minutes: number;
+  stage_efficiency: Record<string, StageEfficiency>;
+  average_improvements: {
+    turbidity_reduction: number;
+    tds_reduction: number;
+    ph_change: number;
+  };
+  failure_analysis: FailureAnalysis | null;
   performance_score: number;
-  avg_cycle_duration: number;
-  avg_turbidity_improvement: number;
-  avg_tds_improvement: number;
-  stage_efficiency: StageEfficiency[];
-  failure_analysis: FailureAnalysis;
+  total_water_processed: number;
+  average_water_per_cycle: number;
+  total_water_liters: number;
 }
 
 interface WaterQualityImprovement {

@@ -10,22 +10,42 @@ import { ChartContainer } from '@/components/reports/ChartContainer';
 import { PerformanceGauge } from '@/components/reports/PerformanceGauge';
 import { StatCard } from '@/components/reports/StatCard';
 import { PieChart } from 'react-native-gifted-charts';
-import { Clock, CheckCircle, Droplet, TrendingDown } from 'lucide-react-native';
+import { Clock, CheckCircle, Droplet, TrendingDown, TrendingUp } from 'lucide-react-native';
+import { useAuthStore } from '@/store/auth/authStore';
+import { useDeviceStore } from '@/store/device/deviceStore';
+import NoDevice from '@/components/ui/no-device';
 
 export default function TreatmentPerformance() {
   const [refreshing, setRefreshing] = useState(false);
-  const [deviceId] = useState(1); // TODO: Add device selector if multiple devices
-
+  const [deviceChecked, setDeviceChecked] = useState(false);
+  
+  const userId = useAuthStore((state) => state.user?.id);
+  const { devices, fetchDevice } = useDeviceStore();
   const { treatmentPerformance, loading, fetchTreatmentPerformance } = useReportsStore();
 
   useFocusEffect(
     useCallback(() => {
-      loadData();
-    }, [deviceId])
+      setDeviceChecked(false);
+      
+      if (userId) {
+        fetchDevice(userId).then(() => {
+          setDeviceChecked(true);
+          const currentDevices = useDeviceStore.getState().devices;
+          if (currentDevices && currentDevices.length > 0) {
+            loadData();
+          }
+        });
+      } else {
+        setDeviceChecked(true);
+      }
+    }, [userId])
   );
 
   const loadData = async () => {
-    await fetchTreatmentPerformance(deviceId, {});
+    const deviceId = devices[0]?.id;
+    if (deviceId) {
+      await fetchTreatmentPerformance(deviceId, {});
+    }
   };
 
   const onRefresh = async () => {
@@ -38,17 +58,40 @@ export default function TreatmentPerformance() {
   const successFailureData = treatmentPerformance
     ? [
         {
-          value: treatmentPerformance.success_count,
+          value: Math.round(treatmentPerformance.total_cycles * treatmentPerformance.success_rate / 100),
           color: '#9ab068',
           text: 'Success',
         },
         {
-          value: treatmentPerformance.failure_count,
+          value: Math.round(treatmentPerformance.total_cycles * treatmentPerformance.failure_rate / 100),
           color: '#ef4444',
           text: 'Failure',
         },
       ]
     : [];
+
+  // Show skeleton during device check
+  if (!deviceChecked) {
+    return (
+      <ScrollView className="flex-1 bg-white/90">
+        <SafeAreaView>
+          <PageHeader 
+            title="Treatment Performance"
+            showBackButton={true}
+            showNotificationButton={false}
+          />
+          <View className="p-4">
+            <Text className="text-center text-muted-foreground">Loading...</Text>
+          </View>
+        </SafeAreaView>
+      </ScrollView>
+    );
+  }
+
+  // Show NoDevice if no device paired after check
+  if (deviceChecked && (!devices || devices.length === 0)) {
+    return <NoDevice />;
+  }
 
   return (
     <ScrollView 
@@ -69,7 +112,7 @@ export default function TreatmentPerformance() {
 
             <StatCard
               title="Average Cycle Duration"
-              value={`${(treatmentPerformance?.avg_cycle_duration || 0).toFixed(1)} min`}
+              value={`${(treatmentPerformance?.average_duration_minutes || 0).toFixed(1)} min`}
               subtitle="Time to complete treatment"
               colorScheme="primary"
             />
@@ -151,70 +194,60 @@ export default function TreatmentPerformance() {
           </ChartContainer>
 
           {/* Water Quality Improvements */}
-          <Card className="border-muted-foreground/30 mt-4 p-4 mb-2">
+          <Card className="border-muted-foreground/30 mt-4 p-4">
             <Text className="text-xl font-semibold text-primary mb-3">
               Water Quality Improvements
             </Text>
             <View className="flex-row gap-3">
               <View className="flex-1">
-                <Card className="p-4 bg-blue-50 border ">
+                <Card className="p-4 bg-gray-50 border ">
                   <View className="flex-row items-center gap-2 mb-1">
-                    <TrendingDown size={16} className="text-blue-600" />
-                    <Text className="text-xs text-blue-700">Turbidity Reduction</Text>
+                    <TrendingDown size={16} className="text-gray-600" />
+                    <Text className="text-xs text-gray-600">Turbidity Reduction</Text>
                   </View>
-                  <Text className="text-2xl font-bold text-blue-800">
-                    {(treatmentPerformance?.avg_turbidity_improvement || 0).toFixed(1)}%
+                  <Text className="text-2xl font-bold text-primary">
+                    {(treatmentPerformance?.average_improvements?.turbidity_reduction || 0).toFixed(1)}%
                   </Text>
                 </Card>
               </View>
               <View className="flex-1">
-                <Card className="p-4 bg-green-50 border ">
+                <Card className="p-4 bg-gray-50 border ">
                   <View className="flex-row items-center gap-2 mb-1">
-                    <TrendingDown size={16} className="text-green-600" />
-                    <Text className="text-xs text-green-700">TDS Reduction</Text>
+                    <TrendingDown size={16} className="text-gray-600" />
+                    <Text className="text-xs text-gray-600">TDS Reduction</Text>
                   </View>
-                  <Text className="text-2xl font-bold text-green-800">
-                    {(treatmentPerformance?.avg_tds_improvement || 0).toFixed(1)}%
+                  <Text className="text-2xl font-bold text-primary">
+                    {(treatmentPerformance?.average_improvements?.tds_reduction || 0).toFixed(1)}%
                   </Text>
                 </Card>
               </View>
             </View>
-          </Card>
-
-          {/* Stage Efficiency Table */}
-          {treatmentPerformance?.stage_efficiency && treatmentPerformance.stage_efficiency.length > 0 && (
-            <Card className="border-muted-foreground/30 p-4 mb-4">
-              <Text className="text-xl font-semibold text-primary mb-3">
-                Stage-by-Stage Efficiency
-              </Text>
-              {treatmentPerformance.stage_efficiency.map((stage, index) => (
-                <View key={index} className="py-3 border-b border-gray-100">
-                  <View className="flex-row justify-between items-center mb-2">
-                    <Text className="text-base font-semibold text-gray-900">{stage.stage_name}</Text>
-                    <View className={`px-3 py-1 rounded-full ${stage.success_rate >= 80 ? 'bg-green-100' : stage.success_rate >= 60 ? 'bg-yellow-100' : 'bg-red-100'}`}>
-                      <Text className={`text-sm font-bold ${stage.success_rate >= 80 ? 'text-green-800' : stage.success_rate >= 60 ? 'text-yellow-800' : 'text-red-800'}`}>
-                        {stage.success_rate.toFixed(0)}%
-                      </Text>
-                    </View>
-                  </View>
-                  <View className="flex-row justify-between">
-                    <View>
-                      <Text className="text-xs text-muted-foreground">Duration</Text>
-                      <Text className="text-sm font-semibold">{stage.avg_duration.toFixed(1)} min</Text>
-                    </View>
-                    <View>
-                      <Text className="text-xs text-muted-foreground">Turbidity ↓</Text>
-                      <Text className="text-sm font-semibold">{stage.avg_turbidity_reduction.toFixed(1)}%</Text>
-                    </View>
-                    <View>
-                      <Text className="text-xs text-muted-foreground">TDS ↓</Text>
-                      <Text className="text-sm font-semibold">{stage.avg_tds_reduction.toFixed(1)}%</Text>
-                    </View>
-                  </View>
+            <View>
+              <Card className="p-4 bg-gray-50 border ">
+                <View className="flex-row items-center">
+                  {(treatmentPerformance?.average_improvements?.ph_change ?? 0) >= 0 ? (
+                    <TrendingUp size={16} className="text-gray-600" />
+                  ) : (
+                    <TrendingDown size={16} className="text-gray-600" />
+                  )}
+                  <Text className="text-xs text-gray-600"> pH Change</Text>
                 </View>
-              ))}
-            </Card>
-          )}
+                <View className="flex-row items-baseline gap-1">
+                  <Text className="text-2xl font-bold text-primary">
+                    {(treatmentPerformance?.average_improvements?.ph_change ?? 0) >= 0 ? '+' : ''}
+                    {(treatmentPerformance?.average_improvements?.ph_change ?? 0).toFixed(2)}
+                  </Text>
+                  <Text className="text-xs text-gray-500">
+                    {(treatmentPerformance?.average_improvements?.ph_change ?? 0) > 0 
+                      ? '(more alkaline)' 
+                      : (treatmentPerformance?.average_improvements?.ph_change ?? 0) < 0 
+                      ? '(more acidic)' 
+                      : '(neutral)'}
+                  </Text>
+                </View>
+              </Card>
+            </View>
+          </Card>
 
           {/* Failure Analysis */}
           {treatmentPerformance?.failure_analysis && treatmentPerformance.failure_analysis.failure_count > 0 && (
