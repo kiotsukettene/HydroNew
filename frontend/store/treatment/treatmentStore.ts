@@ -206,15 +206,15 @@ export const useTreatmentStore = create<TreatmentStore>((set, get) => ({
     set({ loading: true, error: null });
     const url = '/treatment/latest';
     const fullUrl = `${axiosInstance.defaults.baseURL ?? ''}${url}`;
-    console.log('[Treatment] fetchLatestTreatment: calling GET', fullUrl);
+    // console.log('[Treatment] fetchLatestTreatment: calling GET', fullUrl);
 
     try {
       const response = await axiosInstance.get(url);
-      console.log('[Treatment] fetchLatestTreatment: response status', response.status, 'data', JSON.stringify(response.data));
+      // console.log('[Treatment] fetchLatestTreatment: response status', response.status, 'data', JSON.stringify(response.data));
 
       const { success, message, data } = response.data;
       if (!success || !data) {
-        console.warn('[Treatment] fetchLatestTreatment: backend returned success=false or no data', { success, message, data });
+        // console.warn('[Treatment] fetchLatestTreatment: backend returned success=false or no data', { success, message, data });
         set({ loading: false });
         return null;
       }
@@ -222,12 +222,6 @@ export const useTreatmentStore = create<TreatmentStore>((set, get) => ({
       set({ loading: false });
       return data as LatestTreatmentData;
     } catch (err: unknown) {
-      const axiosErr = err as { response?: { status: number; data?: unknown }; request?: unknown; message?: string };
-      console.error('[Treatment] fetchLatestTreatment: request failed', {
-        hasResponse: !!axiosErr.response,
-        status: axiosErr.response?.status,
-        responseData: axiosErr.response?.data,
-      });
       const { message } = handleAxiosError(err);
       set({ error: message, loading: false });
       return null;
