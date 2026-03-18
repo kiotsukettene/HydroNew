@@ -138,26 +138,10 @@ export default function TipsSuggestionPage() {
                 <Card key={i} className="border border-muted-foreground/15">
                   <Pressable onPress={() => toggleTipExpanded(i)}>
                     <CardContent className="p-4">
-                      <View className="flex-row items-center justify-between gap-3">
-                        <View className="flex-1">
-                          <Badge className={`self-start rounded-full px-3 py-1 ${color.badge}`}>
-                            <Text className="text-xs font-semibold text-white">{bp.heading}</Text>
-                          </Badge>
-                          {!isExpanded && (
-                            <View className="mt-3 gap-2">
-                              {preview.map((tip, idx) => (
-                                <Text key={idx} className="text-sm leading-6 text-gray-700">
-                                  • {tip}
-                                </Text>
-                              ))}
-                              {remainingCount > 0 && (
-                                <Text className="text-xs text-muted-foreground">
-                                  +{remainingCount} more
-                                </Text>
-                              )}
-                            </View>
-                          )}
-                        </View>
+                      <View className="flex-row items-center justify-between">
+                        <Badge className={`rounded-full px-3 py-1 ${color.badge}`}>
+                          <Text className="text-xs font-semibold text-white">{bp.heading}</Text>
+                        </Badge>
 
                         {isExpanded ? (
                           <Minus size={20} color="#445104" />
@@ -165,6 +149,19 @@ export default function TipsSuggestionPage() {
                           <Plus size={20} color="#445104" />
                         )}
                       </View>
+
+                      {!isExpanded && (
+                        <View className="mt-3 gap-2">
+                          {preview.map((tip, idx) => (
+                            <Text key={idx} className="text-sm leading-6 text-gray-700">
+                              • {tip}
+                            </Text>
+                          ))}
+                          {remainingCount > 0 && (
+                            <Text className="text-xs text-muted-foreground">+{remainingCount} more</Text>
+                          )}
+                        </View>
+                      )}
 
                       <Text className="mt-3 text-xs text-muted-foreground">
                         {isExpanded ? 'Read less' : 'Read more'}
