@@ -159,6 +159,17 @@ export default function Monitor() {
                             onClose={() => setIsTurbidityDetailsModalVisible(false)}
                           />
                         </View>
+
+                        <View className="flex-row items-start">
+                          <View>
+                            <View className="flex-row items-center">
+                              <Text className="text-gray-600">MFC Voltage</Text>
+                            </View>
+                            <Text className="text-xl font-medium text-gray-800">
+                              {dirtyWater?.electric_current != null && !isNaN(dirtyWater.electric_current) ? dirtyWater.electric_current.toFixed(2) : '--'}
+                            </Text>
+                          </View>
+                        </View>
                       </View>
 
                       {/* Right Column: WATER TANK LEVEL */}
