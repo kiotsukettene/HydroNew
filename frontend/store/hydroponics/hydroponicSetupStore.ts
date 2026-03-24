@@ -96,11 +96,12 @@ export const useHydroponicSetupStore = create<HydroponicSetupStore>((set, get) =
     const limit = 10;
     const offset = reset ? 0 : state.hydroponicSetups.length;
     
+    // Set loading states without clearing existing data
     set({ 
       loading: reset, 
       loadingMore: !reset,
       error: null,
-      ...(reset && { hydroponicSetups: [] }) // Clear items only on reset
+      // Don't clear data immediately - keep existing data visible
     });
 
     try {
@@ -137,7 +138,8 @@ export const useHydroponicSetupStore = create<HydroponicSetupStore>((set, get) =
         error: message,
         loading: false,
         loadingMore: false,
-        ...(reset && { hydroponicSetups: [] }),
+        // Only clear data on error if we're resetting and have no cached data
+        ...(reset && !state.cache && { hydroponicSetups: [] }),
       });
     }
   },
