@@ -837,7 +837,7 @@ export default function Filtration() {
                             <Button
                              className="w-full h-8"
                              onPress={handleCompleteStageOne}
-                             disabled={stage.status === 'completed'}>
+                             disabled={false}>
                              <Text className="text-xs">{isStageOneValveOpen ? 'Close Valve' : 'Open Valve'}</Text>
                            </Button>
                             <Button 
