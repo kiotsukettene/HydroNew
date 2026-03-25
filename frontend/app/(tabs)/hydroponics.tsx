@@ -6,7 +6,7 @@ import {
   ActivityIndicator,
   RefreshControl,
 } from 'react-native';
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useState, useRef } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { PageHeader } from '@/components/ui/page-header';
 import { Dimensions } from 'react-native';
@@ -44,23 +44,36 @@ export default function Hydroponics() {
 
   const [refreshing, setRefreshing] = useState(false);
   const [deviceChecked, setDeviceChecked] = useState(false);
+  const hasInitialized = useRef(false);
 
   useFocusEffect(
     useCallback(() => {
-      // Reset device check state when screen is focused
-      setDeviceChecked(false);
+      // Get current device state from store
+      const currentDevices = useDeviceStore.getState().devices;
+      const hasDeviceData = currentDevices && currentDevices.length > 0;
       
-      // Always fetch device to ensure we have the latest state
-      if (userId) {
+      // If we already have devices or have initialized, mark as checked immediately
+      if (hasDeviceData || hasInitialized.current) {
+        setDeviceChecked(true);
+      }
+      
+      // Only fetch device if we haven't initialized yet
+      if (userId && !hasInitialized.current) {
+        setDeviceChecked(false);
+        
         fetchDevice(userId, true).then(() => {
+          hasInitialized.current = true;
           setDeviceChecked(true);
           // Only fetch hydroponic setups if device exists
-          const currentDevices = useDeviceStore.getState().devices;
-          if (currentDevices && currentDevices.length > 0) {
-            fetchHydroponicSetups(true, false);
+          const latestDevices = useDeviceStore.getState().devices;
+          if (latestDevices && latestDevices.length > 0) {
+            fetchHydroponicSetups(true, true);
           }
         });
-      } else {
+      } else if (hasInitialized.current && hasDeviceData) {
+        // If already initialized, just fetch hydroponics data
+        fetchHydroponicSetups(true, true);
+      } else if (!userId) {
         setDeviceChecked(true);
       }
     }, [userId, fetchDevice, fetchHydroponicSetups])
