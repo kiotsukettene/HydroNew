@@ -2,7 +2,7 @@ import { PageHeader } from '@/components/ui/page-header';
 import { Text } from '@/components/ui/text';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useCallback, useState, useRef } from 'react';
 import {
   Image,
   Keyboard,
@@ -13,19 +13,15 @@ import {
   TouchableOpacity,
   View,
   ActivityIndicator,
+  RefreshControl,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
   Filter,
   Search,
-  MoreVertical,
   X,
-  Archive,
-  ChevronLeft,
-  ChevronRight,
 } from 'lucide-react-native';
-import { useRouter } from 'expo-router';
-import { Badge } from '@/components/ui/badge';
+import { useFocusEffect } from '@react-navigation/native';
 import { useHarvestedStore } from '@/store/hydroponics/harvestedStore';
 import type { HarvestItem } from '@/types/harvested';
 
@@ -76,90 +72,104 @@ const yyyyMMToMonthAbbr = (yyyyMM: string): string | null => {
 };
 
 const HarvestedList = () => {
-  const router = useRouter();
   const [query, setQuery] = useState('');
   const [showFilter, setShowFilter] = useState(false);
   const [showDetails, setShowDetails] = useState<HarvestItem | null>(null);
   const [localFilterMonth, setLocalFilterMonth] = useState<string | null>(null);
   const [detectedYear, setDetectedYear] = useState<number | null>(null);
+  const [refreshing, setRefreshing] = useState(false);
   
   const searchTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const {
     items,
     statistics,
-    currentPage,
-    lastPage,
     total,
+    hasMore,
     loading,
+    loadingMore,
     error,
     searchQuery,
     filterMonth,
     fetchHarvested,
+    loadMore,
     searchHarvested,
     filterByMonth,
-    nextPage,
-    prevPage,
   } = useHarvestedStore();
 
   // Extract year from items when they're loaded (re-detect when items change)
-  useEffect(() => {
-    if (items.length > 0) {
-      try {
-        const firstItemDate = new Date(items[0].harvest_date);
-        if (!isNaN(firstItemDate.getTime())) {
-          const year = firstItemDate.getFullYear();
-          // Update detected year if it's different or not set
-          if (detectedYear !== year) {
-            setDetectedYear(year);
+  useFocusEffect(
+    useCallback(() => {
+      if (items.length > 0) {
+        try {
+          const firstItemDate = new Date(items[0].harvest_date);
+          if (!isNaN(firstItemDate.getTime())) {
+            const year = firstItemDate.getFullYear();
+            if (detectedYear !== year) {
+              setDetectedYear(year);
+            }
+          }
+        } catch (e) {
+          if (!detectedYear) {
+            setDetectedYear(new Date().getFullYear());
           }
         }
-      } catch (e) {
-        // If parsing fails, use current year if not already set
-        if (!detectedYear) {
-          setDetectedYear(new Date().getFullYear());
-        }
       }
-    }
-  }, [items, detectedYear]);
+    }, [items, detectedYear])
+  );
 
-  // Fetch data on mount
-  useEffect(() => {
-    fetchHarvested(1, '', null);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  // Fetch data on focus
+  useFocusEffect(
+    useCallback(() => {
+      fetchHarvested(true);
+    }, [fetchHarvested])
+  );
 
   // Sync local filter month with store when modal opens
-  useEffect(() => {
-    if (showFilter) {
-      // Convert store's YYYY-MM format back to abbreviation for display
-      if (filterMonth) {
-        setLocalFilterMonth(yyyyMMToMonthAbbr(filterMonth));
-      } else {
-        setLocalFilterMonth(null);
+  useFocusEffect(
+    useCallback(() => {
+      if (showFilter) {
+        if (filterMonth) {
+          setLocalFilterMonth(yyyyMMToMonthAbbr(filterMonth));
+        } else {
+          setLocalFilterMonth(null);
+        }
       }
-    }
-  }, [showFilter, filterMonth]);
+    }, [showFilter, filterMonth])
+  );
 
   // Handle search with debounce
-  useEffect(() => {
-    if (searchTimeoutRef.current) {
-      clearTimeout(searchTimeoutRef.current);
-    }
-
-    searchTimeoutRef.current = setTimeout(() => {
-      if (query.trim() !== searchQuery) {
-        searchHarvested(query.trim());
-      }
-    }, 500);
-
-    return () => {
+  useFocusEffect(
+    useCallback(() => {
       if (searchTimeoutRef.current) {
         clearTimeout(searchTimeoutRef.current);
       }
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [query]);
+
+      searchTimeoutRef.current = setTimeout(() => {
+        if (query.trim() !== searchQuery) {
+          searchHarvested(query.trim());
+        }
+      }, 500);
+
+      return () => {
+        if (searchTimeoutRef.current) {
+          clearTimeout(searchTimeoutRef.current);
+        }
+      };
+    }, [query, searchQuery, searchHarvested])
+  );
+
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    await fetchHarvested(true, false);
+    setRefreshing(false);
+  }, [fetchHarvested]);
+
+  const handleLoadMore = useCallback(() => {
+    if (hasMore && !loadingMore && !loading) {
+      loadMore();
+    }
+  }, [hasMore, loadingMore, loading, loadMore]);
 
   const triggerSearch = () => {
     Keyboard.dismiss();
@@ -172,8 +182,6 @@ const HarvestedList = () => {
   };
 
   const handleApplyFilter = () => {
-    // Convert month abbreviation to YYYY-MM format for API
-    // Use detected year from previous data load, otherwise current year
     const monthFormat = localFilterMonth ? monthAbbrToYYYYMM(localFilterMonth, detectedYear) : null;
     filterByMonth(monthFormat);
     setShowFilter(false);
@@ -196,7 +204,16 @@ const HarvestedList = () => {
         keyboardShouldPersistTaps="handled"
         stickyHeaderIndices={[1]}
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingBottom: 20 }}>
+        contentContainerStyle={{ paddingBottom: 20 }}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            colors={['#2D7D7D']}
+            tintColor="#2D7D7D"
+          />
+        }
+      >
         
         {/* Summary */}
         {statistics && (
@@ -325,51 +342,23 @@ const HarvestedList = () => {
                     </Pressable>
                   ))}
 
-                  {/* Pagination Controls */}
-                  {lastPage > 1 && (
-                    <View className="mt-4 flex-row items-center justify-between px-2 pb-4">
-                      <TouchableOpacity
-                        onPress={prevPage}
-                        disabled={currentPage === 1 || loading}
-                        className={`flex-row items-center gap-2 rounded-lg border px-4 py-2 ${
-                          currentPage === 1 || loading
-                            ? 'border-muted-foreground/20 opacity-50'
-                            : 'border-muted-foreground/30'
-                        }`}>
-                        <ChevronLeft size={18} color={currentPage === 1 ? '#9CA3AF' : '#000'} />
-                        <Text
-                          className={
-                            currentPage === 1 || loading
-                              ? 'text-muted-foreground'
-                              : 'text-foreground'
-                          }>
-                          Previous
-                        </Text>
-                      </TouchableOpacity>
-
-                      <Text className="text-sm text-muted-foreground">
-                        Page {currentPage} of {lastPage}
-                      </Text>
-
-                      <TouchableOpacity
-                        onPress={nextPage}
-                        disabled={currentPage === lastPage || loading}
-                        className={`flex-row items-center gap-2 rounded-lg border px-4 py-2 ${
-                          currentPage === lastPage || loading
-                            ? 'border-muted-foreground/20 opacity-50'
-                            : 'border-muted-foreground/30'
-                        }`}>
-                        <Text
-                          className={
-                            currentPage === lastPage || loading
-                              ? 'text-muted-foreground'
-                              : 'text-foreground'
-                          }>
-                          Next
-                        </Text>
-                        <ChevronRight size={18} color={currentPage === lastPage ? '#9CA3AF' : '#000'} />
-                      </TouchableOpacity>
+                  {/* Loading More Indicator */}
+                  {loadingMore && (
+                    <View className="py-4 items-center">
+                      <ActivityIndicator size="small" color="#6BBF59" />
+                      <Text className="mt-2 text-xs text-muted-foreground">Loading more...</Text>
                     </View>
+                  )}
+                  
+                  {/* Load More Button */}
+                  {hasMore && !loadingMore && (
+                    <Button 
+                      variant="outline" 
+                      className="mt-4"
+                      onPress={handleLoadMore}
+                    >
+                      <Text>Load More</Text>
+                    </Button>
                   )}
                 </View>
               ) : (
@@ -482,7 +471,8 @@ const HarvestedList = () => {
                       <Text className="mb-4 text-base font-semibold text-foreground">Crop Information</Text>
                       
                       <View className="gap-4">
-                        <View>
+                        <View className="flex-row gap-4">
+                        <View className="flex-1">
                           <Text className="mb-1.5 text-xs font-medium uppercase tracking-wide text-muted-foreground">
                             Crop Name
                           </Text>
@@ -490,6 +480,17 @@ const HarvestedList = () => {
                             {showDetails.crop_name.charAt(0).toUpperCase() + showDetails.crop_name.slice(1)}
                           </Text>
                         </View>
+                        
+                        <View className="flex-1">
+                            <Text className="mb-1.5 text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                              Status
+                            </Text>
+                            <Text className="text-base font-semibold capitalize text-foreground">
+                              {showDetails.status}
+                            </Text>
+                        </View>
+                        </View>
+                          
 
                         <View className="flex-row gap-4">
                           <View className="flex-1">
@@ -570,7 +571,7 @@ const HarvestedList = () => {
                                 Total Weight
                               </Text>
                               <Text className="text-lg font-bold text-foreground">
-                                {showDetails?.yield.total_weight?.toFixed(2) ?? '0.00'} g
+                                {showDetails?.yield?.total_weight != null ? showDetails.yield.total_weight.toFixed(2) : '0.00'} g
                               </Text>
                             </View>
                           </View>
@@ -607,7 +608,7 @@ const HarvestedList = () => {
                                         {grade.weight !== null && (
                                           <Text className="text-xs text-muted-foreground">
                                             Weight: <Text className="font-semibold text-foreground">
-                                              {grade?.weight?.toFixed(2) ?? '0.00'} g
+                                              {grade.weight != null ? grade.weight.toFixed(2) : '0.00'} g
                                             </Text>
                                           </Text>
                                         )}

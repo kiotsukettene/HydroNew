@@ -3,9 +3,10 @@ import { z } from "zod";
 export const signUpSchema = z.object({
   first_name: z.string().min(1, "First name is required"),
   last_name: z.string().min(1, "Last name is required"),
-  email: z.string().email("Please enter a valid email address"),
+  email: z.string().min(1, "Email is required").email("Please enter a valid email address"),
   password: z
     .string()
+    .min(1, "Password is required")
     .min(8, "At least 8 characters")
     .regex(/[A-Z]/, "At least one uppercase letter")
     .regex(/[0-9]/, "At least one number"),

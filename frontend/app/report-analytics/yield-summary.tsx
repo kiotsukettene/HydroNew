@@ -1,0 +1,226 @@
+import { View, ScrollView, RefreshControl } from 'react-native';
+import React, { useCallback, useState } from 'react';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { Text } from '@/components/ui/text';
+import { PageHeader } from '@/components/ui/page-header';
+import { useFocusEffect } from '@react-navigation/native';
+import { useReportsStore } from '@/store/reports/reportsStore';
+import { ChartContainer } from '@/components/reports/ChartContainer';
+import { StatCard } from '@/components/reports/StatCard';
+import { BarChart, PieChart } from 'react-native-gifted-charts';
+import { Package, Scale, TrendingUp } from 'lucide-react-native';
+
+export default function YieldSummary() {
+  const [refreshing, setRefreshing] = useState(false);
+
+  const { yieldSummary, loading, fetchYieldSummary } = useReportsStore();
+
+  useFocusEffect(
+    useCallback(() => {
+      loadData();
+    }, [])
+  );
+
+  const loadData = async () => {
+    await fetchYieldSummary({});
+  };
+
+  const onRefresh = async () => {
+    setRefreshing(true);
+    await loadData();
+    setRefreshing(false);
+  };
+
+  // Prepare chart data
+  const weightByCropData = yieldSummary?.weight_by_crop
+    ? Object.entries(yieldSummary.weight_by_crop).map(([crop, data]) => ({
+        value: data.total_weight || 0,
+        label: crop.length > 6 ? crop.substring(0, 3) : crop.substring(0, 4),
+        frontColor: '#16a085',
+        topLabelComponent: () => (
+          <Text style={{ fontSize: 10, color: '#4B5563', marginBottom: 2 }}>
+            {data.total_weight}g
+          </Text>
+        ),
+      }))
+    : [];
+
+  // Debug log
+  console.log('Weight by Crop Data:', weightByCropData);
+  console.log('Yield Summary:', yieldSummary);
+
+  const gradeDistributionData = yieldSummary?.grade_distribution
+    ? [
+        {
+          value: yieldSummary.grade_distribution.selling?.count || 0,
+          color: '#9ab068',
+          text: 'Selling',
+        },
+        {
+          value: yieldSummary.grade_distribution.consumption?.count || 0,
+          color: '#add3e1',
+          text: 'Consumption',
+        },
+        {
+          value: yieldSummary.grade_distribution.disposal?.count || 0,
+          color: '#feb4b4',
+          text: 'Disposal',
+        },
+      ]
+    : [];
+
+  return (
+    <ScrollView 
+      className="flex-1 bg-white/90"
+      refreshControl={
+        <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+      }
+    >
+      <SafeAreaView>
+        <PageHeader 
+          title="Yield Summary "
+          showBackButton={true}
+          showNotificationButton={false}
+        />
+        <View className="p-4">
+          {/* Summary Stats */}
+          <View className="gap-3 mb-4">
+            <StatCard
+              title="Total Harvested Setups"
+              value={yieldSummary?.total_harvested_setups || 0}
+              icon={Package}
+              colorScheme="primary"
+              bgClassName='bg-[#e8f5d1]'
+            />
+            
+            <View className="flex-row gap-3 mt-3">
+              <View className="flex-1">
+                <StatCard
+                  title="Total Weight"
+                  value={`${((yieldSummary?.grade_distribution?.total_weight || 0) / 1000).toFixed(2)} kg`}
+                  colorScheme="success"
+                  bgClassName=''
+                />
+              </View>
+              <View className="flex-1">
+                <StatCard
+                  title="Sellable"
+                  value={`${(yieldSummary?.sellable_yield_percentage || 0)}%`}
+                  colorScheme="success"
+                  bgClassName=''
+                />
+              </View>
+            </View>
+
+            <View className="flex-row gap-3">
+              <View className="flex-1">
+                <StatCard
+                  title="Consumption"
+                  value={`${(yieldSummary?.grade_distribution?.consumption?.percentage || 0)}%`}
+                  subtitle={`${(yieldSummary?.grade_distribution?.consumption?.count || 0)} items`}
+                  colorScheme="success"
+                  bgClassName=''
+                />
+              </View>
+              <View className="flex-1">
+                <StatCard
+                  title="Waste"
+                  value={`${(yieldSummary?.waste_percentage || 0)}%`}
+                  subtitle={`${(yieldSummary?.grade_distribution?.disposal?.count || 0)} items`}
+                  colorScheme="danger"
+                  bgClassName=''
+                />
+              </View>
+            </View>
+          </View>
+
+          {/* Grade Distribution */}
+          <View className="mb-4">
+            <ChartContainer 
+              title="Grade Distribution" 
+              subtitle="Quality breakdown of harvests"
+              loading={loading}
+            >
+            <View className="items-center py-4">
+              {gradeDistributionData.length > 0 ? (
+                <>
+                  <PieChart
+                    data={gradeDistributionData}
+                    radius={100}
+                    donut
+                    innerRadius={60}
+                    centerLabelComponent={() => {
+                      const total = gradeDistributionData.reduce((sum, item) => sum + (item?.value || 0), 0);
+                      return (
+                        <View className="items-center">
+                          <Text className="text-2xl font-bold">{total}</Text>
+                          <Text className="text-xs text-muted-foreground">pcs Total</Text>
+                        </View>
+                      );
+                    }}
+                  />
+                  
+                  {/* Legend */}
+                  <View className="flex-row flex-wrap justify-center mt-4 gap-3">
+                    {gradeDistributionData.map((item, index) => (
+                      <View key={index} className="flex-row items-center gap-1">
+                        <View style={{ width: 12, height: 12, backgroundColor: item.color, borderRadius: 2 }} />
+                        <Text className="text-xs text-gray-600">{item.text}: {item.value}</Text>
+                      </View>
+                    ))}
+                  </View>
+                </>
+              ) : (
+                <Text className="text-muted-foreground">No data available</Text>
+              )}
+            </View>
+            </ChartContainer>
+          </View>
+
+          {/* Weight by Crop Chart */}
+          <View className="mb-4">
+            <ChartContainer 
+              title="Weight by Crop Type" 
+              subtitle="Total harvest weight per crop"
+              loading={loading}
+            >
+            <View className="px-4 py-4">
+              {weightByCropData.length > 0 ? (
+                <BarChart
+                  data={weightByCropData}
+                  height={250}
+                  barWidth={40}
+                  spacing={30}
+                  initialSpacing={20}
+                  endSpacing={20}
+                  noOfSections={5}
+                  yAxisThickness={1}
+                  xAxisThickness={1}
+                  xAxisColor="#E5E5E5"
+                  yAxisColor="#E5E5E5"
+                  yAxisTextStyle={{ color: '#737373', fontSize: 12 }}
+                  xAxisLabelTextStyle={{ color: '#737373', fontSize: 12 }}
+                  rulesColor="#E5E5E5"
+                  rulesType="solid"
+                  showVerticalLines
+                  verticalLinesColor="#E5E5E5"
+                  isAnimated
+                />
+              ) : (
+                <Text className="text-center text-muted-foreground py-8">No data available</Text>
+              )}
+            </View>
+            </ChartContainer>
+          </View>
+
+          {!loading && !yieldSummary && (
+            <View className="p-6 items-center">
+              <Text className="text-muted-foreground">No harvest data found for the selected date range</Text>
+            </View>
+          )}
+        </View>
+      </SafeAreaView>
+    </ScrollView>
+  );
+}
+

@@ -51,8 +51,14 @@ export default function SignUp() {
   }, [firstName, lastName, email, password, confirmPassword]);
 
   useEffect(() => {
+    console.log('🔍 needsVerification changed:', needsVerification);
+    console.log('🔍 needsVerification type:', typeof needsVerification);
+    console.log('🔍 needsVerification === true:', needsVerification === true);
     if (needsVerification) {
+      console.log('🚀 Navigating to email verification page');
       router.replace("/(auth)/signup/email-verification");
+    } else {
+      console.log('❌ Not navigating, needsVerification is falsy');
     }
   }, [needsVerification]);
 
@@ -73,6 +79,24 @@ async function onSubmit() {
     if (!checked) return;
 
     await register(validatedData);
+    
+    // Check if registration actually succeeded (no errors)
+    const state = useAuthStore.getState();
+    if (state.error || Object.keys(state.fieldErrors).length > 0) {
+      // Registration failed - errors are already set in state
+      console.log('❌ Registration failed:', state.error, state.fieldErrors);
+      return;
+    }
+    
+    console.log('✅ Registration successful:', { email, firstName, lastName });
+    
+    // Navigate to email verification page after successful registration
+    const currentNeedsVerification = useAuthStore.getState().needsVerification;
+    console.log('🔍 After register, needsVerification:', currentNeedsVerification);
+    if (currentNeedsVerification) {
+      console.log('🚀 Navigating to verification page');
+      router.replace("/(auth)/signup/email-verification");
+    }
 
   } catch (err: any) {
     if (err instanceof ZodError) {
@@ -92,8 +116,9 @@ async function onSubmit() {
   return (
     <SafeAreaView className="flex-1 bg-background">
       <KeyboardAvoidingView
-        behavior={Platform.OS === "ios" ? "padding" : undefined}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
         style={{ flex: 1 }}
+        keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 20}
       >
         <ScrollView
           contentContainerStyle={{ flexGrow: 1 }}
@@ -224,14 +249,14 @@ async function onSubmit() {
                       returnKeyType="send" 
                       onSubmitEditing={onSubmit}
                       className={`border text-base pr-12 ${
-                              submitted && confirmPassword !== password
+                              submitted && confirmPassword !== password && confirmPassword.length > 0
                                 ? 'border-red-500'
                                 : 'border-muted-foreground/50'
                             }`}
                     />
                     <PasswordToggle onToggle={setShowConfirmPassword} initialState={showConfirmPassword} />
                   </View>
-                    {submitted && confirmPassword !== password && (
+                    {submitted && confirmPassword !== password && confirmPassword.length > 0 && (
                       <Text className="text-sm text-destructive">
                         Passwords do not match
                       </Text>

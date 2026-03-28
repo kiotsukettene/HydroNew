@@ -86,6 +86,16 @@ export default function SecuritySettings() {
     }
   };
 
+  const allFieldsFilled =
+    oldPassword.trim() !== '' &&
+    newPassword.trim() !== '' &&
+    confirmPassword.trim() !== '';
+
+  const passwordsMatch = newPassword === confirmPassword;
+  const showMatchHint = newPassword.trim() !== '' && confirmPassword.trim() !== '';
+
+  const canSubmit = allFieldsFilled && passwordsMatch;
+
   return (
     <SafeAreaView className="flex-1">
       <KeyboardAvoidingView
@@ -180,10 +190,21 @@ export default function SecuritySettings() {
                   {errors.new_password_confirmation}
                 </Text>
               )}
+              <View className="min-h-[20px] mt-1">
+                {showMatchHint && (
+                  <Text
+                    className={`text-xs ${
+                      passwordsMatch ? 'text-green-600' : 'text-red-500'
+                    }`}
+                  >
+                    {passwordsMatch ? 'Passwords match' : 'Passwords do not match'}
+                  </Text>
+                )}
+              </View>
             </View>
 
-            <View className="mt-2">
-            <PasswordStrengthMeter password={newPassword} />
+            <View className="mt-2 min-h-[100px]">
+              <PasswordStrengthMeter password={newPassword} />
             </View>
 
             
@@ -192,6 +213,7 @@ export default function SecuritySettings() {
           <View className="w-full px-4 mt-4">
             <Button
               className="bg-primary py-3 rounded-full"
+              disabled={!canSubmit}
               onPress={() => setShowModal(true)}
             >
               <Text className="text-center font-poppins-medium">

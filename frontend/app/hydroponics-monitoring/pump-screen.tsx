@@ -1,5 +1,5 @@
-import { View, StyleSheet, BackHandler, Platform } from 'react-native'
-import React, { useEffect } from 'react'
+import { View, StyleSheet, BackHandler, Platform, TouchableOpacity } from 'react-native'
+import React, { useEffect, useState } from 'react'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import LottieView from 'lottie-react-native'
 import { Button } from '@/components/ui/button'
@@ -7,54 +7,114 @@ import { Text } from '@/components/ui/text'
 import { useRouter, useFocusEffect } from 'expo-router'
 import { Stack } from 'expo-router'
 import { toast } from 'sonner-native'
+import { subscribeMessage } from '@/service/mqtt.client'
+import AsyncStorage from '@react-native-async-storage/async-storage'
+import { useAuthStore } from '@/store/auth/authStore'
+import { useTreatmentStore } from '@/store/treatment/treatmentStore'
+import { Icon } from '@/components/ui/icon'
+import { ArrowLeft } from 'lucide-react-native'
+
 
 export default function PumpScreen() {
   const router = useRouter()
-  
+  const userId = useAuthStore((state) => state.user?.id);
+  const { stopPump2: apiTogglePump2 } = useTreatmentStore();
+  const [deviceSerial, setDeviceSerial] = useState('');
+  const [isWaitingForStopAck, setIsWaitingForStopAck] = useState(false);
 
-  // Prevent back navigation
-  useFocusEffect(
-    React.useCallback(() => {
-      const onBackPress = () => {
-        return true
-      }
-
-      if (Platform.OS === 'android') {
-        const backHandler = BackHandler.addEventListener('hardwareBackPress', onBackPress)
-        
-        return () => backHandler.remove()
-      }
-    }, [])
-  )
-
-  // Auto navigate back after 7 seconds (for testing lang)
   useEffect(() => {
-    const timer = setTimeout(() => {
-      toast.success('Pumping completed successfully!')
-      router.back()
-    }, 7000) 
+    const getDeviceSerial = async () => {
+      if (!userId) return;
 
-    return () => clearTimeout(timer)
-  }, [router])
+      try {
+        const storageKey = `paired_device:${userId}`;
+        const deviceData = await AsyncStorage.getItem(storageKey);
+        if (deviceData) {
+          const device = JSON.parse(deviceData);
+          setDeviceSerial(device.serial_number);
+        }
+      } catch (error) {
+        console.error("Failed to retrieve device serial:", error);
+      }
+    };
+    getDeviceSerial();
+  },[userId]);
 
-  const handleStopPump = () => {
-    // Navigate back to previous screen
-    toast.success('Pumping completed successfully!')
-    router.back()
+  // Subscribe to pump state - auto navigate back when pump stops (state = 0)
+  useEffect(() => {
+    if (!deviceSerial) return;
+    
+    const stateTopic = `hydroponics/${deviceSerial}/pump/2/state`;
+    console.log(`[PumpScreen] Subscribing to state topic: ${stateTopic}`);
+    
+    const unsubscribe = subscribeMessage(stateTopic, (_t, payload) => {
+      const value = payload.toString().trim();
+      const isRunning = value === '1';
+      console.log(`[PumpScreen] Pump 2 state: ${isRunning ? 'ON' : 'OFF'} (${value})`);
+      
+      // If pump stopped (automatic or manual), navigate back
+      if (!isRunning) {
+        console.log('[PumpScreen] Pump stopped - navigating back to lettuce view');
+        setIsWaitingForStopAck(false);
+        toast.success('Pumping completed successfully!');
+        router.back();
+      }
+    }, 1);
+    
+    return () => {
+      console.log('[PumpScreen] Cleaning up MQTT subscription');
+      unsubscribe();
+    };
+  }, [deviceSerial, router]);
+
+  const handleBackPress = () => {
+    router.back();
+  };
+
+  const handleStopPump = async () => {
+    if (!deviceSerial) {
+      toast.error('Device not found');
+      return;
+    }
+    
+    console.log('[PumpScreen] Calling API to stop pump (toggle with 0 liters)');
+    setIsWaitingForStopAck(true);
+    
+    // Call API to stop pump - send 0 liters to signal stop
+    const success = await apiTogglePump2();
+    
+    if (!success) {
+      setIsWaitingForStopAck(false);
+      toast.error('Failed to stop pump');
+      return;
+    }
+    
+    console.log('[PumpScreen] API call successful, waiting for MQTT state = 0...');
+    // Keep waiting state - MQTT subscription will handle navigation when state = 0
   }
 
   return (
     <>
       <Stack.Screen 
         options={{ 
-          gestureEnabled: false, // Disable swipe back gesture
+          gestureEnabled: true,
           headerShown: false,
         }} 
       />
       <SafeAreaView className="flex-1 bg-primary">
-        <View className="flex-1 items-center justify-center px-6">
-        
+        {/* Back Button */}
+        <View className="px-6 pt-4">
+          <TouchableOpacity
+            onPress={handleBackPress}
+            className="flex-row items-center"
+            activeOpacity={0.7}
+          >
+            <Icon as={ArrowLeft} size={24} className="text-muted" />
+            <Text className="ml-2 text-base font-semibold text-muted">Back</Text>
+          </TouchableOpacity>
+        </View>
 
+        <View className="flex-1 items-center justify-center px-6">
           {/* Lottie Animation */}
           <View className="items-center justify-center ">
             <LottieView
@@ -75,10 +135,13 @@ export default function PumpScreen() {
           {/* Stop Pump Button */}
           <View className="absolute bottom-8 left-6 right-6">
             <Button
-              className="w-full border border-muted"
+              className={`w-full border border-muted ${isWaitingForStopAck ? 'opacity-50' : ''}`}
               onPress={handleStopPump}
+              disabled={isWaitingForStopAck}
             >
-              <Text className="font-semibold text-muted text-base">Stop Pump</Text>
+              <Text className="font-semibold text-muted text-base">
+                {isWaitingForStopAck ? 'Stopping...' : 'Stop Pump'}
+              </Text>
             </Button>
           </View>
         </View>

@@ -26,7 +26,7 @@ const { height } = Dimensions.get('window');
 export default function EmailVerification() {
   const { countdown, restartCountdown } = useCountdown(30);
   const [code, setCode] = React.useState('');
-  const { verifyOtp, resendOtp, error, resetErrors, loading, userEmail, setNeedsVerification } = useAuthStore();
+  const { verifyOtp, resendOtp, error, resetErrors, loading, userEmail, logout } = useAuthStore();
 
   const onChangeCode = (value: string) => {
     resetErrors();
@@ -44,9 +44,9 @@ const onSubmit = async () => {
   }
 };
 
-const handleCancel = () => {
-  setNeedsVerification(false);
-  router.back(); 
+const handleLogout = async () => {
+  await logout();
+  router.replace('/(auth)/login');
 };
 
   const onResendOtp = async() => {
@@ -105,7 +105,7 @@ const handleCancel = () => {
 
             <CardContent className="gap-6">
               {error && (
-                <Text className="text-red-500 text-center text-sm">
+                <Text className="text-red-600 text-center text-sm">
                   {error}
                 </Text>
               )}
@@ -153,9 +153,9 @@ const handleCancel = () => {
                   <Button
                     variant="outline"
                     className="mx-auto w-full"
-                    onPress={handleCancel}
+                    onPress={handleLogout}
                   >
-                    <Text className=''>Cancel</Text>
+                    <Text className=''>Log out</Text>
                   </Button>
                 </View>
               </View>

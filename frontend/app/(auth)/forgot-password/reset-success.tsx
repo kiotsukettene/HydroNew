@@ -1,11 +1,24 @@
-import React from "react";
-import { SafeAreaView, View, Image } from "react-native";
+import React, { useEffect } from "react";
+import { SafeAreaView, View, Image, BackHandler } from "react-native";
 import { Text } from "@/components/ui/text";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { Link } from "expo-router";
+import { router } from "expo-router";
 
 export default function ResetSuccess() {
+  useEffect(() => {
+    const backHandler = BackHandler.addEventListener('hardwareBackPress', () => {
+      router.replace('/(auth)/login');
+      return true;
+    });
+
+    return () => backHandler.remove();
+  }, []);
+
+  const handleBackToLogin = () => {
+    router.replace('/(auth)/login');
+  };
+
   return (
     <SafeAreaView className="flex-1 items-center justify-center  px-6">
       {/* Circular Icon Wrapper */}
@@ -28,10 +41,9 @@ export default function ResetSuccess() {
       </View>
       
       <View className="mt-4 pt-4 w-full">
-        <Link href="/login" asChild>
-        <Button>
-        <Text>Back to Login</Text>
-      </Button></Link>
+        <Button onPress={handleBackToLogin}>
+          <Text>Back to Login</Text>
+        </Button>
       </View>
     </SafeAreaView>
   );

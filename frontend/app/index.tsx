@@ -6,6 +6,7 @@ import { Link, Redirect, Stack } from 'expo-router';
 import { useColorScheme } from 'nativewind';
 import * as React from 'react';
 import { Image, type ImageStyle, View } from 'react-native';
+import { useAuthStore } from '@/store/auth/authStore';
 
 const LOGO = {
   light: require('@/assets/images/react-native-reusables-light.png'),
@@ -34,7 +35,21 @@ const IMAGE_STYLE: ImageStyle = {
 
 export default function Screen() {
   const { colorScheme } = useColorScheme();
-  const isLoggedIn = false; // Replace with real auth check
+  const token = useAuthStore(state => state.token);
+  const user = useAuthStore(state => state.user);
+  const needsVerification = useAuthStore(state => state.needsVerification);
+  const hydrated = useAuthStore(state => state.hydrated);
+
+  // Wait for hydration to complete before redirecting
+  if (!hydrated) {
+    return null;
+  }
+
+  const isLoggedIn = token && user && !needsVerification;
+
+  if (token && needsVerification) {
+    return <Redirect href="/signup/email-verification" />;
+  }
 
   return isLoggedIn ? (
     <>

@@ -40,12 +40,18 @@ interface YieldResponse {
   };
 }
 
+interface GetYieldResponse {
+  status: string;
+  data: YieldData | null;
+}
+
 interface YieldStore {
   loading: boolean;
   error: string | null;
   yieldData: YieldData | null;
   yieldSaved: boolean;
   storeYield: (setupId: number, payload: YieldPayload) => Promise<void>;
+  fetchYield: (setupId: number) => Promise<YieldData | null>;
   markAsHarvested: (setupId: number) => Promise<void>;
   resetYieldState: () => void;
   resetError: () => void;

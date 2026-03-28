@@ -1,236 +1,311 @@
-import { View, ScrollView, TouchableOpacity } from 'react-native'
-import React from 'react'
-import { SafeAreaView } from 'react-native-safe-area-context'
-import { Text } from '@/components/ui/text'
-import { PageHeader } from '@/components/ui/page-header'
-import { LineChart } from "react-native-gifted-charts";
-import { Card } from '@/components/ui/card'
-import { Separator } from '@/components/ui/separator'
+import { View, ScrollView, TouchableOpacity, RefreshControl } from 'react-native';
+import React, { useCallback, useState } from 'react';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { Text } from '@/components/ui/text';
+import { PageHeader } from '@/components/ui/page-header';
+import { Card } from '@/components/ui/card';
+import { Icon } from '@/components/ui/icon';
+import { useRouter } from 'expo-router';
+import { useFocusEffect } from '@react-navigation/native';
+import { 
+  TrendingUp, 
+  Package, 
+  GitCompare, 
+  Droplet, 
+  Activity, 
+  Zap,
+  BarChart3,
+  ChevronRight,
+  HelpCircle
+} from 'lucide-react-native';
+import { useReportsStore } from '@/store/reports/reportsStore';
+import { Skeleton } from '@/components/ui/skeleton';
+
+interface NavigationCardProps {
+  title: string;
+  description: string;
+  icon: any;
+  onPress: () => void;
+  iconBgClassName?: string;
+  iconClassName?: string;
+}
+
+const NavigationCard = ({ 
+  title, 
+  description, 
+  icon, 
+  onPress,
+  iconBgClassName = 'bg-green-100',
+  iconClassName = 'text-green-700'
+}: NavigationCardProps) => (
+  <TouchableOpacity activeOpacity={0.8} onPress={onPress}>
+    <Card className="p-4 mb-2 shadow-sm border border-muted-foreground/20">
+      <View className="flex-row items-center justify-between">
+        <View className="flex-row items-center flex-1">
+          <View className={`${iconBgClassName} rounded-2xl p-3 mr-3.5`}>
+            <Icon as={icon} size={22} className={iconClassName} />
+          </View>
+          <View className="flex-1">
+            <Text className="text-[15px] font-semibold text-gray-800 mb-0.5">
+              {title}
+            </Text>
+            <Text className="text-xs text-gray-500">
+              {description}
+            </Text>
+          </View>
+        </View>
+        <View className="bg-gray-100 rounded-xl p-1.5">
+          <Icon as={ChevronRight} size={18} className="text-gray-400" />
+        </View>
+      </View>
+    </Card>
+  </TouchableOpacity>
+);
+
+interface StatCardProps {
+  value: string | number;
+  label: string;
+  valueClassName: string;
+  bgClassName: string;
+}
+
+const StatCard = ({ value, label, valueClassName, bgClassName }: StatCardProps) => (
+  <Card
+    className={`flex-1 ${bgClassName} rounded-2xl p-2 mx-1 items-center justify-center border border-slate-200`}
+  >
+    <Text className={`text-3xl pt-3 font-bold ${valueClassName} `}>
+      {value}
+    </Text>
+    <Text className="text-xs text-foreground text-center">
+      {label}
+    </Text>
+  </Card>
+);
+
+interface SectionHeaderProps {
+  icon: any;
+  title: string;
+  iconClassName: string;
+}
+
+const SectionHeader = ({ icon, title, iconClassName }: SectionHeaderProps) => (
+  <View className="flex-row items-center mb-4">
+    <View className={`rounded-xl p-2 mr-2.5`}>
+      <Icon as={icon} size={18} className={iconClassName} />
+    </View>
+    <Text className="text-lg font-bold text-gray-800">
+      {title}
+    </Text>
+  </View>
+);
 
 export default function ReportAnalytics() {
-        const data = [
-          {value: 6, label: 'Day 1'},
-          {value: 7, label: 'Day 2'},
-          {value: 6, label: 'Day 3'},
-          {value: 7, label: 'Day 4'},
-          {value: 6, label: 'Day 5'},
-          {value: 7, label: 'Day 6'},
-          {value: 6, label: 'Day 7'}
-        ];
+  const router = useRouter();
+  const [refreshing, setRefreshing] = useState(false);
+  const { 
+    cropPerformance, 
+    yieldSummary,
+    loading,
+    error,
+    fetchCropPerformance,
+    fetchYieldSummary,
+  } = useReportsStore();
 
-        const recentData = [
-          { id: '1', sensor: 'pH', level: 7.0, source: 'MFC', status: 'Neutral' },
-          { id: '2', sensor: 'pH', level: 2.0, source: 'UV Filter', status: 'Acidic' },
-          { id: '3', sensor: 'pH', level: 12.0, source: 'Natural F...', status: 'Alkaline' },
-          { id: '4', sensor: 'pH', level: 6.5, source: 'Main Tank', status: 'Neutral' },
-          { id: '5', sensor: 'pH', level: 3.2, source: 'Filter System', status: 'Acidic' },
-        ];
+  // Auto-refresh on screen focus
+  useFocusEffect(
+    useCallback(() => {
+      loadDashboardData();
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [])
+  );
 
-        const getStatusColor = (status: string) => {
-          switch (status) {
-            case 'Neutral': return 'bg-primary';
-            case 'Acidic': return 'bg-red-500';
-            case 'Alkaline': return 'bg-purple-500';
-            default: return 'bg-muted';
-          }
-        };
+  const loadDashboardData = async () => {
+    const end = new Date();
+    const start = new Date();
+    start.setDate(start.getDate() - 30);
 
-        const getLevelColor = (level: number) => {
-          if (level >= 6.5 && level <= 7.5) return 'text-primary';
-          if (level < 6.5) return 'text-secondary';
-          if (level > 7.5) return 'text-red-500';
-          return 'text-muted-foreground';
-        };
+    await Promise.all([
+      fetchCropPerformance({
+        status: 'active',
+        start_date: start.toISOString().split('T')[0],
+        end_date: end.toISOString().split('T')[0],
+      }),
+      fetchYieldSummary({
+        start_date: start.toISOString().split('T')[0],
+        end_date: end.toISOString().split('T')[0],
+      }),
+    ]);
+  };
+
+  const onRefresh = async () => {
+    setRefreshing(true);
+    await loadDashboardData();
+    setRefreshing(false);
+  };
 
   return (
-    <ScrollView className="flex-1">
-      <SafeAreaView>
-        <PageHeader 
-          title="Report & Analytics"
-          showBackButton={true}
-          showNotificationButton={false}
-        />
-        <View className="p-4">
-          {/* Creative Title Section */}
-          <View className="relative mb-6">
-            <View className="bg-green-50 rounded-2xl p-4 border-transparent">
-        
-              
-              {/* Main Title */}
-              <View className="relative z-10">
-                <View className="flex-row items-center">
-                  <View className="w-1.5 h-6 bg-primary rounded-full mr-3" />
-                  <Text className="text-2xl font-bold text-primary">
+    <View className="flex-1 ">
+      <SafeAreaView className="flex-1 bg-white/90">
+        <ScrollView 
+          className="flex-1"
+          contentContainerClassName="pb-6"
+          showsVerticalScrollIndicator={false}
+          refreshControl={
+            <RefreshControl 
+              refreshing={refreshing} 
+              onRefresh={onRefresh}
+              tintColor="#4A7C59"
+              colors={['#4A7C59']}
+            />
+          }
+        >
+         
+              <PageHeader 
+                title=""
+                showBackButton={true}
+                showNotificationButton={false}
+              />
+             
+         
+          {/* Title Card */}
+          <View className="mt-2 mb-5">
+            <Card className="rounded-3xl p-5 border-0">
+              <View className="flex-row items-center">
+                <View className="w-1 h-7 bg-green-700 rounded-full mr-3" />
+                <View>
+                  <Text className="text-2xl font-bold ">
                     Report Analytics
                   </Text>
+                  <Text className="text-sm ">
+                    See your farm insights
+                  </Text>
                 </View>
               </View>
-            </View>
+            </Card>
           </View>
-            <Card className='border-muted-foreground/30 px-2 py-4 bg-gradient-to-br from-secondary/20 to-white rounded-2xl overflow-hidden mt-6'>
-            <View className="flex-row justify-between items-start mb-6">
-              <View className="flex-1 px-4 pt-2" >
-                <Text className="text-2xl font-bold text-primary">pH Sensor</Text>
-                <View className="flex-row items-center">
-                  <Text className="text-base text-gray-600">Last 7 days</Text>
-                  <Text className="text-base text-gray-400 mx-3">•</Text>
-                </View>
-              </View>
-              <View className="bg-muted-foreground/20  px-5 py-3 rounded-full">
-                <Text className="font-bold text-base">6.8 avg</Text>
-              </View>
-            </View>
-            <View className="w-full">
-              <LineChart
-                areaChart
-                data={data}
-                startFillColor="hsl(173 58% 39%)"
-                startOpacity={0.3}
-                endFillColor="hsl(173 58% 39% / 0.1)"
-                endOpacity={0.1}
-                maxValue={14}
-                height={250}
-                color="hsl(173 58% 39%)"
-                thickness={3}
-                curved
-                spacing={50}
-                initialSpacing={20}
-                endSpacing={25}
-                hideDataPoints={false}
-                xAxisLabelTextStyle={{color: 'hsl(0 0% 45.1%)', fontSize: 13}}
-                yAxisTextStyle={{color: 'hsl(0 0% 45.1%)', fontSize: 13}}
-                rulesColor="hsl(0 0% 89.8%)"
-                rulesType="solid"
-                showVerticalLines
-                verticalLinesColor="hsl(0 0% 89.8%)"
-                yAxisLabelWidth={50}
-                yAxisLabelSuffix=""
-                hideYAxisText={false}
-                xAxisColor="hsl(0 0% 89.8%)"
-                yAxisColor="hsl(0 0% 89.8%)"
-                width={320}
-                adjustToWidth={true}
-              />
-            </View>
-           </Card>
 
-           {/* Recent Data Section */}
-           <Card className='border-muted-foreground/30 p-6   shadow-lg mt-6'>
-               <Text className="text-2xl font-semibold text-primary ">
-                    Recent Data
-                  </Text>
+          {/* Quick Stats Summary */}
+          <View className="px-5 mb-6">
+            <View className="flex-row items-center justify-between mb-4">
+              <Text className="text-base font-semibold text-gray-800">
+                Quick Overview
+              </Text>
+            </View>
             
-            {recentData.map((item, index) => (
-              <View key={item.id}>
-                <View className="flex-row items-center justify-between py-4">
-                  <View className="flex-1 flex-row items-center">
-                    {/* Main pH Level  */}
-                    <View className="mr-4">
-                      <Text className={`text-2xl font-bold ${getLevelColor(item.level)}`}>
-                        {item.level}
-                      </Text>
-                      <Text className="text-xs text-gray-500 font-medium">pH Level</Text>
-                    </View>
-                    
-                    {/* Sensor and Source Info */}
-                    <View className="flex-1">
-                      <Text className="text-sm font-medium text-gray-900 mb-1">
-                        Sensor: {item.sensor}
-                      </Text>
-                      <Text className="text-sm text-gray-600">
-                        Source: {item.source}
-                      </Text>
-                    </View>
-                  </View>
-                  
-                  {/* Status Badge */}
-                  <View className="flex-row items-center">
-                    <View className={`${getStatusColor(item.status)} w-[72px] h-7 rounded-full items-center justify-center`}>
-                      <Text className="text-white text-[11px] font-semibold">
-                        {item.status}
-                      </Text>
-                    </View>
-                  </View>
-                </View>
-                
-                {/* Divider */}
-                {index < recentData.length - 1 && (
-                  <View className="h-px bg-gray-100" />
-                )}
+            {loading ? (
+              <View className="flex-row gap-2">
+                <Skeleton className="flex-1 h-24 rounded-2xl" />
+                <Skeleton className="flex-1 h-24 rounded-2xl" />
+                <Skeleton className="flex-1 h-24 rounded-2xl" />
               </View>
-             ))}
-            </Card>
-
-            {/* Predictive Plant Growth Card */}
-            <Card className=' mt-6 border-muted-foreground/20 rounded-2xl shadow-sm'>
-              <View className="p-6">
-                 <Text className="text-2xl font-semibold text-primary ">
-                    Predictive Plant Growth
-                  </Text>
-                     <Text className="text-sm text-gray-600 ">
-                      Days until harvest
-                    </Text>
-
-                    <Separator className="my-4 bg-gray-200" />
-                {/* Top Section - Summary */}
-                <View className="flex-row items-end justify-between mt-3 mb-6">
-                 
-                  <View className="flex-1">
-                 
-                    <View className="flex-row items-baseline">
-                      <Text className="text-4xl font-bold text-gray-900">
-                        32
-                      </Text>
-                      <Text className="text-lg text-gray-600 ml-2">
-                        days
-                      </Text>
-                      
-                    </View>
-                    
-                  </View>
-                
-                </View>
-
-                {/* Bottom Section - Weekly Bar Chart */}
-                <View className="w-full">
-                  <LineChart
-                    data={[
-                      {value: 35, label: 'Mon'},
-                      {value: 33, label: 'Tue'},
-                      {value: 31, label: 'Wed'},
-                      {value: 29, label: 'Thu'},
-                      {value: 27, label: 'Fri'},
-                      {value: 25, label: 'Sat'},
-                      {value: 23, label: 'Sun'}
-                    ]}
-                    color="rgb(34, 197, 94)"
-                    thickness={3}
-                    spacing={40}
-                    initialSpacing={20}
-                    endSpacing={20}
-                    hideDataPoints={false}
-                    xAxisLabelTextStyle={{color: '#9CA3AF', fontSize: 12}}
-                    yAxisTextStyle={{color: '#6B7280', fontSize: 12}}
-                    rulesColor="#E5E7EB"
-                    rulesType="dashed"
-                    showVerticalLines
-                    verticalLinesColor="#E5E7EB"
-                    yAxisLabelWidth={30}
-                    yAxisLabelSuffix=""
-                    hideYAxisText={false}
-                    xAxisColor="#E5E7EB"
-                    yAxisColor="#E5E7EB"
-                    height={150}
-                    maxValue={40}
-                    width={280}
-                    adjustToWidth={true}
-                  />
-                </View>
+            ) : (
+              <View className="flex-row -mx-1">
+                <StatCard
+                  value={cropPerformance?.setups.length || 0}
+                  label="Active Setups"
+                  valueClassName="text-green-900"
+                  bgClassName="bg-stone-100"
+                />
+                <StatCard
+                  value={yieldSummary?.total_harvested_setups || 0}
+                  label="Total Harvests"
+                  valueClassName="text-brown-900"
+                  bgClassName="bg-stone-100"
+                />
+                <StatCard
+                  value={yieldSummary?.sellable_yield_percentage 
+                    ? `${yieldSummary.sellable_yield_percentage.toFixed(0)}%` 
+                    : '0%'}
+                  label="Sellable"
+                  valueClassName="text-blue-900"
+                  bgClassName="bg-stone-100"
+                />
               </View>
-            </Card>
-           
-        </View>
+            )}
+          </View>
+
+          {/* Crop Analytics Section */}
+          <View className="px-5 mb-5 mt-3">
+            <SectionHeader
+              icon={TrendingUp}
+              title="Crop Analytics"
+              iconClassName="text-green-700"
+            />
+            
+            <NavigationCard
+              title="Crop Performance"
+              description="Active setups, health status, and growth stages"
+              icon={BarChart3}
+              iconBgClassName="bg-green-50"
+              iconClassName="text-green-700"
+              onPress={() => router.push('/report-analytics/crop-performance')}
+            />
+            
+            <NavigationCard
+              title="Yield Summary"
+              description="Harvest data, weights, and grade distribution"
+              icon={Package}
+              iconBgClassName="bg-orange-50"
+              iconClassName="text-orange-500"
+              onPress={() => router.push('/report-analytics/yield-summary')}
+            />
+          </View>
+
+          {/* Water Quality Section */}
+          <View className="px-5 mb-5">
+            <SectionHeader
+              icon={Droplet}
+              title="Water Quality"
+              iconClassName="text-blue-500"
+            />
+            
+            <NavigationCard
+              title="Historical Data"
+              description="Time-series analysis of water parameters"
+              icon={Activity}
+              iconBgClassName="bg-blue-50"
+              iconClassName="text-blue-500"
+              onPress={() => router.push('/report-analytics/water-quality-historical')}
+            />
+            
+            <NavigationCard
+              title="Trends Analysis"
+              description="Parameter trends and recommendations"
+              icon={TrendingUp}
+              iconBgClassName="bg-cyan-50"
+              iconClassName="text-cyan-600"
+              onPress={() => router.push('/report-analytics/water-quality-trends')}
+            />
+          </View>
+
+          {/* Treatment Performance Section */}
+          <View className="px-5 mb-5">
+            <SectionHeader
+              icon={Zap}
+              title="Treatment Performance"
+              iconClassName="text-purple-500"
+            />
+            
+            <NavigationCard
+              title="Performance Overview"
+              description="Success rates and stage efficiency"
+              icon={Zap}
+              iconBgClassName="bg-purple-50"
+              iconClassName="text-purple-500"
+              onPress={() => router.push('/report-analytics/treatment-performance')}
+            />
+          </View>
+
+          {/* Error Display */}
+          {error && (
+            <View className="px-5 mb-5">
+              <Card className="p-4 bg-red-50 border border-red-200 rounded-2xl">
+                <Text className="text-sm text-red-700">{error}</Text>
+              </Card>
+            </View>
+          )}
+        </ScrollView>
       </SafeAreaView>
-    </ScrollView>
-  )
+    </View>
+  );
 }

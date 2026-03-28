@@ -1,10 +1,17 @@
-import { Tabs } from 'expo-router';
+import { Tabs, usePathname } from 'expo-router';
 import { Home, Settings, Monitor, User, LeafIcon } from 'lucide-react-native';
-import { View, Pressable } from 'react-native';
-import { Text } from '@/components/ui/text';
+import { View } from 'react-native';
+import { FiltrationProgressBar } from '@/components/ui/filtration-progress-bar';
 
 export default function TabLayout() {
+  const pathname = usePathname();
+  const isOnHomePage =
+    pathname === '/home' ||
+    pathname === '/(tabs)/home' ||
+    pathname?.endsWith('/home');
+
   return (
+    <>
     <Tabs
       screenOptions={{
         tabBarActiveTintColor: '#445104', 
@@ -13,6 +20,8 @@ export default function TabLayout() {
           backgroundColor: '#ffffff',
           borderTopWidth: 1,
           borderTopColor: '#e5e7eb',
+          zIndex: 100,
+          elevation: 100,
         },
         tabBarLabelStyle: {
           fontSize: 12,
@@ -41,13 +50,13 @@ export default function TabLayout() {
         options={{
           title: 'Plants',
           tabBarIcon: ({ focused, color, size }) => (
-            <View className="items-center justify-center">
-              <View 
-                className={`w-12 h-12 rounded-full  items-center justify-center ${
+            <View className="items-center justify-center" style={{ zIndex: 101, elevation: 101 }}>
+              <View
+                className={`w-12 h-12 rounded-full items-center justify-center ${
                   focused ? 'bg-primary shadow-lg shadow-green-500/30' : 'bg-primary shadow-lg shadow-green-500/30'
                 }`}
                 style={{
-                  marginTop: -20, 
+                  marginTop: -20,
                   shadowColor: '#10b981',
                   shadowOffset: {
                     width: 0,
@@ -55,7 +64,8 @@ export default function TabLayout() {
                   },
                   shadowOpacity: 0.3,
                   shadowRadius: 8,
-                  elevation: 8, 
+                  elevation: 102,
+                  zIndex: 102,
                 }}
               >
                 <LeafIcon size={24} color="white" />
@@ -83,5 +93,7 @@ export default function TabLayout() {
         }}
       />
     </Tabs>
+    {isOnHomePage && <FiltrationProgressBar floating />}
+    </>
   );
 }

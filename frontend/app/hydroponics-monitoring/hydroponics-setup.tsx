@@ -1,4 +1,4 @@
-import { View, TouchableOpacity, ScrollView, Switch, Animated, Modal } from 'react-native';
+import { View, TouchableOpacity, ScrollView, Switch, Animated, Modal, KeyboardAvoidingView, Platform } from 'react-native';
 import React, { useState, useRef } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { PageHeader } from '@/components/ui/page-header';
@@ -29,7 +29,7 @@ interface HydroponicsSetupData {
   targetPhMax: string;
   targetTdsMin: string;
   targetTdsMax: string;
-  waterAmount: string;
+  waterAmount: string; // Stored as string in form for input handling, converted to integer on submit
   setupDate: string;
   harvestDate: string;
   status: 'active';
@@ -306,7 +306,7 @@ const onSubmit = async () => {
       target_ph_max: parseFloat(formData.targetPhMax),
       target_tds_min: parseInt(formData.targetTdsMin, 10),
       target_tds_max: parseInt(formData.targetTdsMax, 10),
-      water_amount: `${formData.waterAmount}L`,
+      water_amount: parseInt(formData.waterAmount, 10),
       harvest_date: formData.harvestDate,
       pump_config: null,
     };
@@ -316,7 +316,19 @@ const onSubmit = async () => {
 
     const currentError = useHydroponicSetupStore.getState().error;
     if (currentError) {
-      toast.error(currentError);
+      if (typeof currentError === 'object' && currentError !== null) {
+        const backendErrors: Record<string, string> = {};
+        Object.entries(currentError).forEach(([key, value]) => {
+          if (Array.isArray(value)) {
+            backendErrors[key] = value[0];
+          } else if (typeof value === 'string') {
+            backendErrors[key] = value;
+          }
+        });
+        setErrors(backendErrors);
+      } else {
+        toast.error(currentError);
+      }
     } else {
       setShowSuccessModal(true);
     }
@@ -354,20 +366,23 @@ const onSubmit = async () => {
 
   return (
     <SafeAreaView className="flex-1 bg-background">
-      <View className="flex-1">
-        {/* =========== Header Section =========== */}
-        <View className=" pb-4 ">
-          <PageHeader title="" />
-          <View className="mb-2 mt-4 px-6">
-            <Text className="text-2xl font-bold ">New Crop Setup</Text>
-            <Text className="text-muted-foreground text-base mt-1">Fill in your crop's details to start monitoring</Text>
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        style={{ flex: 1 }}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
+      >
+        <View className="flex-1">
+          {/* =========== Header Section =========== */}
+          <View className=" pb-4 ">
+            <PageHeader title="" />
+            <View className="mb-2 mt-4 px-6">
+              <Text className="text-2xl font-bold ">New Crop Setup</Text>
+              <Text className="text-muted-foreground text-base mt-1">Fill in your crop's details to start monitoring</Text>
+            </View>
           </View>
-        </View>
-
       
-
-        {/* =========== Form Section =========== */}
-        <ScrollView className="flex-1 px-6" showsVerticalScrollIndicator={false}>
+          {/* =========== Form Section =========== */}
+          <ScrollView className="flex-1 px-6" showsVerticalScrollIndicator={false}>
           <View className="pb-8">
             
             {/* Crop Details Card */}
@@ -388,7 +403,9 @@ const onSubmit = async () => {
                     </TouchableOpacity>
                   </View>
                   <TouchableOpacity
-                    className="border border-muted-foreground/50 rounded-xl px-3 py-4 bg-[#FAFFFA] flex-row items-center justify-between"
+                    className={`border rounded-xl px-3 py-4 bg-[#FAFFFA] flex-row items-center justify-between ${
+                      errors.crop_name ? 'border-red-500' : 'border-muted-foreground/50'
+                    }`}
                     onPress={() => setShowCropDropdown(!showCropDropdown)}
                   >
                     <Text className={`text-[#2C3E50] capitalize text-base ${!formData.cropName ? 'text-muted-foreground' : ''}`}>
@@ -396,6 +413,9 @@ const onSubmit = async () => {
                     </Text>
                     <Icon as={ChevronDown} size={20} className="text-[#7F8C8D]" />
                   </TouchableOpacity>
+                  {errors.crop_name && (
+                    <Text className="text-red-500 text-xs mt-1">{errors.crop_name}</Text>
+                  )}
                   {showCropDropdown && (
                     <View className="border border-[#E8F5E8] rounded-xl mt-2 bg-white shadow-lg">
                       {cropOptions.map((option) => (
@@ -453,6 +473,9 @@ const onSubmit = async () => {
                       recommendedMinDate={getRecommendedHarvestDateRange(formData.cropName, formData.setupDate)?.minDate}
                       recommendedMaxDate={getRecommendedHarvestDateRange(formData.cropName, formData.setupDate)?.maxDate}
                     />
+                    {errors.harvest_date && (
+                      <Text className="text-red-500 text-xs mt-1">{errors.harvest_date}</Text>
+                    )}
                     
                     {/* Date Validation Feedback */}
                     {formData.harvestDate && isDateInRecommendedRange(formData.harvestDate, formData.cropName, formData.setupDate) === false && (
@@ -467,10 +490,10 @@ const onSubmit = async () => {
                     )}
                     
                     {formData.harvestDate && isDateInRecommendedRange(formData.harvestDate, formData.cropName, formData.setupDate) === true && (
-                      <View className="mt-3 p-3  bg-muted-foreground/15 rounded-xl">
-                        <View className="flex-row items-center gap-2">
+                      <View className="mt-2 sm:mt-3 p-2 sm:p-3 bg-muted-foreground/15 rounded-xl">
+                        <View className="flex-row items-center gap-1.5 sm:gap-2">
                           <Icon as={CheckCircle} size={14} className="text-primary" />
-                          <Text className="text-sm text-foreground">
+                          <Text className="text-xs sm:text-sm text-foreground flex-1">
                             Perfect! This date is within the ideal harvest window.
                           </Text>
                         </View>
@@ -484,7 +507,9 @@ const onSubmit = async () => {
                 <View>
                   <Text className="text-base font-medium  mb-2">Bed Size</Text>
                   <TouchableOpacity
-                    className="border border-muted-foreground/50 rounded-xl px-3 py-4 bg-[#FAFFFA] flex-row items-center justify-between"
+                    className={`border rounded-xl px-3 py-4 bg-[#FAFFFA] flex-row items-center justify-between ${
+                      errors.bed_size ? 'border-red-500' : 'border-muted-foreground/50'
+                    }`}
                     onPress={() => setShowBedSizeDropdown(!showBedSizeDropdown)}
                   >
                     <Text className={`text-[#2C3E50] capitalize text-base ${!formData.bedSize ? 'text-muted-foreground' : ''}`}>
@@ -492,6 +517,9 @@ const onSubmit = async () => {
                     </Text>
                     <Icon as={ChevronDown} size={20} className="text-[#7F8C8D]" />
                   </TouchableOpacity>
+                  {errors.bed_size && (
+                    <Text className="text-red-500 text-xs mt-1">{errors.bed_size}</Text>
+                  )}
                   
                   {showBedSizeDropdown && (
                     <View className="border border-[#E8F5E8] rounded-xl mt-2 bg-white shadow-lg">
@@ -515,7 +543,9 @@ const onSubmit = async () => {
                 {/* Number of Crops with Stepper */}
                 <View>
                   <Text className="text-base font-medium  mb-2">Number of Crops</Text>
-                  <View className="flex-row items-center bg-[#FAFFFA] border border-[#E8F5E8] rounded-xl px-3 py-4">
+                  <View className={`flex-row items-center bg-[#FAFFFA] border rounded-xl px-3 py-4 ${
+                    errors.number_of_crops ? 'border-red-500' : 'border-[#E8F5E8]'
+                  }`}>
                     <TouchableOpacity
                       onPress={() => handleStepperChange('numberOfCrops', -1)}
                       disabled={formData.bedSize !== 'custom'}
@@ -552,6 +582,9 @@ const onSubmit = async () => {
                       <Icon as={Plus} size={16} className="text-white" />
                     </Button>
                   </View>
+                  {errors.number_of_crops && (
+                    <Text className="text-red-500 text-xs mt-1">{errors.number_of_crops}</Text>
+                  )}
                 </View>
 
                  {/* Water Amount */}
@@ -562,12 +595,15 @@ const onSubmit = async () => {
                     onChangeText={handleWaterAmountChange}
                     editable={formData.bedSize === 'custom'}
                     keyboardType="numeric"
-                    className={`border border-muted-foreground/50 rounded-xl px-3 py-4 text-[#2C3E50] text-base ${
-                      formData.bedSize === 'custom' ? 'bg-[#FAFFFA]' : 'bg-gray-100'
-                    }`}
+                    className={` ${
+                      errors.water_amount ? 'border-red-500' : 'border-muted-foreground/50'
+                    } ${formData.bedSize === 'custom' ? 'bg-[#FAFFFA]' : 'bg-gray-100'}`}
                     placeholderTextColor="#95A5A6"
                   />
-                  {formData.bedSize !== 'custom' && (
+                  {errors.water_amount && (
+                    <Text className="text-red-500 text-xs mt-1">{errors.water_amount}</Text>
+                  )}
+                  {formData.bedSize !== 'custom' && !errors.water_amount && (
                     <Text className="text-xs text-muted-foreground mt-1">
                       Water amount is set based on bed size. Select "Custom" to edit.
                     </Text>
@@ -584,9 +620,14 @@ const onSubmit = async () => {
                     placeholder="e.g., General Hydroponics Flora Series"
                     value={formData.nutrientSolution}
                     onChangeText={(value) => handleInputChange('nutrientSolution', value)}
-                    className="border border-muted-foreground/50 rounded-xl px-3 py-4 bg-[#FAFFFA] text-[#2C3E50] focus:border-[#4CAF50] text-base"
+                    className={` focus:border-[#4CAF50] text-base ${
+                      errors.nutrient_solution ? 'border-red-500' : 'border-muted-foreground/50'
+                    }`}
                     placeholderTextColor="#95A5A6"
                   />
+                  {errors.nutrient_solution && (
+                    <Text className="text-red-500 text-xs mt-1">{errors.nutrient_solution}</Text>
+                  )}
                 </View>
               </View>
             </Card>
@@ -649,9 +690,14 @@ const onSubmit = async () => {
                         value={formData.targetPh}
                         onChangeText={(value) => handleNumericInput('targetPh', value)}
                         keyboardType="numeric"
-                        className="border border-muted-foreground/50 rounded-xl px-3 py-3 bg-[#FAFFFA] text-[#2C3E50]"
+                        className={`border rounded-xl px-3 h-12 bg-[#FAFFFA] text-[#2C3E50] text-base ${
+                          errors.target_ph_min ? 'border-red-500' : 'border-muted-foreground/50'
+                        }`}
                         placeholderTextColor="#95A5A6"
                       />
+                      {errors.target_ph_min && (
+                        <Text className="text-red-500 text-xs mt-1">{errors.target_ph_min}</Text>
+                      )}
                     </View>
                      <View className="flex-1">
                       <Text className="text-xs text-[#7F8C8D] mb-2">Maximum</Text>
@@ -659,9 +705,14 @@ const onSubmit = async () => {
                         value={formData.targetPhMax}
                         onChangeText={(value) => handleNumericInput('targetPhMax', value)}
                         keyboardType="numeric"
-                        className="border border-muted-foreground/50 rounded-xl px-3 py-3 bg-[#FAFFFA] text-[#2C3E50]"
+                        className={`border rounded-xl px-3 h-12 bg-[#FAFFFA] text-[#2C3E50] text-base ${
+                          errors.target_ph_max ? 'border-red-500' : 'border-muted-foreground/50'
+                        }`}
                         placeholderTextColor="#95A5A6"
                       />
+                      {errors.target_ph_max && (
+                        <Text className="text-red-500 text-xs mt-1">{errors.target_ph_max}</Text>
+                      )}
                     </View>
                   </View>
                 </View>
@@ -691,9 +742,14 @@ const onSubmit = async () => {
                         value={formData.targetTdsMin}
                         onChangeText={(value) => handleNumericInput('targetTdsMin', value)}
                         keyboardType="numeric"
-                        className="border border-muted-foreground/50 rounded-xl px-3 py-3 bg-[#FAFFFA] text-[#2C3E50]"
+                        className={`border rounded-xl px-3 h-12 bg-[#FAFFFA] text-[#2C3E50] text-base ${
+                          errors.target_tds_min ? 'border-red-500' : 'border-muted-foreground/50'
+                        }`}
                         placeholderTextColor="#95A5A6"
                       />
+                      {errors.target_tds_min && (
+                        <Text className="text-red-500 text-xs mt-1">{errors.target_tds_min}</Text>
+                      )}
                     </View>
                     <View className="flex-1">
                       <Text className="text-xs text-[#7F8C8D] mb-2">Maximum</Text>
@@ -701,9 +757,14 @@ const onSubmit = async () => {
                         value={formData.targetTdsMax}
                         onChangeText={(value) => handleNumericInput('targetTdsMax', value)}
                         keyboardType="numeric"
-                        className="border border-muted-foreground/50 rounded-xl px-3 py-3 bg-[#FAFFFA] text-[#2C3E50]"
+                        className={`border rounded-xl px-3 h-12 bg-[#FAFFFA] text-[#2C3E50] text-base ${
+                          errors.target_tds_max ? 'border-red-500' : 'border-muted-foreground/50'
+                        }`}
                         placeholderTextColor="#95A5A6"
                       />
+                      {errors.target_tds_max && (
+                        <Text className="text-red-500 text-xs mt-1">{errors.target_tds_max}</Text>
+                      )}
                     </View>
                   </View>
                 </View>
@@ -735,7 +796,8 @@ const onSubmit = async () => {
 
           </View>
         </ScrollView>
-      </View>
+        </View>
+      </KeyboardAvoidingView>
 
       {/* Confirmation Modal */}
       <ConfirmationModal

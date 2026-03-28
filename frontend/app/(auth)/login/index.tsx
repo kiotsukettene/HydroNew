@@ -13,6 +13,7 @@ import { Button } from "@/components/ui/button";
 import { Text } from "@/components/ui/text";
 import { Link, useRouter } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { Separator } from "@/components/ui/separator";
 import { Label } from "@/components/ui/label";
 import {
   Card,
@@ -21,12 +22,14 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import Svg, { Path } from "react-native-svg";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useAuthStore } from "@/store/auth/authStore";
 import PasswordToggle from "@/app/hooks/password-toggle";
 import { loginSchema } from "@/validators/authSchema";
 import { ZodError } from "zod";
 import { toast } from "sonner-native"
+import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { useCallback } from "react";
 import { useFocusEffect } from "expo-router";
 
@@ -39,6 +42,7 @@ export default function Login() {
   const resetErrors = useAuthStore((state) => state.resetErrors);
   const loading = useAuthStore((state) => state.loading);
   const needsVerification = useAuthStore((state) => state.needsVerification);
+  const setUserEmail = useAuthStore((state) => state.setUserEmail);
   const [zodErrors, setZodErrors] = useState<{ email?: string; password?: string }>({});
 
   const [email, setEmail] = useState("");
@@ -92,7 +96,8 @@ export default function Login() {
         return;
       }
       if (response?.needs_verification) {
-        toast.error("Please verify your email to continue.");
+        // Set the email in store for the verification page
+        setUserEmail(validated.email);
         router.push("/(auth)/signup/email-verification");
         return;
       }
@@ -115,8 +120,9 @@ export default function Login() {
   return (
     <SafeAreaView className="flex-1 bg-background">
         <KeyboardAvoidingView
-          behavior={Platform.OS === "ios" ? "padding" : undefined}
+          behavior={Platform.OS === "ios" ? "padding" : "height"}
           style={{ flex: 1 }}
+          keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 20}
         >
           <ScrollView
             contentContainerStyle={{ flexGrow: 1 }}
@@ -159,7 +165,7 @@ export default function Login() {
                   )}
 
                   {/* Email */}
-                  <View>
+                  <View className="gap-1">
                     <Label className="font-normal text-muted-foreground">
                       Email
                     </Label>
@@ -174,7 +180,7 @@ export default function Login() {
                       className={`border text-base h-12 ${getInputBorderStyle("email")}`}
                     />
                     {zodErrors.email && (
-                      <Text className="text-destructive text-sm">{zodErrors.email}</Text>
+                      <Text className="text-destructive text-sm mt-1">{zodErrors.email}</Text>
                     )}
                   </View>
 

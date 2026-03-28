@@ -3,8 +3,9 @@ import {
   ScrollView,
   Pressable,
   ActivityIndicator,
-  TextInput,
   TouchableOpacity,
+  KeyboardAvoidingView,
+  Platform,
 } from 'react-native';
 import React, { useEffect, useState } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -12,6 +13,7 @@ import { PageHeader } from '@/components/ui/page-header';
 import { Text } from '@/components/ui/text';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
 import { Minus, Plus, Search, X, MessageCircle } from 'lucide-react-native';
 import { useHelpCenterStore } from '@/store/auth/helpCenterStore';
 import { router } from 'expo-router';
@@ -79,24 +81,29 @@ export default function FAQ() {
   };
 
   return (
-    <View className="flex-1">
-      <ScrollView>
-        <SafeAreaView className="flex-1">
-          <PageHeader title="Help Center" />
+    <SafeAreaView className="flex-1 bg-white/50">
+          <KeyboardAvoidingView
+                behavior={Platform.OS === "ios" ? "padding" : undefined}
+                style={{ flex: 1 }}
+              >
+      
+                <PageHeader title="Help Center" />
+
+      <ScrollView contentContainerStyle={{ paddingBottom: 100 }}>
+        <View className="flex-1">
 
           <View className="items-center p-4">
-            <Text className="mt-7 text-2xl text-primary">
+            <Text className="mt-7 text-3xl  font-semibold text-primary mb-5">
               How can we help you?
             </Text>
 
-            <View className="mt-3 flex-row items-center rounded-xl border border-muted-foreground/30 px-3 py-1">
-              <Search size={18} color="#888" />
-              <TextInput
+            <View className="mt-3 flex-row items-center gap-2">
+              <Input
                 placeholder="Type your question here..."
                 value={searchTerm}
                 onChangeText={setSearchTerm}
                 onSubmitEditing={handleSearch}
-                className="ml-2 flex-1 text-base"
+                className="flex-1 bg-white rounded-xl border border-muted-foreground/30 px-3 py-1"
                 returnKeyType="search"
               />
 
@@ -109,8 +116,8 @@ export default function FAQ() {
                 </TouchableOpacity>
               )}
 
-              <Button variant="ghost" onPress={handleSearch}>
-                <Text>Search</Text>
+              <Button variant="ghost" onPress={handleSearch} className='bg-white text-primary '>
+                <Search size={20} />
               </Button>
             </View>
           </View>
@@ -159,6 +166,13 @@ export default function FAQ() {
                               <Plus size={20} color="#445104" />
                             )}
                           </View>
+                          {isExpanded && (
+                            <View className="mt-3 pt-3 border-t border-gray-200">
+                              <Text className="text-gray-700 leading-6 text-justify">
+                                {highlightText(item.answer, searchTerm)}
+                              </Text>
+                            </View>
+                          )}
                         </CardContent>
                       </Pressable>
                     </Card>
@@ -191,17 +205,20 @@ export default function FAQ() {
               </Button>
             </View>
           )}
-        </SafeAreaView>
+        </View>
       </ScrollView>
 
-      <Button
-        size="sm"
-        className="absolute bottom-6 right-6 rounded-full bg-primary"
-        onPress={() => router.replace('/ask-question')}
-      >
-        <Text className="text-muted">Ask a question</Text>
-        <MessageCircle size={18} color="#fff" />
-      </Button>
-    </View>
+      <View className="absolute bottom-0 right-0 left-0 items-end p-6 pb-8">
+        <Button
+          size="sm"
+          className="rounded-full bg-primary shadow-lg"
+          onPress={() => router.replace('/ask-question')}
+        >
+          <Text className="text-muted">Ask a question</Text>
+          <MessageCircle size={18} color="#fff" />
+        </Button>
+      </View>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
   );
 }

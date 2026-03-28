@@ -22,21 +22,15 @@ import PHLevelDetailsModal from '../water-monitor/ph-level-details';
 import TDSDetailsModal from '../water-monitor/tds-details';
 import PhScale from '@/components/ui/ph-meter';
 
-import { db } from '@/src/firebase';
-import { onValue, ref } from 'firebase/database';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import TurbidityDetailsModal from '../water-monitor/turbidity-details';
-
-interface SensorData {
-  ph: number;
-  tds: number;
-  status: string;
-  turbidity: number;
-  timestamp: number;
-}
+import { useSensorStore } from '@/store/sensor/sensorStore';
+import { MonitorSkeleton } from '@/components/skeletons';
+import { useFiltrationProgressStore } from '@/store/filtration/filtrationProgressStore';
 
 export default function Monitor() {
   const router = useRouter();
+  const isFiltrationProgressActive = useFiltrationProgressStore((s) => s.isActive);
   const [isTDSDetailsModalVisible, setIsTDSDetailsModalVisible] = useState(false);
   const [isTurbidityDetailsModalVisible, setIsTurbidityDetailsModalVisible] = useState(false);
   const [isPHLevelDetailsModalVisible, setIsPHLevelDetailsModalVisible] = useState(false);
@@ -44,26 +38,16 @@ export default function Monitor() {
   const [showRecommendations, setShowRecommendations] = useState(false);
   const [isGeneratingInsights, setIsGeneratingInsights] = useState(false);
 
-  //firebase data fetching
-  const [sensorData, setSensorData] = useState<SensorData | null>(null);
-  const [latestKey, setLatestKey] = useState<string | null>(null);
-  useEffect(() => {
-    const sensorRef = ref(db, 'sensorData/');
-    const unsubscribe = onValue(sensorRef, (snapshot) => {
-      const data = snapshot.val();
-      if (!data) return;
+  // Real-time sensor data from WebSocket - read directly from store (subscription is in _layout.tsx via useEchoSetup)
+  const cleanWater = useSensorStore((state) => state.cleanWater);
+  const dirtyWater = useSensorStore((state) => state.dirtyWater);
+  const lastUpdated = useSensorStore((state) => state.lastUpdated);
+  const loading = useSensorStore((state) => state.loading);
 
-      // Get the latest entry (Firebase push key)
-      const keys = Object.keys(data);
-      const newKey = keys[keys.length - 1];
-      const latestData = data[newKey];
-
-      setLatestKey(newKey);
-      setSensorData(latestData);
-    });
-
-    return () => unsubscribe();
-  }, [latestKey]);
+  // Show skeleton while initial data is loading
+  if (loading && !cleanWater && !dirtyWater) {
+    return <MonitorSkeleton />;
+  }
 
   const handleGenerateInsights = async () => {
     // If already showing recommendations, just toggle them off
@@ -84,7 +68,12 @@ export default function Monitor() {
   };
 
   return (
-    <ScrollView>
+    <ScrollView
+      className="bg-white"
+      contentContainerStyle={{
+        paddingBottom: isFiltrationProgressActive ? 50 : 24,
+      }}
+    >
       <SafeAreaView className="bg-white">
         {/* ===== Page Header ===== */}
         <PageHeader title="Water Monitoring" />
@@ -126,7 +115,7 @@ export default function Monitor() {
                               </Button>
                             </View>
                             <Text className="text-xl font-medium text-gray-800">
-                              {sensorData ? sensorData.ph : '--'}
+                              {dirtyWater?.ph != null && !isNaN(dirtyWater.ph) ? dirtyWater.ph.toFixed(2) : '--'}
                             </Text>
                           </View>
                           <PHLevelDetailsModal
@@ -144,7 +133,7 @@ export default function Monitor() {
                               </Button>
                             </View>
                             <Text className="text-xl font-medium text-gray-800">
-                              {sensorData ? `${Math.round(sensorData.tds)} ppm` : '--'}
+                              {dirtyWater?.tds ? `${Math.round(dirtyWater.tds)} ppm` : '--'}
                             </Text>
                           </View>
                           <TDSDetailsModal
@@ -162,7 +151,7 @@ export default function Monitor() {
                               </Button>
                             </View>
                             <Text className="text-xl font-medium text-gray-800">
-                              {sensorData ? sensorData.turbidity.toFixed(2) : '--'}
+                              {dirtyWater?.turbidity != null && !isNaN(dirtyWater.turbidity) ? dirtyWater.turbidity.toFixed(2) : '--'}
                             </Text>
                           </View>
                           <TurbidityDetailsModal
@@ -170,19 +159,34 @@ export default function Monitor() {
                             onClose={() => setIsTurbidityDetailsModalVisible(false)}
                           />
                         </View>
+
+                        <View className="flex-row items-start">
+                          <View>
+                            <View className="flex-row items-center">
+                              <Text className="text-gray-600">MFC Voltage</Text>
+                            </View>
+                            <Text className="text-xl font-medium text-gray-800">
+                              {dirtyWater?.electric_current != null && !isNaN(dirtyWater.electric_current) ? dirtyWater.electric_current.toFixed(2) : '--'}
+                            </Text>
+                          </View>
+                        </View>
                       </View>
 
                       {/* Right Column: WATER TANK LEVEL */}
                       <View className="items-center">
                         <View className="size-36 items-center justify-center rounded-full bg-white">
-                          <Text className="text-4xl font-bold text-gray-800">20%</Text>
+                          <Text className="text-4xl font-bold text-gray-800">
+                            {dirtyWater?.water_level != null && !isNaN(dirtyWater.water_level) ? dirtyWater.water_level.toFixed(0) : '20'}%
+                          </Text>
                           <Text className="text-sm text-gray-600">Water Tank Level</Text>
                         </View>
 
                         {/* Badge */}
                         <Badge variant="secondary" className="bg-blue-500 dark:bg-blue-600">
                           <Icon as={BadgeCheckIcon} className="text-white" />
-                          <Text className="text-white">Low</Text>
+                          <Text className="text-white">
+                            {dirtyWater?.water_level ? (dirtyWater.water_level < 30 ? 'Low' : dirtyWater.water_level < 70 ? 'Medium' : 'High') : 'Low - Refill Needed'}
+                          </Text>
                         </Badge>
                       </View>
                     </View>
@@ -213,7 +217,7 @@ export default function Monitor() {
                               </Button>
                             </View>
                             <Text className="text-xl font-medium text-gray-800">
-                              {sensorData ? sensorData.ph : '--'}
+                              {cleanWater?.ph != null && !isNaN(cleanWater.ph) ? cleanWater.ph.toFixed(2) : '--'}
                             </Text>
                           </View>
                           <PHLevelDetailsModal
@@ -231,7 +235,7 @@ export default function Monitor() {
                               </Button>
                             </View>
                             <Text className="text-xl font-medium text-gray-800">
-                              {sensorData ? `${Math.round(sensorData.tds)} ppm` : '--'}
+                              {cleanWater?.tds ? `${Math.round(cleanWater.tds)} ppm` : '--'}
                             </Text>
                           </View>
                           <TDSDetailsModal
@@ -249,7 +253,7 @@ export default function Monitor() {
                               </Button>
                             </View>
                             <Text className="text-xl font-medium text-gray-800">
-                              {sensorData ? sensorData.turbidity.toFixed(2) : '--'}
+                              {cleanWater?.turbidity != null && !isNaN(cleanWater.turbidity) ? cleanWater.turbidity.toFixed(2) : '--'}
                             </Text>
                           </View>
                           <TurbidityDetailsModal
@@ -262,14 +266,18 @@ export default function Monitor() {
                       {/* Right Column: WATER TANK LEVEL */}
                       <View className="items-center">
                         <View className="size-36 items-center justify-center rounded-full bg-white">
-                          <Text className="text-4xl font-bold text-gray-800">75%</Text>
+                          <Text className="text-4xl font-bold text-gray-800">
+                            {cleanWater?.water_level != null && !isNaN(cleanWater.water_level) ? cleanWater.water_level.toFixed(0) : '20'}%
+                          </Text>
                           <Text className="text-sm text-gray-600">Water Tank Level</Text>
                         </View>
 
                         {/* Badge */}
                         <Badge variant="secondary" className="bg-blue-500 dark:bg-blue-600">
                           <Icon as={BadgeCheckIcon} className="text-white" />
-                          <Text className="text-white">Good</Text>
+                          <Text className="text-white">
+                            {cleanWater?.water_level ? (cleanWater.water_level < 20 ? 'Low' : cleanWater.water_level < 70 ? 'Good' : 'High') : 'Good'}
+                          </Text>
                         </Badge>
                       </View>
                     </View>
@@ -289,20 +297,7 @@ export default function Monitor() {
               </Tabs>
             </CardContent>
           </Card>
-
-          {/* ===== Generate AI Insights Button ===== */}
-          <Button
-            className="mt-4 "
-            style={{ borderColor: '#d4d4d4' }}
-            variant={'outline'}
-            disabled={isGeneratingInsights}
-            onPress={handleGenerateInsights}>
-            <Icon as={Sparkles} color="#6366f1" size={20} className="mr-2" />
-            <Text className="font-semibold text-indigo-600">
-              {isGeneratingInsights ? 'Generating...' : 'Generate AI Insights'}
-            </Text>
-          </Button>
-
+          
           {/* ===== Loading State ===== */}
           {isGeneratingInsights && (
             <Card className="mt-4 border border-gray-300 p-5 shadow-sm">
@@ -352,7 +347,7 @@ export default function Monitor() {
           {/* ===== pH Level Scale ===== */}
           <View className="mt-4 items-center gap-2">
             <View className="flex w-full flex-row items-center justify-between px-2">
-              <Text className="text-lg font-semibold text-gray-900">Water pH Level</Text>
+              <Text className="text-lg font-semibold text-gray-900">Water pH Level ({tabValue === 'clean' ? 'Clean' : 'Dirty'})</Text>
               <Button
                 variant="link"
                 className="p-0"
@@ -364,7 +359,7 @@ export default function Monitor() {
                 onClose={() => setIsPHLevelDetailsModalVisible(false)}
               />
             </View>
-            <PhScale phValue={sensorData ? sensorData.ph : 0} />
+            <PhScale phValue={tabValue === 'clean' ? (cleanWater?.ph ?? 0) : (dirtyWater?.ph ?? 0)} />
           </View>
 
 

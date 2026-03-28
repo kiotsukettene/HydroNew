@@ -12,7 +12,7 @@ interface HydroponicSetupPayload {
   target_ph_max: number;
   target_tds_min: number;
   target_tds_max: number;
-  water_amount: string;
+  water_amount: number;
   harvest_date: string;
   pump_config?: PumpConfig | null;
 }
@@ -31,6 +31,7 @@ interface HydroponicSetup extends HydroponicSetupPayload {
   plant_age: number;
   days_left: number;
   growth_percentage?: number;
+  growth_stage?: string;
 }
 
 interface PaginationLinks {
@@ -53,18 +54,26 @@ interface HydroponicSetupsResponse {
 
 interface HydroponicSetupStore {
   loading: boolean;
+  loadingMore: boolean;
   error: string | null;
   hydroponicSetups: HydroponicSetup[]; 
   currentSetup: HydroponicSetup | null; // For detailed view
   currentPage: number;
   lastPage: number;
   total: number;
-  cache: Record<string, any>;
+  hasMore: boolean;
+  cache: {
+    hydroponicSetups: HydroponicSetup[];
+    total: number;
+    hasMore: boolean;
+  } | null;
+  lastFetchTime: number | null;
   createHydroponicSetup: (data: HydroponicSetupPayload) => Promise<void>;
-  fetchHydroponicSetups: (page?: number, forceRefresh?: boolean) => Promise<void>; 
+  updateHydroponicSetup: (setupId: number, data: HydroponicSetupPayload) => Promise<void>;
+  fetchHydroponicSetups: (reset?: boolean, useCache?: boolean) => Promise<void>; 
+  loadMore: () => Promise<void>;
+  refresh: () => Promise<void>;
   fetchSetupById: (setupId: number) => Promise<void>;
-  nextPage: () => Promise<void>;
-  prevPage: () => Promise<void>;
   clearCache: () => void;
   resetError: () => void;
 }

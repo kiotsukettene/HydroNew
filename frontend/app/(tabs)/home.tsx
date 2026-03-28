@@ -1,15 +1,16 @@
-import { View, Image, TouchableOpacity, ScrollView, Pressable, ActivityIndicator } from 'react-native';
+import { View, Image, TouchableOpacity, ScrollView, Pressable, RefreshControl } from 'react-native';
 import React, { useEffect, useState } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Button } from '@/components/ui/button';
 import {
   ArrowRightIcon,
-  BellIcon,
   ChartColumn,
-  History,
   Leaf,
   Settings,
   ChevronRight,
+  Smartphone,
+  CheckCircle2,
+  ArrowRight,
 } from 'lucide-react-native';
 import { Card, CardContent } from '@/components/ui/card';
 import { Text } from '@/components/ui/text';
@@ -21,6 +22,9 @@ import type { HomeProps } from '@/types/home';
 import { useRouter } from 'expo-router';
 import { useDashboardStore } from '@/store/auth/dashboardStore';
 import { useNotificationStore } from '@/store/notification/notificationStore';
+import { useSensorStore } from '@/store/sensor/sensorStore';
+import { useFiltrationProgressStore } from '@/store/filtration/filtrationProgressStore';
+import { HomeSkeleton } from '@/components/skeletons';
 
 import { db } from '@/src/firebase';
 import { onValue, ref } from 'firebase/database';
@@ -53,25 +57,45 @@ function FiltrationBanner() {
   }
 
   const hasFailed = parsed.hasFailed || false;
+  const isComplete = parsed.isComplete || false;
   const stage = parsed.currentStage || 'Stage 1';
   const progress = parsed.progress || '25% Complete';
+
+  if (isComplete) {
+    return (
+      <TouchableOpacity
+        onPress={() => router.push('/(tabs)/filtration')}
+        className="mt-4 sm:mt-5 rounded-xl p-3 sm:p-4 flex-row items-center justify-between"
+        style={{ backgroundColor: '#16a34a' }}
+        activeOpacity={0.8}
+      >
+        <View className="flex-row items-center flex-1">
+          <CheckCircle2 size={20} color="#ffffff" strokeWidth={2.5} />
+          <Text className="ml-2 sm:ml-3 text-sm sm:text-base font-bold text-white">
+            Filtration Complete
+          </Text>
+        </View>
+        <ArrowRight size={18} color="#ffffff" />
+      </TouchableOpacity>
+    );
+  }
 
   return (
     <TouchableOpacity
       onPress={() => router.push('/(tabs)/filtration')}
-      className="mt-5 rounded-xl p-4 flex-row items-center justify-between"
+      className="mt-4 sm:mt-5 rounded-xl p-3 sm:p-4 flex-row items-center justify-between"
       style={{ backgroundColor: hasFailed ? '#dc2626' : '#16a34a' }}
       activeOpacity={0.8}
     >
       <View className="flex-row items-center flex-1">
-        <Settings size={20} color="#ffffff" strokeWidth={2.5} />
-        <Text className="ml-3 text-base font-bold text-white">
+        <Settings size={18} color="#ffffff" strokeWidth={2.5} />
+        <Text className="ml-2 sm:ml-3 text-sm sm:text-base font-bold text-white">
           {hasFailed ? 'Filtration Failed' : 'Filtration Running'}
         </Text>
       </View>
       <View className="flex-row items-center">
-        <Text className="text-sm text-white mr-2">{stage} - {progress}</Text>
-        <ChevronRight size={18} color="#ffffff" />
+        <Text className="text-xs sm:text-sm text-white mr-1 sm:mr-2">{stage} - {progress}</Text>
+        <ChevronRight size={16} color="#ffffff" />
       </View>
     </TouchableOpacity>
   );
@@ -81,22 +105,17 @@ export default function Home() {
 
   const router = useRouter()
   
-  // //  Temporary mock data 
-  // waterQuality = waterQuality || {
-  //   pHLevel: 6.5,
-  //   status: 'Good',
-  //   level: 'Low',
-  // };
-
-  // growth = growth || {
-  //   percentage: 45,
-  // };
 
   const { data, loading, error, fetchDashboard } = useDashboardStore();
   const unreadCount = useNotificationStore((s) => s.unreadCount);
+  const isFiltrationProgressActive = useFiltrationProgressStore((s) => s.isActive);
+  
+  // Real-time sensor data - read directly from store (subscription is in _layout.tsx via useEchoSetup)
+  const cleanWater = useSensorStore((state) => state.cleanWater);
   //firebase data fetching
    const [sensorData, setSensorData] = useState<SensorData | null>(null);
   const [latestKey, setLatestKey] = useState<string | null>(null);
+  const [refreshing, setRefreshing] = useState(false);
     useEffect(() => {
       const sensorRef = ref(db, 'sensorData/');
       const unsubscribe = onValue(sensorRef, (snapshot) => {
@@ -117,15 +136,16 @@ export default function Home() {
 
   useEffect(() => {
     fetchDashboard();
-  }, []);
+  }, [fetchDashboard]);
+
+  const onRefresh = async () => {
+    setRefreshing(true);
+    await fetchDashboard();
+    setRefreshing(false);
+  };
 
   if (loading) {
-     return (
-      <SafeAreaView className="flex-1 items-center justify-center">
-        <ActivityIndicator size="large" color="#2D7D7D" />
-        <Text className="mt-2 text-lg text-gray-600">Loading dashboard...</Text>
-      </SafeAreaView>
-    );
+    return <HomeSkeleton />;
   }
 
   if (error) {
@@ -137,15 +157,51 @@ export default function Home() {
     );
   }
 
-   const waterQuality = data
-    ? { pHLevel: data.pHLevel, status: data.status, unit: data.unit }
-    : { pHLevel: 0, status: 'Unknown', unit: '' };
+  // Use real-time pH from clean water sensor, fallback to dashboard data (null when no device)
+  const realTimePH = cleanWater?.ph != null && !isNaN(cleanWater.ph) ? cleanWater.ph : null;
+  const dashboardPH = data?.pHLevel != null && !isNaN(data.pHLevel) ? data.pHLevel : null;
+
+  // Derive water status from real-time pH (match backend: 6.0–7.5 Good, <6 Acidic, >7.5 Alkaline, null Unknown)
+  const phForStatus = realTimePH ?? dashboardPH;
+  const realTimeStatus =
+    phForStatus == null || isNaN(phForStatus)
+      ? null
+      : phForStatus >= 6.0 && phForStatus <= 7.5
+        ? 'Good'
+        : phForStatus < 6.0
+          ? 'Acidic'
+          : 'Alkaline';
+
+  const waterQuality = {
+    pHLevel: realTimePH ?? dashboardPH ?? null,
+    status: realTimeStatus ?? data?.status ?? '--',
+    unit: data?.unit ?? ''
+  };
 
   const userName = data?.user || 'User';
-  const growth = { percentage: 45 }; // Still mock data for now
+  const nearestToHarvest = data?.nearest_to_harvest || null;
+  const growth = { 
+    cropName: nearestToHarvest?.crop_name
+      ? nearestToHarvest.crop_name.charAt(0).toUpperCase() + nearestToHarvest.crop_name.slice(1)
+      : 'No Active Crops',
+    percentage: nearestToHarvest?.growth_percentage ?? 0
+  };
 
   return (
-    <ScrollView className='bg-white'>
+    <ScrollView
+      className="bg-white"
+      contentContainerStyle={{
+        paddingBottom: isFiltrationProgressActive ? 50 : 24,
+      }}
+      refreshControl={
+        <RefreshControl
+          refreshing={refreshing}
+          onRefresh={onRefresh}
+          colors={['#16a34a']}
+          tintColor="#16a34a"
+        />
+      }
+    >
       <SafeAreaView className=''>
         <View className="p-4 ">
 
@@ -174,11 +230,10 @@ export default function Home() {
               {/* pH Level */}
               <View className="absolute left-6 top-9 z-10">
                 <Text className="text-5xl font-bold text-[#2D7D7D]">
-                  {sensorData ? sensorData.ph : '--'}
+                  {waterQuality.pHLevel != null && !isNaN(waterQuality.pHLevel) ? waterQuality.pHLevel.toFixed(2) : '--'}
                 </Text>
                 <Text className="text-lg font-semibold text-foreground/70">pH Level</Text>
               </View>
-
               {/* Water Info */}
               <CardContent className="absolute bottom-4 left-9 z-10 rounded-lg bg-primary/20 px-10 py-3">
                 <View className="flex-row gap-16">
@@ -209,7 +264,17 @@ export default function Home() {
 
             {/* ===== Growth Card ===== */}
             <View className="mt-5">
-              <TouchableOpacity className="relative min-h-40 overflow-hidden rounded-2xl bg-primary p-6" onPress={() => router.push('/(tabs)/hydroponics')}>
+              <TouchableOpacity 
+                className="relative min-h-40 overflow-hidden rounded-2xl bg-primary p-6" 
+                onPress={() => {
+                  if (nearestToHarvest?.setup_id) {
+                    router.push(`/hydroponics-monitoring/lettuce-view?id=${nearestToHarvest.setup_id}`);
+                  } else {
+                    router.push('/(tabs)/hydroponics');
+                  }
+                }}
+                disabled={!nearestToHarvest}
+              >
                 <Image
                   source={require('@/assets/images/growth-bg.png')}
                   className="absolute -right-16 -top-10 h-64 w-64 opacity-70"
@@ -221,23 +286,25 @@ export default function Home() {
                   <View>
                     <View className="mb-1 self-start rounded-full bg-lime-400/20 px-3 py-1">
                       <Text className="text-xs font-semibold uppercase tracking-wide text-lime-200">
-                        Nearest to Harvest
+                        {nearestToHarvest ? 'Nearest to Harvest' : 'No Active Crops'}
                       </Text>
                     </View>
                     <Text className="text-lg font-medium text-muted px-2">
-                      Lettuce A
+                      Setup # {nearestToHarvest?.setup_id} - {growth.cropName}
                     </Text>
                   </View>
                   
                   {/* Growth Percentage */}
-                  <View className="flex-row items-center px-2">
-                    <Text className="text-5xl font-bold text-white">
-                      {growth.percentage}%
-                    </Text>
-                    <View className="ml-2">
-                      <ArrowRightIcon size={24} color="#D9F99D" />
+                  {nearestToHarvest && (
+                    <View className="flex-row items-center px-2">
+                      <Text className="text-5xl font-bold text-white">
+                        {growth.percentage}%
+                      </Text>
+                      <View className="ml-2">
+                        <ArrowRightIcon size={24} color="#D9F99D" />
+                      </View>
                     </View>
-                  </View>
+                  )}
                 </View>
               </TouchableOpacity>
             </View>
@@ -249,7 +316,7 @@ export default function Home() {
             <View className="mt-6 sm:mt-7 md:mt-8">
               <Text className="px-2 text-lg sm:text-xl md:text-2xl font-semibold text-gray-800">Quick Actions</Text>
 
-              <View className="mt-3 sm:mt-4 md:mt-5 flex-row gap-2 sm:gap-3 md:gap-4">
+              <View className="h-auto mt-3 sm:mt-4 md:mt-5 flex-row gap-2 sm:gap-3 md:gap-4">
                 <Pressable onPress={() => {router.push('/(tabs)/hydroponics')}} className='relative flex-1 justify-between overflow-hidden rounded-2xl bg-green-50 p-4 sm:p-5 md:p-6 min-h-24 sm:min-h-28 md:min-h-32'>
                   <Leaf color={'#15803D'} strokeWidth={2} size={24} className="sm:w-7 sm:h-7 md:w-8 md:h-8" />
                   <View>
@@ -259,11 +326,12 @@ export default function Home() {
                 </Pressable>
 
                 <View className="gap-2 sm:gap-3 md:gap-4">
-                  <Pressable onPress={() => router.push('/history')} className="rounded-2xl bg-blue-50 p-4 sm:p-5 md:p-6 min-h-20 sm:min-h-24 md:min-h-28">
-                    <History color={'#1E40AF'} strokeWidth={2} size={24} className="sm:w-7 sm:h-7 md:w-8 md:h-8" />
+                  <Pressable onPress={() => router.push('/device')} className="rounded-2xl bg-blue-50 p-4 sm:p-5 md:p-6 min-h-20 sm:min-h-24 md:min-h-28">
+                    <Smartphone color={'#1E40AF'} strokeWidth={2} size={24} className="sm:w-7 sm:h-7 md:w-8 md:h-8" />
                     <Text className="text-sm sm:text-base md:text-lg font-semibold text-blue-900">
-                      History
+                      Device
                     </Text>
+                   
                   </Pressable>
 
                   <Pressable onPress={() => {router.push('/report-analytics')}}  className="flex-1 justify-between rounded-2xl bg-yellow-50 p-4 sm:p-5 md:p-6 min-h-20 sm:min-h-24 md:min-h-28">
@@ -274,6 +342,7 @@ export default function Home() {
                       </Text>
                     </View>
                   </Pressable>
+                  
                 </View>
               </View>
             </View>

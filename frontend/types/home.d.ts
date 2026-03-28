@@ -1,5 +1,5 @@
 export type WaterQuality = {
-    pHLevel: numnber;
+    pHLevel: number;
     status: 'Good' | 'Poor';
     level: 'Low' | 'Medium' | 'High';
 }
@@ -14,11 +14,18 @@ export type HomeProps = {
   growth: GrowthProgress;
 };
 
+interface NearestToHarvest {
+  setup_id: number;
+  crop_name: string;
+  growth_percentage: number;
+}
+
 interface DashboardData {
   user: string;
-  pHLevel: number;
-  unit: string;
-  status: string;
+  pHLevel: number | null;
+  unit: string | null;
+  status: string | null;
+  nearest_to_harvest: NearestToHarvest | null;
 }
 
 interface DashboardState {
